@@ -6,8 +6,57 @@ import bbsengine5 as bbsengine
 
 vicecommandline = {}
 
+def updatetopbar(args, area):
+    terminalwidth = bbsengine.getterminalwidth()
+    bbsengine.updatetopbar("{bggray}{white}%s" % (area.ljust(terminalwidth-2)))
+    return
+
+def ramlink(args):
+    if ttyio.inputboolean("use ramlink? ", "", "YN") is False:
+        vicecommandline["-ramlink"] = None
+        return
+
+    vicecommandline["+ramlink"] = None
+    if ttyio.inputboolean("rtc save? ", "", "YN") is True:
+        vicecommandline["-rtcsave"] = None
+    else:
+        vicecommandline["+rtcsave"] = None
+    return
+    if ttyio.inputboolean("allow write to ramlink image? ", "Y", "YN") is True:
+        vicecommandline["-ramlinkimagerw"] = None
+    else:
+        vicecommandline["+ramlinkimagerw"] = None
+    ramlinksize = ttyio.inputinteger("RAMLINK RAMCARD size in MiB (0=Disabled): ")
+    vicecommandline["-ramlinksize"] = ramlinksize
+    return
+
 def drivetype(args, devicenumber):
-    pass
+    types = {
+        "1540": "CBM 1540",
+        "1541": "CBM 1541",
+        "1541-II": "CBM 1541-II",
+        "1570": "CBM 1570",
+        "1571": "CBM 1571",
+        "1581": "CBM 1581"
+    }
+    options = "N"
+    menu = {}
+    char = ord("A")
+    bbsengine.title("device %d setup" % (devicenumber))
+    updatetopbar(args, "device %d setup" % (devicenumber))
+    for k, v in types.items():
+        ttyio.echo("[%s] %s" % (chr(char), v))
+        options += chr(char)
+        menu[chr(char)] = k
+        char += 1
+    ttyio.echo("[N] None")
+
+    dt = ttyio.inputchar("device %d type: " % (devicenumber), options, "N")
+    ttyio.echo("menu=%r" % (menu), interpret=False)
+    if dt in menu:
+        ttyio.echo("%s" % (menu[dt]))
+        return menu[dt]
+    return None
 
 def main():
     # parser = OptionParser(usage="usage: %prog [options] projectid")
@@ -34,7 +83,6 @@ def main():
     # -ltkimage2 disk2.dlk -drive8type 1541 -drive9type 0 -8 dos72-s1.d64
     # -kernal kernal
 
-    vicecommandline = {}
     if storage == "L":
         ttyio.echo("Lt. Kernel")
         vicecommandline["-cartcrt"] = "ltk.crt"
@@ -44,14 +92,32 @@ def main():
     elif storage == "C":
         ttyio.echo("CMD")
         pass
-    vicecommandline["-drive8type"] = "1541"
-    vicecommandline["-drive9type"] = "0"
-    vicecommandline["-8"] = "dos72-s1.d64"
+    # vicecommandline["-drive9type"] = "0"
+    if storage == "L":
+        if ttyio.inputboolean("use ltk dos72-s1 disk on device 8? ", "N", "YN"):
+            vicecommandline["-8"] = "dos72-s1.d64"
+            vicecommandline["-drive8type"] = "1541"
     
-    for k, v in vicecommandline.items():
-        ttyio.echo("%s: %s" % (k, v))
+    device9type = drivetype(args, 9)
+    if device9type is not None:
+        vicecommandline["-device9type"] = device9type
+        diskimage = ttyio.inputstring("device 9 disk: ", noneok=True)
+    device10type = drivetype(args, 10)
+    if device10type is not None:
+        vicecommandline["-device10type"] = device10type
+    device11type = drivetype(args, 11)
+    if device11type is not None:
+        vicecommandline["-device11type"] = device11type
 
-    ttyio.echo("{reset}")
+    ramlink(args)
+
+    for k, v in vicecommandline.items():
+        if v is not None:
+            ttyio.echo("%s: %s" % (k, v))
+        else:
+            ttyio.echo("%s" % (k))
+
+    ttyio.echo("{reset}{/all}")
     return    
 
 if __name__ == "__main__":
