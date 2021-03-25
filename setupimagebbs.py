@@ -329,13 +329,15 @@ class completeREUSize(object):
     return results[state]
 
 def reu(args):
-  if ttyio.inputboolean("Enable the RAM Expansion Unit?: ", "N", "YN") is True:
+  if ttyio.inputboolean("Enable the RAM Expansion Unit? [yN]: ", "N", "YN") is True:
     vicecommandline["-reu"] = None
     ttyio.inputinteger("Size of the RAM expansion unit. (128/256/512/1024/2048/4096/8192/16384): ", 512, verify=verifyREUSize)
+    vicecommandline["-reuimage"] = inputfilename("REU image: ")
     if ttyio.inputboolean("Allow writing to REU image? [Yn]: ", "Y", "YN") is True:
       vicecommandline["-reuimagerw"] = None
     else:
       vicecommandline["+reuimagerw"] = None
+    vicecommandline["-cartreu"] = inputfilename("Attach raw REU cartridge image: ")
   else:
     vicecommandline["+reu"] = None
   return
