@@ -7,7 +7,7 @@ import time
 r = 1
 v = time.strftime("%Y%m%d%H%M")
 
-projectname = "empyre"
+projectname = "setupimagebbs"
 
 setup(
   name=projectname,
@@ -15,9 +15,9 @@ setup(
   url="https://repo.zoidtechnologies.com/%s/" % (projectname),
   author="zoid technologies",
   author_email="%s@projects.zoidtechnologies.com" % (projectname),
-  py_modules=["empyre"],
-  requires=["ttyio4", "bbsengine4"],
-  scripts=["empyre"],
+  py_modules=["setupimagebbs"],
+  requires=["ttyio4", "bbsengine5"],
+  scripts=["setupimagebbs"],
   license="GPLv2",
   provides=[projectname],
   classifiers=[
@@ -30,7 +30,7 @@ setup(
     "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
     "Topic :: Communications :: BBS"
   ],
-  long_description = """empyre -- turn-based strategy game built upon bbsengine4""",
+  long_description = """setupimagebbs -- output command-line options for tcpser and vice""",
   command_options = {
     "build_sphinx": {
       "project": projectname,
