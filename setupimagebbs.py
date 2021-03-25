@@ -314,6 +314,32 @@ def summary(args):
 
     return
 
+def verifyREUSize(args, buf):
+  if buf == "128" or buf == "256" or buf == "512" or buf == "1024" or buf == "2048" or buf == "4096" or buf == "8192" or buf == "16384":
+    return True
+  return False
+
+class completeREUSize(object):
+  def __init__(self, args, vocab):
+      # ttyio.echo("completeAttributeName.100: called")
+      self.vocab = vocab
+
+  def complete(self:object, text:str, state:int):
+    results = [x for x in self.vocab if x.startswith(text)] + [None]
+    return results[state]
+
+def reu(args):
+  if ttyio.inputboolean("Enable the RAM Expansion Unit?: ", "N", "YN") is True:
+    vicecommandline["-reu"] = None
+    ttyio.inputinteger("Size of the RAM expansion unit. (128/256/512/1024/2048/4096/8192/16384): ", 512, verify=verifyREUSize)
+    if ttyio.inputboolean("Allow writing to REU image? [Yn]: ", "Y", "YN") is True:
+      vicecommandline["-reuimagerw"] = None
+    else:
+      vicecommandline["+reuimagerw"] = None
+  else:
+    vicecommandline["+reu"] = None
+  return
+
 def main():
     # parser = OptionParser(usage="usage: %prog [options] projectid")
     parser = argparse.ArgumentParser("setupimagebbs")
@@ -344,7 +370,8 @@ def main():
         ttyio.echo("setupbbs.main.100: args=%r" % (args))
 
     storage(args)
-    #ramlink(args)
+    ramlink(args)
+    reu(args)
     tcpser(args)
     summary(args)
 
