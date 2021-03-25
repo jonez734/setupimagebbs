@@ -45,6 +45,8 @@ def title(buf):
   return bbsengine.title(buf, hrcolor="{white}", titlecolor="{bggray}{white}")
 
 def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kw):
+  if args.basedir is not None and default is not None:
+    default = os.path.join(args.basedir, default)
   ttyio.echo("inputfilename.100: delims=%r" % (readline.get_completer_delims()))
   return ttyio.inputstring(prompt, default, verify=verify, completerdelims="\t\n", **kw)
 
@@ -184,7 +186,8 @@ def drivetype(args, devicenumber, oldvalue=None):
         types["FD-2000"] = "CMD FD-2000"
         types["FD-4000"] = "CMD FD-4000"
 
-    ttyio.echo("drivetype.100: oldvalue=%r" % (oldvalue))
+    if args.debug is True:
+      ttyio.echo("drivetype.100: oldvalue=%r" % (oldvalue))
 
     default = "N"
     options = "N"
@@ -216,7 +219,6 @@ def drivetype(args, devicenumber, oldvalue=None):
     return None
 
 def storage(args):
-  
   title("storage")
 
   if args.debug is True:
@@ -329,15 +331,17 @@ class completeREUSize(object):
     return results[state]
 
 def reu(args):
+  title("RAM Expansion Unit")
+
   if ttyio.inputboolean("Enable the RAM Expansion Unit? [yN]: ", "N", "YN") is True:
     vicecommandline["-reu"] = None
     ttyio.inputinteger("Size of the RAM expansion unit. (128/256/512/1024/2048/4096/8192/16384): ", 512, verify=verifyREUSize)
-    vicecommandline["-reuimage"] = inputfilename("REU image: ")
+    vicecommandline["-reuimage"] = inputfilename(args, "REU image: ")
     if ttyio.inputboolean("Allow writing to REU image? [Yn]: ", "Y", "YN") is True:
       vicecommandline["-reuimagerw"] = None
     else:
       vicecommandline["+reuimagerw"] = None
-    vicecommandline["-cartreu"] = inputfilename("Attach raw REU cartridge image: ")
+    vicecommandline["-cartreu"] = inputfilename(args, "Attach raw REU cartridge image: ")
   else:
     vicecommandline["+reu"] = None
   return
@@ -360,6 +364,7 @@ def main():
     # @see https://stackoverflow.com/questions/33038056/deactivate-readline-autocompletion
     parser.add_argument("--storage", action="store", choices=["ltk", "cmd"], dest="storage")
     parser.add_argument("--ramlink", action="store_true", dest="ramlink")
+    parser.add_argument("--basedir", action="store", dest="basedir", default=".")
     args = parser.parse_args()
     # ttyio.echo("args=%r" % (args), level="debug")
 
@@ -368,9 +373,10 @@ def main():
     terminalwidth = ttyio.getterminalwidth()
 
     # bbsengine.inittopbar()
-    if args is not None and "debug" in args and args.debug is True:
+    if args.debug is True:
         ttyio.echo("setupbbs.main.100: args=%r" % (args))
-
+    if args.basedir and args.debug is True:
+      ttyio.echo("setupbbs.main.120: basedir=%r" % (args.basedir))
     storage(args)
     ramlink(args)
     reu(args)
