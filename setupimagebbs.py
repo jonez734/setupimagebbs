@@ -8,6 +8,22 @@ import bbsengine5 as bbsengine
 
 vicecommandline = {}
 
+class completeVocab(object):
+  def __init__(self, args, vocab):
+      # ttyio.echo("completeAttributeName.100: called")
+      self.vocab = vocab
+
+  # @log_exceptions
+  def complete(self:object, text:str, state:int):
+    results = [x for x in self.vocab if x.startswith(text)] + [None]
+    return results[state]
+
+def verifyLoggingLevelName(args, buf):
+  vocab = ["none", "fatal", "error", "warn", "info", "debug", "enter-exit", "all"]
+  if buf in vocab:
+    return True
+  return False
+
 def verifyFileExistsReadable(args, filename):
   filename = os.path.expanduser(filename)
   filename = os.path.expandvars(filename)
@@ -103,6 +119,29 @@ def tcpser(args):
   if len(traceflags) > 0:
     tcpsercommandline["-t"] = traceflags
 
+  vocab = ["none", "fatal", "error", "warn", "info", "debug", "enter-exit", "all"]
+  buf = ttyio.inputstring("Logging Level (-l): ", "all", completer=completeVocab(args, vocab), verify=verifyLoggingLevelName)
+  ttyio.echo("buf=%r" % (buf))
+  level = None
+  for i in range(0, len(vocab)):
+    if vocab[i] == buf:
+      level = i
+      break
+
+  if args.debug is True:
+    ttyio.echo("level=%r" % (i))
+  tcpsercommandline["-l"] = i
+
+#define LOG_TRACE 10
+#define LOG_ALL 7
+#define LOG_ENTER_EXIT 6
+#define LOG_DEBUG 5
+#define LOG_INFO 4
+#define LOG_WARN 3
+#define LOG_ERROR 2
+#define LOG_FATAL 1
+#define LOG_NONE 0
+
 def ramlink(args):
   title("ramlink")
 
@@ -177,7 +216,18 @@ def drivetype(args, devicenumber, oldvalue=None):
     return None
 
 def storage(args):
-  s = ttyio.inputchar("[L]t Kernel or [C]MD? ", "LC", "")
+  
+  title("storage")
+
+  if args.debug is True:
+    ttyio.echo("storage.100: storage=%r" % (args.storage))
+  if args.storage is not None:
+    if args.storage.upper() == "LTK":
+      s = "L"
+    elif args.storage.upper() == "CMD":
+      s = "C"
+  else:
+    s = ttyio.inputchar("[L]t Kernel or [C]MD? ", "LC", "")
 
   # x64sc.exe -cartcrt ltk.crt -ltkimage0 disk0.dlk -ltkimage1 disk1.dlk
   # -ltkimage2 disk2.dlk -drive8type 1541 -drive9type 0 -8 dos72-s1.d64
@@ -190,11 +240,21 @@ def storage(args):
       vicecommandline["-ltkimage0"] = inputfilename(args, "ltkimage0: ", "disk0.dlk")
       vicecommandline["-ltkimage1"] = inputfilename(args, "ltkimage1: ", "disk1.dlk")
       vicecommandline["-ltkimage2"] = inputfilename(args, "ltkimage2: ", "disk2.dlk")
-      vicecommandline["-ltkport"] = ttyio.inputstring("Set LTK port number (0..15): ", verify=verifyLTKPortInRange)
-      vicecommandline["-ltkio"] = ttyio.inputchar("Set LTK IO page (0=$DExx, 1=$DFxx=default): ", "1", "01")
-      if ttyio.inputboolean("use ltk dos72-s1 disk on device 8? ", "N", "YN"):
-          vicecommandline["-8"] = "dos72-s1.d64"
-          vicecommandline["-drive8type"] = "1541"
+      vicecommandline["-ltkport"] = ttyio.inputstring("Set LTK port number (0..15): ", "0", verify=verifyLTKPortInRange)
+
+      ch = vicecommandline["-ltkio"] = ttyio.inputchar("Set LTK IO page (0=$DExx, 1=$DFxx=default): ", "01", "1")
+      if ch == "1":
+        ttyio.echo("$DFxx (default)")
+      elif ch == "0":
+        ttyio.echo("$DExx")
+      vicecommandline["-ltkio"] = ch
+
+      ch = ttyio.inputboolean("use ltk dos72-s1 disk on device 8? ", "N", "YN")
+      if ch == "Y":
+        vicecommandline["-8"] = "dos72-s1.d64"
+        vicecommandline["-drive8type"] = "1541"
+      elif ch == "N":
+        ttyio.echo("No")
   elif s == "C":
       args.storage = "CMD"
       ttyio.echo("CMD")
@@ -229,11 +289,29 @@ def storage(args):
 
 def summary(args):
     title("summary")
+
+    opts = []
     for k, v in vicecommandline.items():
-        if v is not None:
-            ttyio.echo("%s %s" % (k, v))
-        else:
-            ttyio.echo("%s" % (k))
+      if v is not None:
+        buf = "%s %s" % (k, v)
+      else:
+        buf = "%s" % (k)
+
+      opts.append(buf)
+    ttyio.echo("x64sc %s" % (" ".join(opts)))
+
+    opts = []
+    for k, v in tcpsercommandline.items():
+      if v is not None:
+        buf = "%s %s" % (k, v)
+      else:
+        buf = "%s" % (k)
+
+      opts.append(buf)
+      # ttyio.echo(buf)
+
+    ttyio.echo("tcpser %s" % (" ".join(opts)))
+
     return
 
 def main():
@@ -252,25 +330,23 @@ def main():
     # @see https://stackoverflow.com/questions/10487827/why-am-i-forced-to-os-path-expanduser-in-python
     # @see https://docs.python.org/3/library/os.path.html
     # @see https://stackoverflow.com/questions/33038056/deactivate-readline-autocompletion
-    parser.add_argument("--storage", choices=["ltk", "cmd"], dest="storage")
+    parser.add_argument("--storage", action="store", choices=["ltk", "cmd"], dest="storage")
     parser.add_argument("--ramlink", action="store_true", dest="ramlink")
     args = parser.parse_args()
     # ttyio.echo("args=%r" % (args), level="debug")
 
     locale.setlocale(locale.LC_ALL, "")
 
-    args.storage = None
     terminalwidth = ttyio.getterminalwidth()
 
-    bbsengine.inittopbar()
+    # bbsengine.inittopbar()
     if args is not None and "debug" in args and args.debug is True:
         ttyio.echo("setupbbs.main.100: args=%r" % (args))
 
     storage(args)
     #ramlink(args)
-    #tcpser(args)
+    tcpser(args)
     summary(args)
-
 
     ttyio.echo("{reset}{/all}")
     return    
