@@ -10,6 +10,21 @@ import bbsengine5 as bbsengine
 
 vicecommandline = {}
 
+def acia(args):
+  if ttyio.inputboolean("Enable the ACIA RS232 interface emulation (Swiftlink)? [yN]: ", "N", "YN") is False:
+    vicecommandline["+acia1mode"] = None
+    return
+
+  ch = ttyio.inputchar("Set the ACIA mode (0: Normal, 1: Swiftlink, 2: Turbo232) [0]: ", "012", "1")
+  if ch == "0":
+    ttyio.echo("0: Normal")
+  elif ch == "1":
+    ttyio.echo("1: Swiftlink")
+  elif ch == "2":
+    ttyio.echo("2: Turbo32")
+  vicecommandline["-acia1mode"] = ch
+  return
+
 def checktcpser(args, filename="tcpser"): # filename="/home/jam/tmp/tcpser-1.1.4/tcpser"):
   res = subprocess.run([filename, "-V"], capture_output=True, text=True)
 
@@ -89,7 +104,8 @@ def title(buf):
 def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kw):
   if args.basedir is not None and default is not None:
     default = os.path.join(args.basedir, default)
-  ttyio.echo("inputfilename.100: delims=%r" % (readline.get_completer_delims()))
+  if args.debug is True:
+    ttyio.echo("inputfilename.100: delims=%r" % (readline.get_completer_delims()))
   return ttyio.inputstring(prompt, default, verify=verify, completerdelims="\t\n", **kw)
 
 def updatetopbar(args, area):
@@ -144,11 +160,19 @@ tcpsercommandline = {}
 def tcpser(args):
   title("tcpser")
 
-  tcpsercommandline["-s"] = ttyio.inputinteger("speed in bits per second (-s): ", 2400)
-  tcpsercommandline["-v"] = ttyio.inputinteger("tcp port for VICE RS232 (-v): ", 25232)
+  if vicecommandline["-acia1mode"] == "1":
+    speed = 38400
+  else:
+    speed = 2400
+
+  tcpsercommandline["-s"] = ttyio.inputinteger("speed in bits per second (-s): ", speed)
+
+  tcpsercommandline["-v"] = ttyio.inputinteger("tcp port for VICE RS232NET (-v): ", 25232)
   tcpsercommandline["-p"] = ttyio.inputstring("port or address:port (-p): ", "6400")
 
   tcpsercommandline["-i"] = ttyio.inputstring("modem init string (-i): at", "e0v0s0=1s2=27")
+  if ttyio.inputboolean("invert DCD pin? [yN]: ", "N", "YN") is True:
+    tcpsercommandline["-I"] = None
 
   traceflags = ""
   title("trace flags")
@@ -417,22 +441,21 @@ def main():
       ttyio.echo("setupbbs.main.120: basedir=%r" % (args.basedir))
 
     if checktcpser(args) is False:
-      ttyio.echo("blah")
       if ttyio.inputboolean("checktcpser failed. proceed? ", "", "YN") is False:
         return
     else:
-      ttyio.echo("tcpser: yes!")
+      ttyio.echo("checktcpser: passed")
 
     if checkvice(args) is False:
-      ttyio.echo("foo")
       if ttyio.inputboolean("checkvice failed. proceed? ", "", "YN") is False:
         return
     else:
-      ttyio.echo("vice: yes!")
+      ttyio.echo("checkvice passed.")
 
-    storage(args)
-    #ramlink(args)
-    #reu(args)
+    #storage(args)
+    ramlink(args)
+    reu(args)
+    acia(args)
     tcpser(args)
     summary(args)
 
