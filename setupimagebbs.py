@@ -1,12 +1,45 @@
 import os
+import re
 import locale
 import argparse
 import readline
+import subprocess
 
 import ttyio4 as ttyio
 import bbsengine5 as bbsengine
 
 vicecommandline = {}
+
+def checktcpser(args, filename="tcpser"): # filename="/home/jam/tmp/tcpser-1.1.4/tcpser"):
+  res = subprocess.run([filename, "-V"], capture_output=True, text=True)
+
+  # look for "invalid option -- 'V'" -- (-V added in 1.1.4, older versions will complain of invalid option)
+  # ttyio.echo("%r" % (res.stderr))
+  # ttyio.echo("stdout=%r" % (res.stdout))
+  if res.stdout.find("invalid option -- 'V'") > -1 or res.stderr.find("invalid option -- 'V'") > -1:
+    ttyio.echo("The version of tcpser installed is not compatible with imagebbs (>=1.1.4k).")
+    return False
+
+  if res.stdout.find("(TCPSER) 1.1.4") > -1 or res.stderr.find("(TCPSER) 1.1.4") > -1:
+    ttyio.echo("This version of tcpser should be compatible with imagebbs")
+    return True
+
+def checkvice(args, filename="x64sc"):
+  res = subprocess.run([filename, "--features"], capture_output=True, text=True)
+
+  for match in re.finditer(r"^(\S+)\s+(yes|no)\s+(.*)", res.stdout, re.MULTILINE):
+    define = match.group(1)
+    value = True if match.group(2) ==  "yes" else False
+    description = match.group(3)
+    if define == "HAVE_RS232NET":
+      ttyio.echo("{bold}%s: %s (%s){/bold}" % (description, value, define))
+      if value is False:
+        ttyio.echo("HAVE_RS232NET is not enabled.")
+        return False
+      else:
+        ttyio.echo("HAVE_RS232NET is enabled.")
+        return True
+    return None
 
 class completeVocab(object):
   def __init__(self, args, vocab):
@@ -31,6 +64,15 @@ def verifyFileExistsReadable(args, filename):
   if os.access(filename, os.R_OK) is True and os.path.isfile(filename) is True:
     return True
   return False
+
+# @see https://www.digitalocean.com/community/tutorials/how-to-use-subprocess-to-run-external-programs-in-python-3
+def verifyC64Cart(args, filename):
+  f = os.path.join(args.basedir, filename)
+  f = os.path.expanduser(f)
+  f = os.path.expandvars(f)
+  res = subprocess.run(["file", "--brief", f], capture_output=True, text=True)
+  ttyio.echo("res.stdout=%r" % (res.stdout))
+  return
 
 def verifyLTKPortInRange(args, port):
   try:
@@ -283,11 +325,7 @@ def storage(args):
     if option in vicecommandline:
       default = vicecommandline[option]
     image = inputfilename(args, "drive %d image: " % (drivenumber), default)
-
-  #device9type = drivetype(args, 9)
-  #if device9type is not None:
-  #    vicecommandline["-device9type"] = device9type
-  #    diskimage = bbsengine.inputfilename(args, "device 9 image: ", vicecommandline["-9"], noneok=True, multiple=False)
+    vicecommand[option] = image
 
 def summary(args):
     title("summary")
@@ -372,19 +410,34 @@ def main():
 
     terminalwidth = ttyio.getterminalwidth()
 
-    # bbsengine.inittopbar()
     if args.debug is True:
         ttyio.echo("setupbbs.main.100: args=%r" % (args))
+
     if args.basedir and args.debug is True:
       ttyio.echo("setupbbs.main.120: basedir=%r" % (args.basedir))
+
+    if checktcpser(args) is False:
+      ttyio.echo("blah")
+      if ttyio.inputboolean("checktcpser failed. proceed? ", "", "YN") is False:
+        return
+    else:
+      ttyio.echo("tcpser: yes!")
+
+    if checkvice(args) is False:
+      ttyio.echo("foo")
+      if ttyio.inputboolean("checkvice failed. proceed? ", "", "YN") is False:
+        return
+    else:
+      ttyio.echo("vice: yes!")
+
     storage(args)
-    ramlink(args)
-    reu(args)
+    #ramlink(args)
+    #reu(args)
     tcpser(args)
     summary(args)
 
-    ttyio.echo("{reset}{/all}")
     return    
 
 if __name__ == "__main__":
     main()
+    ttyio.echo("{reset}{/all}")
