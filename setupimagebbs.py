@@ -11,11 +11,11 @@ import bbsengine5 as bbsengine
 vicecommandline = {}
 
 def ds12c887rtc(args):
-  if ttyio.inputboolean("enable ds12c887rtc? [Yn]: ", "Y", "YN") is False:
+  if ttyio.inputboolean("enable ds12c887rtc? [{bold}Y{/bold}n]: ", "Y", "YN") is False:
     vicecommandline["+ds12c887rtc"] = None
     return
   vicecommandline["-ds12c887rtc"] = None
-  if ttyio.inputboolean("Enable saving of the DS12C887 RTC data when changed? [Yn]: ", "Y", "YN") is False:
+  if ttyio.inputboolean("Enable saving of the DS12C887 RTC data when changed? [{bold}Y{/bold}n]: ", "Y", "YN") is False:
     vicecommandline["+ds12c887rtcsave"] = None
   else:
     vicecommandline["-ds12c887rtcsave"] = None
@@ -35,19 +35,20 @@ def rs232(args):
   return
 
 def acia(args):
-  if ttyio.inputboolean("Enable the ACIA RS232 interface emulation (Swiftlink)? [yN]: ", "N", "YN") is False:
-    vicecommandline["+acia1mode"] = None
+  if ttyio.inputboolean("Enable the ACIA RS232 interface emulation (Swiftlink)? [y{bold}N{/bold}]: ", "N", "YN") is False:
+    vicecommandline["+acia1"] = None
     return
 
-  ch = ttyio.inputchar("Set the ACIA mode (0: Normal, 1: Swiftlink, 2: Turbo232) [1]: ", "012", "1")
+  ch = ttyio.inputchar("Set the ACIA mode (0: Normal, {bold}[1]: Swiftlink{/bold}, 2: Turbo232): ", "012", "1")
   if ch == "0":
     ttyio.echo("0: Normal")
   elif ch == "1":
     ttyio.echo("1: Swiftlink")
   elif ch == "2":
     ttyio.echo("2: Turbo32")
+  vicecommandline["-acia1mode"] = ch
 
-  ch = ttyio.inputchar("Set the ACIA interrupt (0: None, [1]: NMI, 2: IRQ): ", "012", "1")
+  ch = ttyio.inputchar("Set the ACIA interrupt (0: None, {bold}[1]: NMI{/bold}, 2: IRQ): ", "012", "1")
   if ch == "0":
     ttyio.echo("0: None")
   elif ch == "1":
@@ -55,8 +56,8 @@ def acia(args):
   elif ch == "2":
     ttyio.echo("2: IRQ")
   vicecommandline["-acia1irq"] = ch
+
   vicecommandline["-myaciadev"] = 0
-  vicecommandline["-acia1mode"] = ch
   vicecommandline["-acia1"] = None
   return
 
@@ -112,7 +113,10 @@ def verifyLoggingLevelName(args, buf):
 def verifyFileExistsReadable(args, filename):
   filename = os.path.expanduser(filename)
   filename = os.path.expandvars(filename)
-  ttyio.echo("filename=%r" % (filename))
+
+  if args.debug is True:
+    ttyio.echo("filename=%r" % (filename), level="debug")
+
   if os.access(filename, os.R_OK) is True and os.path.isfile(filename) is True:
     return True
   return False
@@ -123,7 +127,8 @@ def verifyC64Cart(args, filename):
   f = os.path.expanduser(f)
   f = os.path.expandvars(f)
   res = subprocess.run(["file", "--brief", f], capture_output=True, text=True)
-  ttyio.echo("res.stdout=%r" % (res.stdout))
+  if args.debug is True:
+    ttyio.echo("res.stdout=%r" % (res.stdout), level="debug")
   return
 
 def verifyLTKPortInRange(args, port):
@@ -198,7 +203,11 @@ tcpsercommandline = {}
 def tcpser(args):
   title("tcpser")
 
-  if vicecommandline["-acia1mode"] == "1":
+  ttyio.echo("tcpser.120: vicecommandline=%r" % (vicecommandline), interpret=False)
+  acia1mode = vicecommandline["-acia1mode"] if "-acia1mode" in vicecommandline else None
+  if args.debug is True:
+    ttyio.echo("tcpser.100: acia1mode=%r" % (acia1mode), level="debug")
+  if acia1mode == "1":
     speed = 38400
   else:
     speed = 2400
@@ -371,7 +380,7 @@ def storage(args):
   elif s == "N":
       ttyio.echo("Neither")
 
-  for drivenumber in range(8,11):
+  for drivenumber in range(8,12):
     default = None
     option = "-drive%dtype" % (drivenumber)
     #ttyio.echo("main.100: option=%r" % (option))
@@ -481,7 +490,7 @@ def main():
       ttyio.echo("setupbbs.main.120: basedir=%r" % (args.basedir))
 
     if checktcpser(args) is False:
-      if ttyio.inputboolean("checktcpser failed. proceed? ", "", "YN") is False:
+      if ttyio.inputboolean("{bgred}{black}checktcpser failed{/all}.{f6}proceed? ", "", "YN") is False:
         return
     else:
       ttyio.echo("checktcpser: passed")
@@ -490,7 +499,7 @@ def main():
       if ttyio.inputboolean("checkvice failed. proceed? ", "", "YN") is False:
         return
     else:
-      ttyio.echo("checkvice passed.")
+      ttyio.echo("{bggreen}{black}checkvice passed.{/all}")
 
     acia(args)
     tcpser(args)
