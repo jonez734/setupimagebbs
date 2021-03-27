@@ -8,7 +8,7 @@
 
 ## status
 
-- at the moment, I am unable to use ccgms and connect to one of larry's BBS'. tcpser appears to be working fine, but ccgms does not echo results or my own input. when I switched to 'half duplex', I could see my own typing but nothing from the modem.
+- at the moment, I am unable to use ccgms and connect to one of larry's BBS'. tcpser appears to be working fine, but ccgms does not echo results or my own input. when I switched to 'half duplex', I could see my own typing but nothing from tcpser.
 - one suggestion is to try "syncterm", which does run on the c64
   - https://syncterm.bbsdev.net/
   - https://sourceforge.net/projects/syncterm/
@@ -25,6 +25,10 @@
 
 ## todo
 - if ltk is enabled and configured, make sure no disk images can be assigned to it's device (8 by default)
-- remove dependency on bbsengine5 (bbsengine.title() and bbsengine.updatetopbar())
+- remove dependency on bbsengine5 (bbsengine.title(), bbsengine.inittopbar(), and bbsengine.updatetopbar())
 - test ramlink() and reu()
 - inputfilename() does not handle tab-completion of filenames other than in the current directory, and you cannot specify a relative path and have it complete. the complete code being used is built-in to readline.
+
+## dependencies
+- ttyio4 (on github)
+- bbsengine4
