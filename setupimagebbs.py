@@ -87,10 +87,10 @@ def checkvice(args, filename="x64sc"):
     if define == "HAVE_RS232NET":
       ttyio.echo("{bold}%s: %s (%s){/bold}" % (description, value, define))
       if value is False:
-        ttyio.echo("HAVE_RS232NET is not enabled.")
+        ttyio.echo("{bgred}{white}HAVE_RS232NET is not enabled.{/all}")
         return False
       else:
-        ttyio.echo("HAVE_RS232NET is enabled.")
+        ttyio.echo("{bggreen}{white}HAVE_RS232NET is enabled{/all}")
         return True
     return None
 
@@ -459,6 +459,10 @@ def reu(args):
     vicecommandline["+reu"] = None
   return
 
+def defaultconfig(args):
+  if ttyio.inputboolean("restore default config before processing options? [Yn]: ", "Y", "YN") is True:
+    vicecommandline["-default"] = None
+
 def main():
     # parser = OptionParser(usage="usage: %prog [options] projectid")
     parser = argparse.ArgumentParser("setupimagebbs")
@@ -476,7 +480,7 @@ def main():
     # @see https://docs.python.org/3/library/os.path.html
     # @see https://stackoverflow.com/questions/33038056/deactivate-readline-autocompletion
     parser.add_argument("--storage", action="store", choices=["ltk", "cmd"], dest="storage")
-    parser.add_argument("--ramlink", action="store_true", dest="ramlink")
+    # parser.add_argument("--ramlink", action="store_true", dest="ramlink")
     parser.add_argument("--basedir", action="store", dest="basedir", default=".")
     args = parser.parse_args()
     # ttyio.echo("args=%r" % (args), level="debug")
@@ -490,6 +494,8 @@ def main():
 
     if args.basedir and args.debug is True:
       ttyio.echo("setupbbs.main.120: basedir=%r" % (args.basedir))
+    args.basedir = ttyio.inputstring("basedir: ", args.basedir, args=args)
+    return
 
     if checktcpser(args) is False:
       if ttyio.inputboolean("{bgred}{black}checktcpser failed{/all}.{f6}proceed? ", "", "YN") is False:
@@ -503,9 +509,10 @@ def main():
     else:
       ttyio.echo("{bggreen}{black}checkvice passed.{/all}")
 
-    #acia(args)
-    #tcpser(args)
-    #rs232(args)
+    defaultconfig(args)
+    acia(args)
+    tcpser(args)
+    rs232(args)
     storage(args)
     #ramlink(args)
     #reu(args)
