@@ -113,6 +113,7 @@ def verifyLoggingLevelName(args, buf):
 def verifyFileExistsReadable(args, filename):
   filename = os.path.expanduser(filename)
   filename = os.path.expandvars(filename)
+  ttyio.echo("args=%r filename=%r" % (args, filename))
 
   if args.debug is True:
     ttyio.echo("filename=%r" % (filename), level="debug")
@@ -144,11 +145,12 @@ def title(buf):
   return bbsengine.title(buf, hrcolor="{white}", titlecolor="{bggray}{white}")
 
 def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kw):
+  ttyio.echo("inputfilename.120: args=%r" % (args))
   if args.basedir is not None and default is not None:
     default = os.path.join(args.basedir, default)
   if args.debug is True:
     ttyio.echo("inputfilename.100: delims=%r" % (readline.get_completer_delims()))
-  return ttyio.inputstring(prompt, default, verify=verify, completerdelims="\t\n", **kw)
+  return ttyio.inputstring(prompt, default, verify=verify, completerdelims="\t\n", args=args, **kw)
 
 def updatetopbar(args, area):
     terminalwidth = ttyio.getterminalwidth()
@@ -333,7 +335,7 @@ def drivetype(args, devicenumber, oldvalue=None):
 
 def storage(args):
   title("storage")
-
+  ttyio.echo("storage.100: args=%r" % (args))
   if args.debug is True:
     ttyio.echo("storage.100: storage=%r" % (args.storage))
   if args.storage is not None:
@@ -359,15 +361,15 @@ def storage(args):
 
       ch = vicecommandline["-ltkio"] = ttyio.inputchar("Set LTK IO page (0=$DExx, 1=$DFxx=default): ", "01", "1")
       if ch == "1":
-        ttyio.echo("$DFxx (default)")
+        ttyio.echo("1: $DFxx (default)")
       elif ch == "0":
-        ttyio.echo("$DExx")
+        ttyio.echo("0: $DExx")
       vicecommandline["-ltkio"] = ch
 
-      ch = ttyio.inputboolean("use ltk dos72-s1 disk on device 8? ", "N", "YN")
+      ch = ttyio.inputboolean("use ltk dos72-s1 disk on device 9? ", "N", "YN")
       if ch == "Y":
-        vicecommandline["-8"] = "dos72-s1.d64"
-        vicecommandline["-drive8type"] = "1541"
+        vicecommandline["-9"] = "dos72-s1.d64"
+        vicecommandline["-drive9type"] = "1541"
       elif ch == "N":
         ttyio.echo("No")
   elif s == "C":
@@ -465,7 +467,7 @@ def main():
     parser.add_argument("--verbose", action="store_true", dest="verbose")
     
     # parser.add_option("--debug", default=False, action="store_true", help="run %prog in debug mode")
-    parser.add_argument("--debug", action="store_true", dest="debug")
+    parser.add_argument("--debug", action="store_true", default=False, dest="debug")
 
     # @see https://stackoverflow.com/questions/44342813/multiple-choices-command-line-argument
     # @see https://stackoverflow.com/questions/56119177/how-to-make-a-python-script-tab-complete-directories-in-terminal
@@ -501,9 +503,9 @@ def main():
     else:
       ttyio.echo("{bggreen}{black}checkvice passed.{/all}")
 
-    acia(args)
-    tcpser(args)
-    rs232(args)
+    #acia(args)
+    #tcpser(args)
+    #rs232(args)
     storage(args)
     #ramlink(args)
     #reu(args)
