@@ -12,6 +12,7 @@
 - one suggestion is to try "syncterm", which does run on the c64
   - https://syncterm.bbsdev.net/
   - https://sourceforge.net/projects/syncterm/
+- with quite an effort from larry, I was able to get imagebbs 3.0 to boot, and the terminal program worked correctly.
 
 ## bugs/quirks
 
@@ -24,11 +25,22 @@
 - confirmed baud rates are set properly
 
 ## todo
-- if ltk is enabled and configured, make sure no disk images can be assigned to it's device (8 by default)
-- remove dependency on bbsengine5 (bbsengine.title(), bbsengine.inittopbar(), and bbsengine.updatetopbar())
-- test ramlink() and reu()
-- inputfilename() does not handle tab-completion of filenames other than in the current directory, and you cannot specify a relative path and have it complete. the complete code being used is built-in to readline.
+- [ ] if ltk is enabled and configured, make sure no disk images can be assigned to it's device (8 by default, cannot be changed within vice settings or command line)
+- [x] remove dependency on bbsengine5 (bbsengine.title(), bbsengine.initscreen(), and bbsengine.updatetopbar())
+- [ ] test ramlink() and reu()
+- [ ] inputfilename() does not handle tab-completion of filenames other than in the current directory, and you cannot specify a relative path and have it complete. the complete code being used is built-in to readline.
+- [x] change the swiftlink/ip232 to serial4
+- [x] make sure "save config on exit" is *disabled*
+- [x] fix title()
 
 ## dependencies
 - ttyio4 (on github)
-- bbsengine4
+
+## notes
+- using rtc
+  * the 'im' has a menu for setting the rtc device
+  * in vice, configure a device to be a CMD-4000 (requires a bin)
+  * configure image to use that device for the 'rtc'
+  * if the wrong device number and/or type is used, image will show a corrupt time, and an error about an "illegal quantity"
+- handle "filesystem" devices.
+- make a "save settings on vice exit?" default to *YES*
