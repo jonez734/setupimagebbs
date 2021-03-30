@@ -35,6 +35,7 @@
 - [x] make sure updatetopbar() is correct (bggray/white)
 - [ ] convert tests to a tuple and step through it, checking if return value is False (error)
 - [x] if --debug, do not call initscreen() (helps w debugging by allowing the scrollback buffer)
+- [ ] load/save json data file
 
 ## dependencies
 - ttyio4 (on github)
