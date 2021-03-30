@@ -19,13 +19,46 @@ vicecommandline = {}
 
 def initscreen(topmargin=0, bottommargin=0):
   terminalheight = ttyio.getterminalheight()
-  ttyio.echo("initscreen.100: terminalheight=%r" % (terminalheight))
+  # ttyio.echo("initscreen.100: terminalheight=%r" % (terminalheight))
   ttyio.echo("{decsc}{decstbm:%d,%d}{decrc}" % (topmargin, terminalheight-bottommargin))
 
-def updatetopbar(args, buf:str):
-  # terminalwidth = ttyio.getterminalwidth()
+def updatetopbar(args, area:str):
+  if args.debug is True:
+    return
+
+  terminalwidth = ttyio.getterminalwidth()
   # ttyio.echo("{decsc}{home}%s{decrc}" % (buf.ljust(terminalwidth)), end="")
-  ttyio.echo("{decsc}{/all}{home}%s{el}{decrc}" % (buf), wordwrap=False)
+  buf = area.ljust(terminalwidth-2, " ")
+  ttyio.echo("{decsc}{/all}{home}{bggray}{white} %s{el}{decrc}" % (buf), wordwrap=False)
+  return
+
+def title(title:str, titlecolor:str="{bgray}{white}", hrcolor:str="{white}", hrchars:str="{acs:hline}", llcorner="{acs:llcorner}", lrcorner="{acs:lrcorner}", ulcorner="{acs:ulcorner}", urcorner="{acs:urcorner}", width=None):
+  if width is None:
+    width = ttyio.getterminalwidth()-2
+
+  ttyio.echo("{/all}%s%s{acs:hline:%s}%s" % (hrcolor, ulcorner, width, urcorner), end="")
+  ttyio.echo("{f6}{white}{acs:vline}{bggray}{white}%s{/all}{white}{acs:vline}{/all}" % (title.center(width)), end="")
+  ttyio.echo("{f6}{white}%s{acs:hline:%s}%s{/all}" % (llcorner, width, lrcorner))
+  return
+
+def area(args, buf):
+  title(buf)
+  updatetopbar(args, buf)
+  return
+
+def keyboard(args):
+  keyboards = ("0: Symbpolic", "1: Positional", "2: symbolic (user)", "3: positional (user)")
+  ch = ttyio.inputchar("Specify index of keymap file ({bggray}{white}0:symbolic{/all}, 1:positional, 2:symbolic (user), 3:positional (user))? [0123]: ","0123", "0")
+  if ch == "0":
+    ttyio.echo("0:symbolic")
+  elif ch == "1":
+    ttyio.echo("1:positional")
+  elif ch == "2":
+    ttyio.echo("2:symbolic (user)")
+  elif ch == "3":
+    ttyio.echo("3:positional (user)")
+
+  vicecommandline["-keymap"] = ch
   return
 
 def cmd4000(args):
@@ -51,17 +84,16 @@ def ds12c887rtc(args):
   return
 
 def rs232(args):
-  updatetopbar(args, "vice: rs232")
-  vicecommandline["-rsuser"] = None
+  area(args, "vice: rs232")
+  vicecommandline["+rsuser"] = None
   vicecommandline["-rsdev4"] = "localhost:%s" % (tcpsercommandline["-v"])
   vicecommandline["-rsdev4ip232"] = None
   vicecommandline["-rsdev4baud"] = tcpsercommandline["-s"] # 38400
-  #for x in range(1, 3+1):
-  #  vicecommandline["-rsdev%d" % (x)] = "rsdev%d" % (x)
-  #  vicecommandline["+rsdev%dip232" % (x)] = None
   return
 
 def acia(args):
+  area(args, "vice: acia")
+
   if ttyio.inputboolean("Enable the ACIA RS232 interface emulation (Swiftlink)? [Yn]: ", "Y", "YN") is False:
     vicecommandline["+acia1"] = None
     return
@@ -98,6 +130,8 @@ def acia(args):
   return
 
 def checktcpser(args, filename="tcpser"): # filename="/home/jam/tmp/tcpser-1.1.4/tcpser"):
+  area(args, "setupimagebbs: checking tcpser")
+
   res = subprocess.run([filename, "-V"], capture_output=True, text=True)
 
   TCPSERVERSTRING = "(TCPSER) 1.1.4_vicekludge"
@@ -114,6 +148,8 @@ def checktcpser(args, filename="tcpser"): # filename="/home/jam/tmp/tcpser-1.1.4
     return True
 
 def checkvice(args, filename="x64sc"):
+  area(args, "setupimagebbs: checking vice")
+
   res = subprocess.run([filename, "--features"], capture_output=True, text=True)
 
   for match in re.finditer(r"^(\S+)\s+(yes|no)\s+(.*)", res.stdout, re.MULTILINE):
@@ -126,7 +162,7 @@ def checkvice(args, filename="x64sc"):
         ttyio.echo("{bgred}{white}HAVE_RS232NET is not enabled.{/all}")
         return False
       else:
-        ttyio.echo("{bggreen}{white}HAVE_RS232NET is enabled{/all}")
+        ttyio.echo("{bggreen}{lightgreen}HAVE_RS232NET is enabled{/all}")
         return True
     return None
 
@@ -177,14 +213,6 @@ def verifyLTKPortInRange(args, port):
     return False
   return True
 
-def title(title:str, titlecolor:str="{bgray}{white}", hrcolor:str="{white}", hrchars:str="{acs:hline}", llcorner="{acs:llcorner}", lrcorner="{acs:lrcorner}", ulcorner="{acs:ulcorner}", urcorner="{acs:urcorner}", width=None):
-  if width is None:
-    width = ttyio.getterminalwidth()-2
-
-  ttyio.echo("{/all}%s%s{acs:hline:%s}%s" % (hrcolor, ulcorner, width, urcorner), end="")
-  ttyio.echo("{f6}{white}{acs:vline}{bggray}{white}%s{/all}{white}{acs:vline}{/all}" % (title.center(width)), end="")
-  ttyio.echo("{f6}{white}%s{acs:hline:%s}%s{/all}" % (llcorner, width, lrcorner))
-  return
 
 def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kw):
   ttyio.echo("inputfilename.120: args=%r" % (args))
@@ -211,36 +239,28 @@ def phonebook(args):
 #-n wn2=cib.dyndns.org:6405		\ # Image 2.0
 # Image 2.0 HQ
 #-n hq2=cib.dyndns.org:6407		\ # Image 2.0, test board
-
 # CAPTAIN SULU - System One
 #-n sys=systemone.ddns.net:6400		\ # Image 1.2b
-
 # Blackflag - Alternate Dimension
 #-n altd=altd.dyndns.org:6400		\ # Image 1.2
-
 # Darkstar - Atlantis & Avalon Isle
 #-n atl=atl.ddns.org:6401		\ # Image 2.0
 #-n avi=avalonisle.ddns.net		\ # Image 1.2b
-
 # Jay Theriot - Bayou BBS
 #-n bay=jayctheriot.com:6401		\ # Image 1.2b
-
 # Deadman - Remote CPU
 #-n cpu=remotecpu.com:6502		\ # Image 1.2b
-
 ## S0RC3R0R - Retrograde
 #-n rtg=retrograde.dyndns.org:6400	\ # Image 2.0
-
 ## J.ROTTEN - Riktronics
 #-n rik=rkbbs.net:23			\ # Image 1.2a
-
 ## Hoy Brothers - 13th Floor
 #-n 13f=13th.hoyvision.com:6400		\ # Image 1.3
 
 tcpsercommandline = {}
 
 def tcpser(args):
-  title("tcpser")
+  area(args, "tcpser")
 
   # ttyio.echo("tcpser.120: vicecommandline=%r" % (vicecommandline), interpret=False)
   if ttyio.inputboolean("invert DCD pin? [Yn]: ", "Y", "YN") is True:
@@ -261,8 +281,9 @@ def tcpser(args):
 
   tcpsercommandline["-i"] = ttyio.inputstring("modem init string (-i): at", "e0v0s0=1s2=27")
 
+  area(args, "tcpser: trace flags")
+
   traceflags = ""
-  title("trace flags")
   if ttyio.inputboolean("modem input (s) [Yn]: ", "Y", "YN") is True:
     traceflags += "s"
   if ttyio.inputboolean("modem output (S) [yN]: ", "N", "YN") is True:
@@ -276,7 +297,6 @@ def tcpser(args):
 
   vocab = ["none", "fatal", "error", "warn", "info", "debug", "enter-exit", "all"]
   buf = ttyio.inputstring("Logging Level (-l): ", "all", completer=completeVocab(args, vocab), verify=verifyLoggingLevelName)
-  ttyio.echo("buf=%r" % (buf))
   level = None
   for i in range(0, len(vocab)):
     if vocab[i] == buf:
@@ -287,18 +307,8 @@ def tcpser(args):
     ttyio.echo("level=%r" % (i))
   tcpsercommandline["-l"] = i
 
-#define LOG_TRACE 10
-#define LOG_ALL 7
-#define LOG_ENTER_EXIT 6
-#define LOG_DEBUG 5
-#define LOG_INFO 4
-#define LOG_WARN 3
-#define LOG_ERROR 2
-#define LOG_FATAL 1
-#define LOG_NONE 0
-
 def ramlink(args):
-  title("ramlink")
+  area(args, "vice: ramlink")
 
   if args.ramlink is True:
     ttyio.echo("ramlink enabled by command line option")
@@ -326,6 +336,7 @@ def ramlink(args):
   return
 
 def displaysync(args):
+  area(args, "vice: display sync")
   sync = ttyio.inputchar("{bggray}{white}[N]TSC{/all} or [P]AL? ", "NP", "N")
   if sync == "N":
     ttyio.echo("NTSC")
@@ -337,17 +348,17 @@ def displaysync(args):
 
 def drivetype(args, devicenumber, oldvalue=None):
     types = {
-        "1540": "CBM 1540",
-        "1541": "CBM 1541",
+        "1540":    "CBM 1540",
+        "1541":    "CBM 1541",
         "1541-II": "CBM 1541-II",
-        "1570": "CBM 1570",
-        "1571": "CBM 1571",
-        "1581": "CBM 1581"
+        "1570":    "CBM 1570",
+        "1571":    "CBM 1571",
+        "1581":    "CBM 1581"
     }
 
-    if args.storage == "CMD":
-        types["FD-2000"] = "CMD FD-2000"
-        types["FD-4000"] = "CMD FD-4000"
+    if "-dos4000" in vicecommandline and vicecommandline["-dos4000"] is not None:
+      # types["2000"] = "CMD FD-2000"
+      types["4000"] = "CMD FD-4000"
   
     if args.debug is True:
       ttyio.echo("drivetype.100: oldvalue=%r" % (oldvalue))
@@ -356,8 +367,6 @@ def drivetype(args, devicenumber, oldvalue=None):
     options = "N"
     menu = {}
     char = ord("A")
-    title("device %d setup" % (devicenumber))
-    updatetopbar(args, "storage")
     for k, v in types.items():
       if k == oldvalue:
         ttyio.echo("{bggray}{white}[%s] %s{/all}" % (chr(char), v))
@@ -382,24 +391,23 @@ def drivetype(args, devicenumber, oldvalue=None):
     return None
 
 def storage(args):
-  title("storage")
-  ttyio.echo("storage.100: args=%r" % (args))
-  if args.debug is True:
-    ttyio.echo("storage.100: storage=%r" % (args.storage))
+  area(args, "vice: storage")
   storage = args.storage.upper() if args.storage is not None else None
+  if args.debug is True:
+    ttyio.echo("storage.100: args=%r, storage=%r" % (args, storage))
   if storage is not None:
     if storage == "LTK":
       s = "L"
     elif storage == "CMD":
       s = "C"
   else:
-    s = ttyio.inputchar("[L]t Kernel, [C]MD, [B]oth, or [N]either? ", "BLCN", "N")
+    s = ttyio.inputchar("{bggray}{white}[L]t Kernel{/all}, [C]MD, or [N]either? ", "LCN", "L")
 
   # x64sc.exe -cartcrt ltk.crt -ltkimage0 disk0.dlk -ltkimage1 disk1.dlk
   # -ltkimage2 disk2.dlk -drive8type 1541 -drive9type 0 -8 dos72-s1.d64
   # -kernal kernal
 
-  if s == "L" or s == "B":
+  if s == "L":
       ttyio.echo("Lt. Kernel")
       args.storage = "LTK"
       vicecommandline["-cartcrt"] = inputfilename(args, "-cartcrt: ", "ltk.crt")
@@ -421,19 +429,19 @@ def storage(args):
         vicecommandline["-drive9type"] = "1541"
       elif ch == "N":
         ttyio.echo("No")
-  elif s == "C" or s == "B":
+  elif s == "C":
       args.storage = "CMD"
       ttyio.echo("CMD")
       vicecommandline["-8"] =  "dos-part1.dhd" # what device type?
 
       vicecommandline["-9"] =  "cmddrive9.d4m"
-      vicecommandline["-drive9type"] = "FD-4000"
+      vicecommandline["-drive9type"] = "4000"
 
       vicecommandline["-10"] = "cmddrive10.d4m"
-      vicecommandline["-drive10type"] = "FD-4000"
+      vicecommandline["-drive10type"] = "4000"
 
       vicecommandline["-11"] = "cmddrive11.d4m"
-      vicecommandline["-drive11type"] = "FD-4000"
+      vicecommandline["-drive11type"] = "4000"
   elif s == "N":
       ttyio.echo("Neither")
 
@@ -448,8 +456,8 @@ def storage(args):
     if dt is not None:
       vicecommandline[option] = dt
 
-    if dt == "FD-4000" or dt == "FD-2000":
-      if ttyio.inputboolean("Enable saving of %s RTC data when changed? [Yn]: " % (dt), "Y", "YN") is True:
+    if dt == "4000" or dt == "2000":
+      if ttyio.inputboolean("Enable saving of RTC data to drive %d? [Yn]: " % (drivenumber), "Y", "YN") is True:
         vicecommandline["-drive%drtcsave" % (drivenumber)] = None
       else:
         vicecommandline["+drive%drtcsave" % (drivenumber)] = None
@@ -462,9 +470,11 @@ def storage(args):
       default = vicecommandline[option]
 
     if dt is not None:
-      ttyio.echo("storage.160: default=%r" % (default), level="debug")
-      image = inputfilename(args, "drive %d image: " % (drivenumber), default)
-      vicecommandline[option] = image
+      if args.debug is True:
+        ttyio.echo("storage.160: default=%r" % (default), level="debug")
+      image = inputfilename(args, "drive %d image: " % (drivenumber), default, noneok=True, multiple=False)
+      if image is not None:
+        vicecommandline[option] = image
 
 def summary(args):
     title("summary")
@@ -477,7 +487,7 @@ def summary(args):
         buf = "%s" % (k)
 
       opts.append(buf)
-    ttyio.echo("x64sc %s" % (" ".join(opts)), wordwrap=False)
+    ttyio.echo("x64sc %s" % (" \\{f6} ".join(opts)), wordwrap=False)
 
     opts = []
     for k, v in tcpsercommandline.items():
@@ -508,7 +518,7 @@ class completeREUSize(object):
     return results[state]
 
 def reu(args):
-  title("RAM Expansion Unit")
+  area(args, "vice: RAM Expansion Unit")
 
   if ttyio.inputboolean("Enable the RAM Expansion Unit? [yN]: ", "N", "YN") is True:
     vicecommandline["-reu"] = None
@@ -527,11 +537,25 @@ def defaultconfig(args):
   if ttyio.inputboolean("restore default config before processing options? [Yn]: ", "Y", "YN") is True:
     vicecommandline["-default"] = None
 
-def saveonexit(args):
-  if ttyio.inputboolean("save vice settings on exit? [Yn]: ", "Y", "YN") is True:
+def saveonviceexit(args):
+  area(args, "vice: save settings on vice exit")
+  if ttyio.inputboolean("save vice settings on exit from vice? [Yn]: ", "Y", "YN") is True:
     vicecommandline["-saveres"] = None
   else:
     vicecommandline["+saveres"] = None
+
+def checkltkaciaconflict(args):
+  area(args, "vice: check for ltk / acia1 conflicts")
+
+  ttyio.echo("check ltk and acia1 conflicts: ",end="")
+  if "-aciabase" not in vicecommandline or "-ltkio" not in vicecommandlist:
+    ttyio.echo("ltk or acia not defined.")
+    return True
+
+  if vicecommandline["-acia1base"] == vicecommandline["-ltkio"]:
+      ttyio.echo("conflict.{f6}acia1base and ltkio are set to the same value (%s)" % (vicecommandline["-acia1base"]))
+      return False
+  return True
 
 def main():
     # parser = OptionParser(usage="usage: %prog [options] projectid")
@@ -551,7 +575,7 @@ def main():
     # @see https://stackoverflow.com/questions/33038056/deactivate-readline-autocompletion
     parser.add_argument("--storage", action="store", choices=["ltk", "cmd"], dest="storage")
     # parser.add_argument("--ramlink", action="store_true", dest="ramlink")
-    parser.add_argument("--basedir", action="store", dest="basedir", default=".")
+    parser.add_argument("--basedir", action="store", dest="basedir", default="sandbox/")
     args = parser.parse_args()
     # ttyio.echo("args=%r" % (args), level="debug")
 
@@ -563,41 +587,42 @@ def main():
         ttyio.echo("setupbbs.main.100: args=%r" % (args))
 
     if args.debug is False:
-      initscreen(2)
+      initscreen(topmargin=2)
+
     if args.basedir and args.debug is True:
       ttyio.echo("setupbbs.main.120: basedir=%r" % (args.basedir))
     args.basedir = ttyio.inputstring("basedir: ", args.basedir, args=args)
 
-    if checktcpser(args) is False:
-      if ttyio.inputboolean("{bgred}{black}checktcpser failed{/all}.{f6}proceed? [Yn]: ", "Y", "YN") is False:
-        return
-    else:
-      ttyio.echo("checktcpser: passed")
+    tests = (
+      "checktcpser",
+      "checkvice",
+      "defaultconfig",
+      "acia",
+      "tcpser",
+      "displaysync",
+      "rs232",
+      "cmd4000",
+      "storage",
+      "checkltkaciaconflict",
+      "keyboard",
+      "saveonviceexit",
+      #"ramlink",
+      #"reu",
+      "summary"
+    )
 
-    if checkvice(args) is False:
-      if ttyio.inputboolean("checkvice failed. proceed? ", "N", "YN") is False:
-        return
-    else:
-      ttyio.echo("{bggreen}{white}checkvice passed.{/all}")
-
-    defaultconfig(args)
-    acia(args)
-    tcpser(args)
-    displaysync(args)
-    rs232(args)
-    cmd4000(args)
-    storage(args)
-
-    if vicecommandline["-acia1base"] == vicecommandline["-ltkio"]:
-      ttyio.echo("conflict. acia1base and ltkio are set to the same value (%s)" % (vicecommandline["-acia1base"]))
-      if ttyio.inputboolean("proceed? [yN]: ", "N", "YN") is False:
-        ttyio.echo("{bold}aborted{/bold}", level="error")
-        return
-
-    #ramlink(args)
-    #reu(args)
-    saveonexit(args)
-    summary(args)
+    for t in tests:
+      ttyio.echo("t=%r"  % (t), level="debug")
+      func = eval(t)
+      if callable(func) is False:
+        ttyio.echo("%r is not callable.", level="error")
+        continue
+      res = func(args)
+      if res is False:
+        if ttyio.inputboolean("{bgred}{black}%r failed.{/all}{f6}proceed anyway? [Yn]: " % (t), "Y", "YN") is False:
+          ttyio.echo("{bgred}{gray}aborted{/all}", end="")
+          return False
+      ttyio.echo("{f6}", end="")
 
     return    
 
