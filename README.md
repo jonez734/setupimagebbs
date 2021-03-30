@@ -28,10 +28,13 @@
 - [ ] if ltk is enabled and configured, make sure no disk images can be assigned to it's device (8 by default, cannot be changed within vice settings or command line)
 - [x] remove dependency on bbsengine5 (bbsengine.title(), bbsengine.initscreen(), and bbsengine.updatetopbar())
 - [ ] test ramlink() and reu()
-- [ ] inputfilename() does not handle tab-completion of filenames other than in the current directory, and you cannot specify a relative path and have it complete. the complete code being used is built-in to readline.
+- [ ] tab-complete in inputfilename() is broken.
 - [x] change the swiftlink/ip232 to serial4
-- [x] make sure "save config on exit" is *disabled*
+- [x] make sure "save config on exit" is *enabled* by default
 - [x] fix title()
+- [x] make sure updatetopbar() is correct (bggray/white)
+- [ ] convert tests to a tuple and step through it, checking if return value is False (error)
+- [x] if --debug, do not call initscreen() (helps w debugging by allowing the scrollback buffer)
 
 ## dependencies
 - ttyio4 (on github)
@@ -42,5 +45,5 @@
   * in vice, configure a device to be a CMD-4000 (requires a bin)
   * configure image to use that device for the 'rtc'
   * if the wrong device number and/or type is used, image will show a corrupt time, and an error about an "illegal quantity"
-- handle "filesystem" devices.
-- make a "save settings on vice exit?" default to *YES*
+- handle "filesystem" devices?
+- make a "save settings on vice exit?" default to *YES* (larry)
