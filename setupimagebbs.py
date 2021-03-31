@@ -1,21 +1,24 @@
 import os
 import re
+import json
 import locale
+import socket
 import argparse
 import readline
 import subprocess
-
 import ttyio4 as ttyio
 
 # set model to ntsc (64C)
 # pfiles lu0, everything else on lu1, except for mail on lu2
 # always set acia to $DExx. ltk defaults to $DFxx
-# CMDFD4000 is compat w d64, d81, etc.
+# CMDFD4000 is compat w d64, d81, etc. the glitch is you need to load the dir so the disk is "recognized"
 #
 # from 2021-03-28 meeting w larry and al:
 # x64sc -default +acia1 -ntsc -rsuser -rsdev1 localhost:25232 -rsdev1ip232 -rsdev1baud 2400 -rsdev2 rsdev2 +rsdev2ip232 -rsdev3 rsdev3 +rsdev3ip232 -rsdev4 rsdev4 +rsdev4ip232 +rsuser -dos4000 sandbox/cmd-fd-4000-dos-v1.40-fd-350022.bin -drive9type 4000 -8 dos-part1.dhd -9 cmddrive9.d4m -10 cmddrive10.d4m -11 cmddrive11.d4m
 # tcpser -I -s 2400 -v 25232 -p 6400 -i e0v0s0=1s2=27 -t sI -l 7
 vicecommandline = {}
+tcpsercommandline = {}
+localhost = "localhost"
 
 def initscreen(topmargin=0, bottommargin=0):
   terminalheight = ttyio.getterminalheight()
@@ -46,6 +49,51 @@ def area(args, buf):
   updatetopbar(args, buf)
   return
 
+def checklocalhostdns(args):
+  ttyio.echo("checklocalhostdns.100: checking...", level="debug")
+  try:
+    res = socket.gethostbyname("xxxlocalhost")
+  except:
+    ttyio.echo("{bgred}{orange}dns check for 'localhost' failed, reverting to ip address.{/all}")
+    return "127.0.0.1"
+  else:
+    ttyio.echo("{bglightgreen}{green}dns check for 'localhost' passed.{/all}")
+    return "localhost"
+
+def verifyFileExistsReadable(args, filename):
+  filename = os.path.expanduser(filename)
+  filename = os.path.expandvars(filename)
+  ttyio.echo("args=%r filename=%r" % (args, filename))
+
+  if args.debug is True:
+    ttyio.echo("filename=%r" % (filename), level="debug")
+
+  if os.access(filename, os.R_OK) is True and os.path.isfile(filename) is True:
+    return True
+  return False
+
+def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kw):
+  ttyio.echo("inputfilename.120: args=%r" % (args))
+  if default is not None:
+    default = os.path.expanduser(default)
+    default = os.path.expandvars(default)
+  if args.basedir is not None and default is not None:
+    default = os.path.join(args.basedir, default)
+  if args.debug is True:
+    ttyio.echo("inputfilename.100: delims=%r" % (readline.get_completer_delims()))
+  return ttyio.inputstring(prompt, default, verify=verify, completerdelims="\t\n", args=args, **kw)
+
+def gfd3(args):
+  if ttyio.inputboolean("use settings for 'gfd3'? [Yn]: ", "Y", "YN") is True:
+    vicecommandline["-10"] = "/home/jam/projects/gfd3/drive10.d81"
+    vicecommandline["-11"] = "/home/jam/projects/gfd3/drive11.d81"
+    vicecommandline["-drive10type"] = "1581"
+    vicecommandline["-drive11type"] = "1581"
+    vicecommandline["-ltkimage0"] = "/home/jam/projects/gfd3/drive8-0.dlk"
+    vicecommandline["-ltkimage1"] = "/home/jam/projects/gfd3/drive8-1.dlk"
+    vicecommandline["-ltkimage2"] = "/home/jam/projects/gfd3/drive8-2.dlk"
+  return None
+
 def keyboard(args):
   keyboards = ("0: Symbpolic", "1: Positional", "2: symbolic (user)", "3: positional (user)")
   ch = ttyio.inputchar("Specify index of keymap file ({bggray}{white}0:symbolic{/all}, 1:positional, 2:symbolic (user), 3:positional (user))? [0123]: ","0123", "0")
@@ -62,13 +110,13 @@ def keyboard(args):
   return
 
 def cmd4000(args):
-  if ttyio.inputboolean("enable cmd fd-4000 on device 11? [Yn]: ", "Y", "YN") is True:
+  if ttyio.inputboolean("enable cmd fd-4000 on device 9? [Yn]: ", "Y", "YN") is True:
     vicecommandline["-dos4000"] = inputfilename(args, "dos4000 filename: ", "cmd-fd-4000-dos-v1.40-fd-350022.bin")
-    vicecommandline["-drive11type"] = "4000"
-    if ttyio.inputboolean("enable drive 11 rtc save? [Yn]: ", "Y", "YN") is True:
-      vicecommandline["-drive11rtcsave"] = None
+    vicecommandline["-drive9type"] = "4000"
+    if ttyio.inputboolean("enable drive 9 rtc save? [Yn]: ", "Y", "YN") is True:
+      vicecommandline["-drive9rtcsave"] = None
     else:
-      vicecommandline["+drive11rtcsave"] = None
+      vicecommandline["+drive9rtcsave"] = None
 
 def ds12c887rtc(args):
   if ttyio.inputboolean("enable ds12c887rtc? [{bold}Y{/all}n]: ", "Y", "YN") is False:
@@ -86,9 +134,11 @@ def ds12c887rtc(args):
 def rs232(args):
   area(args, "vice: rs232")
   vicecommandline["+rsuser"] = None
-  vicecommandline["-rsdev4"] = "localhost:%s" % (tcpsercommandline["-v"])
+  vicecommandline["-rsdev4"] = "%s:%s" % (localhost, tcpsercommandline["-v"])
   vicecommandline["-rsdev4ip232"] = None
   vicecommandline["-rsdev4baud"] = tcpsercommandline["-s"] # 38400
+
+  ttyio.echo("configured rsdev4 as ip232.")
   return
 
 def acia(args):
@@ -182,17 +232,6 @@ def verifyLoggingLevelName(args, buf):
     return True
   return False
 
-def verifyFileExistsReadable(args, filename):
-  filename = os.path.expanduser(filename)
-  filename = os.path.expandvars(filename)
-  ttyio.echo("args=%r filename=%r" % (args, filename))
-
-  if args.debug is True:
-    ttyio.echo("filename=%r" % (filename), level="debug")
-
-  if os.access(filename, os.R_OK) is True and os.path.isfile(filename) is True:
-    return True
-  return False
 
 # @see https://www.digitalocean.com/community/tutorials/how-to-use-subprocess-to-run-external-programs-in-python-3
 def verifyC64Cart(args, filename):
@@ -214,19 +253,10 @@ def verifyLTKPortInRange(args, port):
   return True
 
 
-def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kw):
-  ttyio.echo("inputfilename.120: args=%r" % (args))
-  if args.basedir is not None and default is not None:
-    default = os.path.join(args.basedir, default)
-  if args.debug is True:
-    ttyio.echo("inputfilename.100: delims=%r" % (readline.get_completer_delims()))
-  return ttyio.inputstring(prompt, default, verify=verify, completerdelims="\t\n", args=args, **kw)
-
 def phonebook(args):
   book = []
-  book.append({"shortname": "ci1", "host": "cib.dyndns.org:6400", "sysop": "x-tec", "system": "Image 1.2"})
-  book.append({"shortname": "ci2", "host": "cib.dyndns.org:6401", "sysop": "x-tec", "system": "Image 1.2"})
-  
+  book.append({"alias": "ci1", "host": "cib.dyndns.org:6400", "sysop": "x-tec", "system": "Image 1.2"})
+  book.append({"alias": "ci2", "host": "cib.dyndns.org:6401", "sysop": "x-tec", "system": "Image 1.2"})
 
 ## X-Tec
 #-n ci1=cib.dyndns.org:6400		\ # Image 1.2
@@ -257,7 +287,6 @@ def phonebook(args):
 ## Hoy Brothers - 13th Floor
 #-n 13f=13th.hoyvision.com:6400		\ # Image 1.3
 
-tcpsercommandline = {}
 
 def tcpser(args):
   area(args, "tcpser")
@@ -388,7 +417,7 @@ def drivetype(args, devicenumber, oldvalue=None):
         ttyio.echo("%s" % (menu[dt]))
         return menu[dt]
     ttyio.echo("None")
-    return None
+    return 0
 
 def storage(args):
   area(args, "vice: storage")
@@ -411,9 +440,9 @@ def storage(args):
       ttyio.echo("Lt. Kernel")
       args.storage = "LTK"
       vicecommandline["-cartcrt"] = inputfilename(args, "-cartcrt: ", "ltk.crt")
-      vicecommandline["-ltkimage0"] = inputfilename(args, "ltkimage0: ", "disk0.dlk")
-      vicecommandline["-ltkimage1"] = inputfilename(args, "ltkimage1: ", "disk1.dlk")
-      vicecommandline["-ltkimage2"] = inputfilename(args, "ltkimage2: ", "disk2.dlk")
+      vicecommandline["-ltkimage0"] = inputfilename(args, "-ltkimage0: ", "drive8-0.dlk")
+      vicecommandline["-ltkimage1"] = inputfilename(args, "-ltkimage1: ", "drive8-1.dlk")
+      vicecommandline["-ltkimage2"] = inputfilename(args, "-ltkimage2: ", "drive8-2.dlk")
       vicecommandline["-ltkport"] = ttyio.inputstring("Set LTK port number (0..15): ", "0", verify=verifyLTKPortInRange)
 
       ch = vicecommandline["-ltkio"] = ttyio.inputchar("Set LTK IO page (0: $DExx, {bggray}{white}1: $DFxx{/all}): ", "01", "1")
@@ -557,6 +586,33 @@ def checkltkaciaconflict(args):
       return False
   return True
 
+def savejson(args):
+  data = {}
+
+  data["vice"] = {}
+  for k, v in vicecommandline.items():
+    data["vice"][k] = v
+
+  data["tcpser"] = {}
+  for k, v in tcpsercommandline.items():
+    data["tcpser"][k] = v
+
+  if args.debug is True:
+    ttyio.echo("data=%r" % (data), interpret=False)
+
+  default = os.path.join(args.basedir, "gfd3.json")
+  default = os.path.expandvars(default)
+  default = os.path.expanduser(default)
+
+  filename = inputfilename(args, "save json: ", default, noneok=True, multiple=False, verify=None)
+  if filename is None:
+    ttyio.echo("aborted.")
+    return True
+  fp = open(filename, "w")
+  fp.write(json.dumps(data))
+  fp.close()
+  return True
+
 def main():
     # parser = OptionParser(usage="usage: %prog [options] projectid")
     parser = argparse.ArgumentParser("setupimagebbs")
@@ -567,12 +623,6 @@ def main():
     # parser.add_option("--debug", default=False, action="store_true", help="run %prog in debug mode")
     parser.add_argument("--debug", action="store_true", default=False, dest="debug")
 
-    # @see https://stackoverflow.com/questions/44342813/multiple-choices-command-line-argument
-    # @see https://stackoverflow.com/questions/56119177/how-to-make-a-python-script-tab-complete-directories-in-terminal
-    # @see https://stackoverflow.com/questions/16068607/how-to-suggest-files-with-tab-completion-using-readline
-    # @see https://stackoverflow.com/questions/10487827/why-am-i-forced-to-os-path-expanduser-in-python
-    # @see https://docs.python.org/3/library/os.path.html
-    # @see https://stackoverflow.com/questions/33038056/deactivate-readline-autocompletion
     parser.add_argument("--storage", action="store", choices=["ltk", "cmd"], dest="storage")
     # parser.add_argument("--ramlink", action="store_true", dest="ramlink")
     parser.add_argument("--basedir", action="store", dest="basedir", default="sandbox/")
@@ -591,11 +641,17 @@ def main():
 
     if args.basedir and args.debug is True:
       ttyio.echo("setupbbs.main.120: basedir=%r" % (args.basedir))
+    args.basedir = os.path.expanduser(args.basedir)
+    args.basedir = os.path.expandvars(args.basedir)
     args.basedir = ttyio.inputstring("basedir: ", args.basedir, args=args)
 
+    localhost = checklocalhostdns(args)
+
     tests = (
+      # "loadjson",
       "checktcpser",
       "checkvice",
+      "gfd3",
       "defaultconfig",
       "acia",
       "tcpser",
@@ -608,14 +664,16 @@ def main():
       "saveonviceexit",
       #"ramlink",
       #"reu",
-      "summary"
+      "summary",
+      "savejson"
     )
 
     for t in tests:
-      ttyio.echo("t=%r"  % (t), level="debug")
+      if args.debug is True:
+        ttyio.echo("t=%r" % (t), level="debug")
       func = eval(t)
       if callable(func) is False:
-        ttyio.echo("%r is not callable.", level="error")
+        ttyio.echo("%r is not callable." % (t), level="error")
         continue
       res = func(args)
       if res is False:
