@@ -25,7 +25,7 @@
 - confirmed baud rates are set properly
 
 ## todo
-- [ ] if ltk is enabled and configured, make sure no disk images can be assigned to it's device (8 by default, cannot be changed within vice settings or command line)
+- [x] if ltk is enabled and configured, make sure no disk images can be assigned to it's device (8 by default, cannot be changed within vice settings or command line)
 - [x] remove dependency on bbsengine5 (bbsengine.title(), bbsengine.initscreen(), and bbsengine.updatetopbar())
 - [ ] test ramlink() and reu()
 - [ ] tab-complete in inputfilename() is broken.
@@ -35,7 +35,18 @@
 - [x] make sure updatetopbar() is correct (bggray/white)
 - [ ] convert tests to a tuple and step through it, checking if return value is False (error)
 - [x] if --debug, do not call initscreen() (helps w debugging by allowing the scrollback buffer)
-- [ ] load/save json data file
+- [x] save config to json file
+- [ ] load config from json file
+- [x] set device 8 to 0 (None)
+- [ ] set device 9 to 1581, and default the image to 3.0 disk 1
+- [ ] set device 10 to 1581, and default the image to 3.0 disk 2
+- [x] in drivetype(), when type is None, return 0 instead of None
+- [ ] in storage(), do not hard code ltk image filenames
+- [ ] make sure that '-default', if specified, is at the beginning of the options list
+- [ ] do a socket.gethostbyname("localhost"), and if it fails, fall back to 127.0.0.1
+- [ ] in gfd3 params, set 9 to 4000, 10 and 11 to 1581 by default
+- [ ] if device type is "0", do not prompt for an image name (current check is for None)
+- [ ] check for an existing setting of device type and make that the default
 
 ## dependencies
 - ttyio4 (on github)
@@ -48,3 +59,29 @@
   * if the wrong device number and/or type is used, image will show a corrupt time, and an error about an "illegal quantity"
 - handle "filesystem" devices?
 - make a "save settings on vice exit?" default to *YES* (larry)
+
+```
+larry: It would be easiest with a Lt.K new installation to put your d1 files
+on LU0 and all your d2 files on LU1.  During setup,, assign Image drive 5
+(programs drive) to LU 0 and all the other drives to LU1.  The error you are
+getting in line 3116 is because Image isn't finding nm.times which should be
+located on your email drive```
+
+```
+larry: To get around the error, you could either use the Lt.K "autocopy"
+command to copy nm.times to whatever LU you assigned as the email drive
+during setup or you could use the basic program ""edata edit 3.0" located on
+the "3.0 utilities.d81" disk to edit record 53 of e.data for the location of
+the nm.times file.
+```
+
+## links
+- [vice emulator wiki](https://sourceforge.net/p/vice-emu/wiki/Home/)
+- [commodore.software terminal programs](https://commodore.software/downloads/category/66-miscellaneous-terminal-programs)
+- [python3 library: json module](https://docs.python.org/3/library/json.html)
+- https://stackoverflow.com/questions/44342813/multiple-choices-command-line-argument
+- https://stackoverflow.com/questions/56119177/how-to-make-a-python-script-tab-complete-directories-in-terminal
+- https://stackoverflow.com/questions/16068607/how-to-suggest-files-with-tab-completion-using-readline
+- https://stackoverflow.com/questions/10487827/why-am-i-forced-to-os-path-expanduser-in-python
+- https://docs.python.org/3/library/os.path.html
+- https://stackoverflow.com/questions/33038056/deactivate-readline-autocompletion
