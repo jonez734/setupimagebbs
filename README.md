@@ -47,6 +47,7 @@
 - [ ] in gfd3 params, set 9 to 4000, 10 and 11 to 1581 by default
 - [ ] if device type is "0", do not prompt for an image name (current check is for None)
 - [ ] check for an existing setting of device type and make that the default
+- [ ] add 'LTK' to drive types, move prompts for crt, images, etc to during the storage loop.
 
 ## dependencies
 - ttyio4 (on github)
