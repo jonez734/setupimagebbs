@@ -48,6 +48,7 @@
 - [ ] if device type is "0", do not prompt for an image name (current check is for None)
 - [ ] check for an existing setting of device type and make that the default
 - [ ] add 'LTK' to drive types, move prompts for crt, images, etc to during the storage loop.
+- [ ] check for listening prog on port -v, ask to proceed if so
 
 ## dependencies
 - ttyio4 (on github)
