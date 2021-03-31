@@ -56,7 +56,7 @@
 ## notes
 - using rtc
   * the 'im' has a menu for setting the rtc device
-  * in vice, configure a device to be a CMD-4000 (requires a bin)
+  * in vice, configure a device to be a CMD-4000 (requires a non-free bin)
   * configure image to use that device for the 'rtc'
   * if the wrong device number and/or type is used, image will show a corrupt time, and an error about an "illegal quantity"
 - handle "filesystem" devices?
@@ -67,7 +67,8 @@ larry: It would be easiest with a Lt.K new installation to put your d1 files
 on LU0 and all your d2 files on LU1.  During setup,, assign Image drive 5
 (programs drive) to LU 0 and all the other drives to LU1.  The error you are
 getting in line 3116 is because Image isn't finding nm.times which should be
-located on your email drive```
+located on your email drive
+```
 
 ```
 larry: To get around the error, you could either use the Lt.K "autocopy"
