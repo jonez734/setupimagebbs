@@ -68,9 +68,7 @@ on LU0 and all your d2 files on LU1.  During setup,, assign Image drive 5
 (programs drive) to LU 0 and all the other drives to LU1.  The error you are
 getting in line 3116 is because Image isn't finding nm.times which should be
 located on your email drive
-```
 
-```
 larry: To get around the error, you could either use the Lt.K "autocopy"
 command to copy nm.times to whatever LU you assigned as the email drive
 during setup or you could use the basic program ""edata edit 3.0" located on
@@ -88,3 +86,11 @@ the nm.times file.
 - https://stackoverflow.com/questions/10487827/why-am-i-forced-to-os-path-expanduser-in-python
 - https://docs.python.org/3/library/os.path.html
 - https://stackoverflow.com/questions/33038056/deactivate-readline-autocompletion
+- https://docs.python.org/3/library/json.html
+- https://github.com/go4retro/tcpser/tree/vicekludge
+- https://www.c64-wiki.com/wiki/JiffyDOS
+- https://stackoverflow.com/questions/16826172/filename-tab-completion-in-cmd-cmd-of-python
+- https://www.endpoint.com/blog/2016/06/03/adding-bash-completion-to-python-script
+- https://github.com/Pinacolada64/ImageBBS/blob/master/scripts/start-tcpser-swiftlink.sh
+- https://github.com/Commodore64128/C64Public/blob/master/MakeCart/TODO.txt
+- https://guides.github.com/pdfs/markdown-cheatsheet-online.pdf
