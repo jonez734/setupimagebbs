@@ -94,3 +94,4 @@ the nm.times file.
 - https://github.com/Pinacolada64/ImageBBS/blob/master/scripts/start-tcpser-swiftlink.sh
 - https://github.com/Commodore64128/C64Public/blob/master/MakeCart/TODO.txt
 - https://guides.github.com/pdfs/markdown-cheatsheet-online.pdf
+- https://vice-emu.sourceforge.io/vice_14.html
