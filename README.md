@@ -27,7 +27,7 @@
 ## todo
 - [x] if ltk is enabled and configured, make sure no disk images can be assigned to it's device (8 by default, cannot be changed within vice settings or command line)
 - [x] remove dependency on bbsengine5 (bbsengine.title(), bbsengine.initscreen(), and bbsengine.updatetopbar())
-- [ ] test ramlink() and reu()
+- [ ] test ramlink() and reu(). find RAMDos.
 - [ ] tab-complete in inputfilename() is broken.
 - [x] change the swiftlink/ip232 to serial4
 - [x] make sure "save config on exit" is *enabled* by default
@@ -49,6 +49,8 @@
 - [ ] check for an existing setting of device type and make that the default
 - [ ] add 'LTK' to drive types, move prompts for crt, images, etc to during the storage loop.
 - [ ] check for listening prog on port -v, ask to proceed if so
+- [ ] ds12c887 (rtc clock): https://sourceforge.net/p/vice-emu/code/HEAD/tree/testprogs/RTC/
+- [ ] bottom bar instead of topbar for status, preserving scrollback for debugging
 
 ## dependencies
 - ttyio4 (on github)
@@ -74,6 +76,9 @@ command to copy nm.times to whatever LU you assigned as the email drive
 during setup or you could use the basic program ""edata edit 3.0" located on
 the "3.0 utilities.d81" disk to edit record 53 of e.data for the location of
 the nm.times file.
+
+larry: Creating e.data is what i/su.config does.
+For a new installation it creates and populates e.data. For conversions of 1.2 or 2.0 to 3.0, it modifies an existing e.data file.
 ```
 
 ## links
