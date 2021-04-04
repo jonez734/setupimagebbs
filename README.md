@@ -29,28 +29,32 @@
 - [x] remove dependency on bbsengine5 (bbsengine.title(), bbsengine.initscreen(), and bbsengine.updatetopbar())
 - [ ] test ramlink() and reu(). find RAMDos.
 - [ ] tab-complete in inputfilename() is broken.
-- [x] change the swiftlink/ip232 to serial4
+- [x] change the swiftlink/ip232 to serial4 (larry)
 - [x] make sure "save config on exit" is *enabled* by default
 - [x] fix title()
 - [x] make sure updatetopbar() is correct (bggray/white)
-- [ ] convert tests to a tuple and step through it, checking if return value is False (error)
+- [x] convert tests to a tuple and step through it, checking if return value is False (error)
 - [x] if --debug, do not call initscreen() (helps w debugging by allowing the scrollback buffer)
-- [x] save config to json file
+- [x] save config to json file after confirmation
 - [ ] load config from json file
 - [x] set device 8 to 0 (None)
-- [ ] set device 9 to 1581, and default the image to 3.0 disk 1
-- [ ] set device 10 to 1581, and default the image to 3.0 disk 2
+- [ ] set device 10 to 1581, and default the image to 3.0 disk 1
+- [ ] set device 11 to 1581, and default the image to 3.0 disk 2
 - [x] in drivetype(), when type is None, return 0 instead of None
 - [ ] in storage(), do not hard code ltk image filenames
-- [ ] make sure that '-default', if specified, is at the beginning of the options list
-- [ ] do a socket.gethostbyname("localhost"), and if it fails, fall back to 127.0.0.1
-- [ ] in gfd3 params, set 9 to 4000, 10 and 11 to 1581 by default
-- [ ] if device type is "0", do not prompt for an image name (current check is for None)
-- [ ] check for an existing setting of device type and make that the default
+- [x] make sure that '-default', if specified, is at the beginning of the options list
+- [x] do a socket.gethostbyname("localhost"), and if it fails, fall back to 127.0.0.1
+- [x] in gfd3 params, set 9 to 4000, 10 and 11 to 1581 by default
+- [x] if device type is "0", do not prompt for an image name (current check is for None)
+- [x] check for an existing setting of device type and make that the default
 - [ ] add 'LTK' to drive types, move prompts for crt, images, etc to during the storage loop.
 - [ ] check for listening prog on port -v, ask to proceed if so
 - [ ] ds12c887 (rtc clock): https://sourceforge.net/p/vice-emu/code/HEAD/tree/testprogs/RTC/
-- [ ] bottom bar instead of topbar for status, preserving scrollback for debugging
+- [x] bottom bar instead of topbar for status, preserving scrollback for debugging
+- [x] in drivetype(), highlight and set default when the type is None
+- [ ] summary of options, ask if they are acceptable, once per test group (storage, rs232, etc) (ryan)
+- [ ] x128 support (fast mode, 80 cols)
+- [ ] in rs232(), prompt for each item w defaults that set up ip232, etc
 
 ## dependencies
 - ttyio4 (on github)
@@ -100,3 +104,5 @@ For a new installation it creates and populates e.data. For conversions of 1.2 o
 - https://github.com/Commodore64128/C64Public/blob/master/MakeCart/TODO.txt
 - https://guides.github.com/pdfs/markdown-cheatsheet-online.pdf
 - https://vice-emu.sourceforge.io/vice_14.html
+- https://github.com/Pinacolada64/ImageBBS/blob/5b564adb919f49e7644c303e7c21e8b75fd192f0/v2/tests/rtc/rtc-image.lbl
+- [image bbs 3.0 e.data records](https://pinacolada64.github.io/ImageBBS3-docs.github.io/Image-BBS-3-PRG.html#truee-data)
