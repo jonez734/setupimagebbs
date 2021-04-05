@@ -37,7 +37,7 @@
 - [x] if --debug, do not call initscreen() (helps w debugging by allowing the scrollback buffer)
 - [x] save config to json file after confirmation
 - [ ] load config from json file
-- [x] set device 8 to 0 (None)
+- [x] set device 8 to 0 w ltk (None) (e.data #38)
 - [ ] set device 10 to 1581, and default the image to 3.0 disk 1
 - [ ] set device 11 to 1581, and default the image to 3.0 disk 2
 - [x] in drivetype(), when type is None, return 0 instead of None
@@ -55,13 +55,17 @@
 - [ ] summary of options, ask if they are acceptable, once per test group (storage, rs232, etc) (ryan)
 - [ ] x128 support (fast mode, 80 cols)
 - [ ] in rs232(), prompt for each item w defaults that set up ip232, etc
+- [ ] options for e.data values
+- [ ] make groups
+  * modem - tcpser, swiftlink, acia
+  * storage - ltk/cmd, device assignments
 
 ## dependencies
 - ttyio4 (on github)
 
 ## notes
 - using rtc
-  * the 'im' has a menu for setting the rtc device
+  * the 'im' has a menu for setting the rtc device (e.data #37)
   * in vice, configure a device to be a CMD-4000 (requires a non-free bin)
   * configure image to use that device for the 'rtc'
   * if the wrong device number and/or type is used, image will show a corrupt time, and an error about an "illegal quantity"
