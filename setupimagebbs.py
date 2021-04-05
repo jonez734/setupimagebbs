@@ -533,7 +533,9 @@ def summary(args):
     resetdefaults = False
 
   opts = []
+
   if resetdefaults is True:
+    ttyio.echo("using -default")
     opts.append("-default")
 
   for k, v in vicecommandline.items():
@@ -652,6 +654,22 @@ def savejson(args):
   fp.write(json.dumps(data))
   fp.close()
   return True
+
+def edata(args):
+  data = []
+  data.append({"record": 21, "type": "inputchar", "prompt": "System Reservation Password", "choices": ["0=None", "1=Once", "2=All"], "options": "012", "default": "0"})
+  data.append({"record": 32, "type": "inputchar", "prompt": "RS232 Device", "choices": ["0=User Port", "1=Swiftlink"], "options": "01", "default": "1"})
+  data.append({"record": 38, "type": "inputltkdevice", "prompt": "LTK device number", "default": "8"})
+  data.append({"record": 43, "type": "inputstring", "prompt": "Password Mask Char", "default": "X"})
+  data.append({"record": 47, "type": "inputstring", "prompt": "BBS Name", "default": "not Galaxy Federation 3"})
+  data.append({"record": 51, "type": "inputbbsid", "prompt": "BBS Identifier", "default": "GF"})
+  data.append({"record": 52, "type": "inputdevicedrive", "prompt": "System Device, Drive", "default": "8,0"})
+  data.append({"record": 53, "type": "inputdevicedrive", "prompt": "E-Mail Device, Drive", "default": "8,2"})
+  data.append({"record": 54, "type": "inputdevicedrive", "prompt": "Etcetera Device, Drive", "default": "8,0"})
+  data.append({"record": 55, "type": "inputdevicedrive", "prompt": "Directory", "default": "8,0"})
+  data.append({"record": 56, "type": "inputdevicedrive", "prompt": "Modules", "default": "8,0"})
+  data.append({"record": 57, "type": "inputdevicedrive", "prompt": "User", "default": "8,0"})
+  data.append({"record": 58, "type": "inputnewusercredits", "prompt": "Credits for new user", "default": "100"})
 
 def main():
     # parser = OptionParser(usage="usage: %prog [options] projectid")
