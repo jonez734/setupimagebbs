@@ -52,13 +52,12 @@
 - [ ] ds12c887 (rtc clock): https://sourceforge.net/p/vice-emu/code/HEAD/tree/testprogs/RTC/
 - [x] bottom bar instead of topbar for status, preserving scrollback for debugging
 - [x] in drivetype(), highlight and set default when the type is None
-- [ ] summary of options, ask if they are acceptable, once per test group (storage, rs232, etc) (ryan)
-- [ ] x128 support (fast mode, 80 cols)
-- [ ] in rs232(), prompt for each item w defaults that set up ip232, etc
-- [ ] options for e.data values
-- [ ] make groups
+- [ ] summary of options, ask if they are acceptable, once per group (ryan)
   * modem - tcpser, swiftlink, acia
   * storage - ltk/cmd, device assignments
+- [ ] x128 support (fast mode, 80 cols)
+- [ ] in rs232(), prompt for each item w defaults that set up ip232, etc
+- [ ] options for e.data values (see links section for a link to the PRG
 
 ## dependencies
 - ttyio4 (on github)
