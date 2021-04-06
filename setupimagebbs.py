@@ -126,15 +126,35 @@ def cmd4000(args):
       vicecommandline["+drive9rtcsave"] = None
 
 def ds12c887rtc(args):
-  if ttyio.inputboolean("enable ds12c887rtc? [{bold}Y{/all}n]: ", "Y", "YN") is False:
-    vicecommandline["+ds12c887rtc"] = None
-    return
-  vicecommandline["-ds12c887rtc"] = None
-  if ttyio.inputboolean("Enable saving of the DS12C887 RTC data when changed? [{bold}Y{/all}n]: ", "Y", "YN") is False:
-    vicecommandline["+ds12c887rtcsave"] = None
-  else:
-    vicecommandline["-ds12c887rtcsave"] = None
+#  if ttyio.inputboolean("enable ds12c887rtc? [{bold}Y{/all}n]: ", "Y", "YN") is False:
+#    vicecommandline["+ds12c887rtc"] = None
+#    return
+#  vicecommandline["-ds12c887rtc"] = None
+#  if ttyio.inputboolean("Enable saving of the DS12C887 RTC data when changed? [{bold}Y{/all}n]: ", "Y", "YN") is False:
+#    vicecommandline["+ds12c887rtcsave"] = None
+#  else:
+#    vicecommandline["-ds12c887rtcsave"] = None
   choices = ["0xD500","0xD600","0xD700", "0xDE00","0xDF00"]
+  menu = []
+  options = ""
+  ch = ord("A")
+  for c in choices:
+    menu.append("[%s] %s" % (chr(ch), choices[ch - ord("A")]))
+    options += chr(ch)
+    ch += 1
+
+  # ttyio.echo("options=%r" % (options))
+  try:
+    ch = ttyio.inputchar("Address "+" ".join(menu)+": ", options, "", noneok=False)
+  except KeyboardInterrupt:
+    ttyio.echo("INTR")
+    return
+  except EOFError:
+    ttyio.echo("EOF")
+    return
+
+  ttyio.echo(choices[ord(ch) - ord("A")])
+
   # remove contents of -ltkio from choices so there is not a conflict.
   return
 
@@ -663,12 +683,12 @@ def edata(args):
   data.append({"record": 43, "type": "inputstring", "prompt": "Password Mask Char", "default": "X"})
   data.append({"record": 47, "type": "inputstring", "prompt": "BBS Name", "default": "not Galaxy Federation 3"})
   data.append({"record": 51, "type": "inputbbsid", "prompt": "BBS Identifier", "default": "GF"})
-  data.append({"record": 52, "type": "inputdevicedrive", "prompt": "System Device, Drive", "default": "8,0"})
+  data.append({"record": 52, "type": "inputdevicedrive", "prompt": "System Device, Drive", "default": "8,1"})
   data.append({"record": 53, "type": "inputdevicedrive", "prompt": "E-Mail Device, Drive", "default": "8,2"})
-  data.append({"record": 54, "type": "inputdevicedrive", "prompt": "Etcetera Device, Drive", "default": "8,0"})
+  data.append({"record": 54, "type": "inputdevicedrive", "prompt": "Etcetera Device, Drive", "default": "8,1"})
   data.append({"record": 55, "type": "inputdevicedrive", "prompt": "Directory", "default": "8,0"})
   data.append({"record": 56, "type": "inputdevicedrive", "prompt": "Modules", "default": "8,0"})
-  data.append({"record": 57, "type": "inputdevicedrive", "prompt": "User", "default": "8,0"})
+  data.append({"record": 57, "type": "inputdevicedrive", "prompt": "User", "default": "8,1"})
   data.append({"record": 58, "type": "inputnewusercredits", "prompt": "Credits for new user", "default": "100"})
 
 def main():
@@ -705,6 +725,8 @@ def main():
 
     localhost = checklocalhostdns(args)
 
+    ds12c887rtc(args)
+
     tests = (
       # "loadjson",
       "checktcpser",
@@ -736,7 +758,7 @@ def main():
       res = func(args)
       if res is False:
         if ttyio.inputboolean("{bgred}{white}%r failed.{/all}{f6}proceed anyway? [Yn]: " % (t), "Y", "YN") is False:
-          ttyio.echo("{bgred}{gray}aborted{/all}", end="")
+          ttyio.echo("{bgred}{white}aborted{/all}", end="")
           return False
       ttyio.echo()
 
