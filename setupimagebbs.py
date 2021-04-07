@@ -19,6 +19,7 @@ import ttyio4 as ttyio
 vicecommandline = {}
 tcpsercommandline = {}
 localhost = "localhost"
+ioaddrs = []
 
 def initscreen(topmargin=0, bottommargin=0):
   terminalheight = ttyio.getterminalheight()
@@ -126,35 +127,97 @@ def cmd4000(args):
       vicecommandline["+drive9rtcsave"] = None
 
 def ds12c887rtc(args):
-#  if ttyio.inputboolean("enable ds12c887rtc? [{bold}Y{/all}n]: ", "Y", "YN") is False:
-#    vicecommandline["+ds12c887rtc"] = None
-#    return
-#  vicecommandline["-ds12c887rtc"] = None
-#  if ttyio.inputboolean("Enable saving of the DS12C887 RTC data when changed? [{bold}Y{/all}n]: ", "Y", "YN") is False:
-#    vicecommandline["+ds12c887rtcsave"] = None
-#  else:
-#    vicecommandline["-ds12c887rtcsave"] = None
-  choices = ["0xD500","0xD600","0xD700", "0xDE00","0xDF00"]
+  if "-ds12c887rtc" in vicecommandline:
+    ch = ttyio.inputboolean("Enable DS12C887RTC? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
+  elif "+ds12c887rtc" in vicecommandline:
+    ch = ttyio.inputboolean("Enable DS12C887RTC? [y{bggray}{white}N{/all}]: ", "N", "YN")
+  else:
+    ch = ttyio.inputboolean("Enable DS12C887RTC? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
+
+  if ch is False:
+    vicecommandline["+ds12c887rtc"] = None
+    if "-ds12c887rtc" in vicecommandline:
+      del vicecommandline["-ds12c887rtc"]
+    return
+  else:
+    vicecommandline["-ds12c887rtc"] = None
+    if "+ds12c887rtc" in vicecommandline:
+      del vicecommandline["+ds12c887rtc"]
+
+  if "-ds12c887rtcsave" in vicecommandline:
+    ch = ttyio.inputboolean("Enable saving of the DS12C887RTC data when changed? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
+  elif "+ds12c887rtcsave" in vicecommandline:
+    ch = ttyio.inputboolean("Enable saving of the DS12C887RTC data when changed? [y{bggray}{white}N{/all}]: ", "N", "YN")
+  else:
+    ch = ttyio.inputboolean("Enable saving of the DS12C887RTC data when changed? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
+
+  if ch is False:
+    vicecommandline["+ds12c887rtcsave"] = None
+  else:
+    vicecommandline["-ds12c887rtcsave"] = None
+
+  addresschoices = ["0xD500","0xD600","0xD700", "0xDE00","0xDF00"]
+
+  currentaddr = vicecommandline["-ds12c887rtcbase"] if "-ds12c887rtcbase" in vicecommandline else None
+
+  defaultvalue = ""
+
   menu = []
-  options = ""
   ch = ord("A")
-  for c in choices:
-    menu.append("[%s] %s" % (chr(ch), choices[ch - ord("A")]))
+  options = ""
+  for c in addresschoices:
+    i = ch - ord("A")
+    if currentaddr == addresschoices[i]:
+      menu.append("{bggray}{white}[%s] %s{/all}" % (chr(ch), addresschoices[i]))
+      defaultvalue = chr(ch)
+    else:
+      menu.append("[%s] %s" % (chr(ch), addresschoices[i]))
     options += chr(ch)
     ch += 1
 
-  # ttyio.echo("options=%r" % (options))
-  try:
-    ch = ttyio.inputchar("Address "+" ".join(menu)+": ", options, "", noneok=False)
-  except KeyboardInterrupt:
-    ttyio.echo("INTR")
-    return
-  except EOFError:
-    ttyio.echo("EOF")
-    return
+  ch = ttyio.inputchar("Address "+" ".join(menu)+": ", options, defaultvalue, noneok=False)
+  addr = addresschoices[ord(ch) - ord("A")]
+  ioaddrs.append(addr)
+  vicecommandline["-ds12c887rtcbase"] = addr
+  ttyio.echo(addr)
 
-  ttyio.echo(choices[ord(ch) - ord("A")])
+  # -ds12c887rtchalted -> Set the RTC oscillator to 'halted'
+  # -ds12c887rtcrunning -> Set the RTC oscillator to 'running'
+  if "-ds12c887rtcrunning" in vicecommandline:
+    ch = ttyio.inputchar("Set the RTC oscillator to {bggray}{white}[R]unning{/all} or [H]alted: ", "RH", "R")
+  elif "-ds12c887rtchalted" in vicecommandline:
+    ch = ttyio.inputchar("Set the RTC oscillator to [R]unning or {bggray}{white}[H]alted{/all}: ", "RH", "H")
+  else:
+    ch = ttyio.inputchar("Set the RTC oscillator to {bggray}{white}[R]unning{/all} or [H]alted: ", "RH", "R")
 
+  if ch == "R":
+    ttyio.echo("Running")
+    vicecommandline["-ds12c887rtcrunning"] = None
+    if "-ds12c887rtchalted" in vicecommandline:
+      del vicecommandline["-ds12c887rtchalted"]
+  elif ch == "H":
+    ttyio.echo("Halted")
+    vicecommandline["-ds12c887rtchalted"] = None
+    if "-ds12c887rtcrunning" in vicecommandline:
+      del vicecommandline["-ds12c887rtcrunning"] 
+
+#  if "-ds12c887rtsrunning" in vicecommandline:
+#    ch = ttyio.inputchar("Set the RTC oscillator to {bggray}{white}[R]unning{/all} or [H]alted", "RH", "R")
+#  elif "-ds12c887rtchalted" in vicecommandline:
+#    ch = ttyio.inputboolean("Set the RTC oscillator to [R]unning or {bggray}{white}[H]alted", "RH", "H")
+#  else:
+#    ch = ttyio.inputchar("Set the RTC oscillator to {bggray}{white}[R]unning{/all} or [H]alted", "RH", "R")
+
+  if ch is False:
+    vicecommandline["-ds12c887running"] = None
+    if "-ds12c887halted" in vicecommandline:
+      del vicecommandline["-ds12c887halted"]
+  else:
+    vicecommandline["-ds12c887halted"] = None
+    if "-ds12c887running" in vicecommandline:
+      del vicecommandline["-ds12c887running"]
+
+  ttyio.echo()
   # remove contents of -ltkio from choices so there is not a conflict.
   return
 
@@ -191,9 +254,11 @@ def acia(args):
   if ch == "0":
     ttyio.echo("0: 0xDE00")
     vicecommandline["-acia1base"] = "0xDE00"
+    ioaddrs.append("0xDE00")
   else:
     ttyio.echo("1: 0xDF00")
     vicecommandline["-acia1base"] = "0xDF00"
+    ioaddrs.append("0xDF00")
 
   ch = ttyio.inputchar("Set the ACIA interrupt (0: None, {bggray}{white}[1]: NMI{/all}, 2: IRQ): ", "012", "1")
   if ch == "0":
@@ -282,7 +347,6 @@ def verifyLTKPortInRange(args, port):
   if port < 0 or port > 15:
     return False
   return True
-
 
 def phonebook(args):
   book = []
@@ -598,6 +662,7 @@ class completeREUSize(object):
 
 def reu(args):
   area("vice: RAM Expansion Unit")
+  title("vice: RAM Expansion Unit")
 
   if ttyio.inputboolean("Enable the RAM Expansion Unit? [yN]: ", "N", "YN") is True:
     vicecommandline["-reu"] = None
@@ -691,6 +756,19 @@ def edata(args):
   data.append({"record": 57, "type": "inputdevicedrive", "prompt": "User", "default": "8,1"})
   data.append({"record": 58, "type": "inputnewusercredits", "prompt": "Credits for new user", "default": "100"})
 
+def drivesound(args):
+  if ttyio.inputboolean("Enable sound emulation of disk drives [Yn]: ", "Y", "YN") is True:
+    vicecommandline["-drivesound"] = None
+    vol = ttyio.inputinteger("Set volume for disk drive sound emulation (0-4000): ", 100)
+    vicecommandline["-drivesoundvolume"] = vol
+  else:
+    vicecommandline["+drivesound"] = None
+
+def iocollision(args):
+  ch = ttyio.inputchar("Select the way the I/O collisions should be handled ([0]: error message and detach all involved carts, [1]: error message and detach last attached involved carts, [2]: warning in log and 'AND' the valid return values", "012", "0")
+  vicecommandline["-iocollision"] = ch
+  return
+
 def main():
     # parser = OptionParser(usage="usage: %prog [options] projectid")
     parser = argparse.ArgumentParser("setupimagebbs")
@@ -726,6 +804,8 @@ def main():
     localhost = checklocalhostdns(args)
 
     ds12c887rtc(args)
+    ds12c887rtc(args)
+    return
 
     tests = (
       # "loadjson",
@@ -733,12 +813,14 @@ def main():
       "checkvice",
       "gfd3",
       "defaultconfig",
+      "sounddrive",
       "acia",
       "tcpser",
       "displaysync",
       "rs232",
       "cmd4000",
       "storage",
+      "iocollision",
       "checkltkaciaconflict",
       "keyboard",
       "saveonviceexit",
