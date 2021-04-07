@@ -12,7 +12,7 @@
 - one suggestion is to try "syncterm", which does run on the c64
   - https://syncterm.bbsdev.net/
   - https://sourceforge.net/projects/syncterm/
-- with quite an effort from larry, I was able to get imagebbs 3.0 to boot, and the terminal program worked correctly.
+- with quite an effort from larry, I was able to get imagebbs 3.0 to boot, and the terminal program worked correctly. I was also able to get imagebbs 3.0 installed on the ltk
 
 ## bugs/quirks
 
@@ -49,7 +49,7 @@
 - [x] check for an existing setting of device type and make that the default
 - [ ] add 'LTK' to drive types, move prompts for crt, images, etc to during the storage loop.
 - [ ] check for listening prog on port -v, ask to proceed if so
-- [ ] ds12c887 (rtc clock): https://sourceforge.net/p/vice-emu/code/HEAD/tree/testprogs/RTC/
+- [x] ds12c887 (rtc clock): https://sourceforge.net/p/vice-emu/code/HEAD/tree/testprogs/RTC/
 - [x] bottom bar instead of topbar for status, preserving scrollback for debugging
 - [x] in drivetype(), highlight and set default when the type is None
 - [ ] summary of options, ask if they are acceptable, once per group (ryan)
@@ -57,10 +57,15 @@
   * storage - ltk/cmd, device assignments
 - [ ] x128 support (fast mode, 80 cols)
 - [ ] in rs232(), prompt for each item w defaults that set up ip232, etc
-- [ ] options for e.data values (see links section for a link to the PRG
+- [ ] options for e.data values (see links section for the PRG)
+- [x] make a "save settings on vice exit?" default to *YES* (larry)
+- [ ] add tcpser to systemd
+- [ ] iocollision()
+- [ ] check all ioaddrs, darkgray out used
+
 
 ## dependencies
-- ttyio4 (on github)
+- ttyio4 (on my github)
 
 ## notes
 - using rtc
@@ -69,7 +74,6 @@
   * configure image to use that device for the 'rtc'
   * if the wrong device number and/or type is used, image will show a corrupt time, and an error about an "illegal quantity"
 - handle "filesystem" devices?
-- make a "save settings on vice exit?" default to *YES* (larry)
 
 ```
 larry: It would be easiest with a Lt.K new installation to put your d1 files
