@@ -36,10 +36,12 @@ def updatetopbar(args, area:str):
   ttyio.echo("{decsc}{/all}{home}{bggray}{white} %s{el}{decrc}" % (buf), wordwrap=False)
   return
 
+# updatebottombar()
 # @since 20210222
-def updatebottombar(buf:str):
+def updatebottombar(buf:str) -> None:
   terminalheight = ttyio.getterminalheight()
-  ttyio.echo("{decsc}{/all}{curpos:%d,0}%s{el}{decrc}" % (terminalheight, buf), wordwrap=False, end="")
+  buf = buf.ljust(terminalheight-2, " ")
+  ttyio.echo("{decsc}{/all}{curpos:%d,0}{bggray}{white} %s{el}{decrc}" % (terminalheight, buf), wordwrap=False, end="")
   return
 
 def title(title:str, titlecolor:str="{bgray}{white}", hrcolor:str="{white}", hrchars:str="{acs:hline}", llcorner="{acs:llcorner}", lrcorner="{acs:lrcorner}", ulcorner="{acs:ulcorner}", urcorner="{acs:urcorner}", width=None):
@@ -160,14 +162,14 @@ def ds12c887rtc(args):
 
   currentaddr = vicecommandline["-ds12c887rtcbase"] if "-ds12c887rtcbase" in vicecommandline else None
 
-  defaultvalue = ""
+  defaultvalue = "0xD700"
 
   menu = []
   ch = ord("A")
   options = ""
   for c in addresschoices:
     i = ch - ord("A")
-    if currentaddr == addresschoices[i]:
+    if currentaddr == addresschoices[i] or defaultvalue == addresschoices[i]:
       menu.append("{bggray}{white}[%s] %s{/all}" % (chr(ch), addresschoices[i]))
       defaultvalue = chr(ch)
     else:
@@ -789,11 +791,13 @@ def main():
 
     terminalwidth = ttyio.getterminalwidth()
 
-    if args.debug is True:
-        ttyio.echo("setupbbs.main.100: args=%r" % (args))
 
     ttyio.echo("{clear}{home}")
     initscreen(bottommargin=1)
+    updatebottombar("setup image bbs")
+
+    if args.debug is True:
+        ttyio.echo("setupbbs.main.100: args=%r" % (args))
 
     if args.basedir and args.debug is True:
       ttyio.echo("setupbbs.main.120: basedir=%r" % (args.basedir))
