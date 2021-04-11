@@ -62,7 +62,7 @@
 - [ ] iocollision()
 - [ ] check all ioaddrs, darkgray out used
 - [ ] confirm baud rates are set properly
-- [ ] highlight default ioaddr value of -ds12c887rtcbase (larry, ryan, al) imagebbs hangout 20210410
+- [x] highlight default ioaddr value of -ds12c887rtcbase (larry, ryan, al) imagebbs hangout 20210410
 
 ## dependencies
 - ttyio4 (on my github)
