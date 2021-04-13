@@ -55,14 +55,18 @@
   * modem - tcpser, swiftlink, acia
   * storage - ltk/cmd, device assignments
 - [ ] x128 support (fast mode, 80 cols)
-- [ ] in rs232(), prompt for each item w defaults that set up ip232, etc
+- [ ] in rs232(), prompt for each item w defaults that set up ip232, etc. hard coded at the moment.
 - [ ] options for e.data values (see links section for the PRG)
 - [x] make a "save settings on vice exit?" default to *YES* (larry)
 - [ ] add tcpser to systemd
 - [ ] iocollision()
-- [ ] check all ioaddrs, darkgray out used
+- [ ] check all ioaddrs, darkgray out used. does it break when the same test is called twice like I am doing with ds12c887rtc?
 - [ ] confirm baud rates are set properly
-- [x] highlight default ioaddr value of -ds12c887rtcbase (larry, ryan, al) imagebbs hangout 20210410
+- [x] highlight default ioaddr value of -ds12c887rtcbase (larry, ryan, al) imagebbs jitsi 20210410
+- [ ] in code that handles an ioaddr, sort the list
+- [ ] new test 'ioconflicts'
+- [ ] fix all tests so they can handle being run twice (prep for groups)
+- [ ] if ltk is configured, prompt for each of the image devices, using LU, similar for CMD and CBM
 
 ## dependencies
 - ttyio4 (on my github)
@@ -90,6 +94,16 @@ the nm.times file.
 
 larry: Creating e.data is what i/su.config does.
 For a new installation it creates and populates e.data. For conversions of 1.2 or 2.0 to 3.0, it modifies an existing e.data file.
+```
+
+- set model to ntsc (64C)
+- pfiles lu0, everything else on lu1, except for mail on lu2
+- always set acia (swiftlink) to $DExx. ltk defaults to $DFxx
+- CMDFD4000 is compat w d64, d81, etc. the glitch is you need to load the dir so the disk is "recognized"
+- from 2021-03-28 meeting w larry and al:
+```
+x64sc -default +acia1 -ntsc -rsuser -rsdev1 localhost:25232 -rsdev1ip232 -rsdev1baud 2400 -rsdev2 rsdev2 +rsdev2ip232 -rsdev3 rsdev3 +rsdev3ip232 -rsdev4 rsdev4 +rsdev4ip232 +rsuser -dos4000 sandbox/cmd-fd-4000-dos-v1.40-fd-350022.bin -drive9type 4000 -8 dos-part1.dhd -9 cmddrive9.d4m -10 cmddrive10.d4m -11 cmddrive11.d4m
+tcpser -I -s 2400 -v 25232 -p 6400 -i e0v0s0=1s2=27 -t sI -l 7
 ```
 
 ## links
