@@ -8,40 +8,24 @@ import readline
 import subprocess
 import ttyio4 as ttyio
 
-# set model to ntsc (64C)
-# pfiles lu0, everything else on lu1, except for mail on lu2
-# always set acia to $DExx. ltk defaults to $DFxx
-# CMDFD4000 is compat w d64, d81, etc. the glitch is you need to load the dir so the disk is "recognized"
-#
-# from 2021-03-28 meeting w larry and al:
-# x64sc -default +acia1 -ntsc -rsuser -rsdev1 localhost:25232 -rsdev1ip232 -rsdev1baud 2400 -rsdev2 rsdev2 +rsdev2ip232 -rsdev3 rsdev3 +rsdev3ip232 -rsdev4 rsdev4 +rsdev4ip232 +rsuser -dos4000 sandbox/cmd-fd-4000-dos-v1.40-fd-350022.bin -drive9type 4000 -8 dos-part1.dhd -9 cmddrive9.d4m -10 cmddrive10.d4m -11 cmddrive11.d4m
-# tcpser -I -s 2400 -v 25232 -p 6400 -i e0v0s0=1s2=27 -t sI -l 7
 vicecommandline = {}
 tcpsercommandline = {}
 localhost = "localhost"
-ioaddrs = []
+ioaddrs = {}
 
 def initscreen(topmargin=0, bottommargin=0):
   terminalheight = ttyio.getterminalheight()
   # ttyio.echo("initscreen.100: terminalheight=%r" % (terminalheight))
   ttyio.echo("{decsc}{decstbm:%d,%d}{decrc}" % (topmargin, terminalheight-bottommargin))
 
-def updatetopbar(args, area:str):
-  if args.debug is True:
-    return
-
-  terminalwidth = ttyio.getterminalwidth()
-  # ttyio.echo("{decsc}{home}%s{decrc}" % (buf.ljust(terminalwidth)), end="")
-  buf = area.ljust(terminalwidth-2, " ")
-  ttyio.echo("{decsc}{/all}{home}{bggray}{white} %s{el}{decrc}" % (buf), wordwrap=False)
-  return
-
-# updatebottombar()
+# updatebottombar() - imported from ttyio4
 # @since 20210222
 def updatebottombar(buf:str) -> None:
+  size = ttyio.getterminalsize()
   terminalheight = ttyio.getterminalheight()
-  buf = buf.ljust(terminalheight-2, " ")
-  ttyio.echo("{decsc}{/all}{curpos:%d,0}{bggray}{white} %s{el}{decrc}" % (terminalheight, buf), wordwrap=False, end="")
+  terminalwidth = ttyio.getterminalwidth()
+  buf = buf.ljust(terminalwidth-2, " ")
+  ttyio.echo("{decsc}{/all}{curpos:%d,0}%s{el}{decrc}" % (terminalheight, buf), wordwrap=False, end="")
   return
 
 def title(title:str, titlecolor:str="{bgray}{white}", hrcolor:str="{white}", hrchars:str="{acs:hline}", llcorner="{acs:llcorner}", lrcorner="{acs:lrcorner}", ulcorner="{acs:ulcorner}", urcorner="{acs:urcorner}", width=None):
@@ -56,27 +40,76 @@ def title(title:str, titlecolor:str="{bgray}{white}", hrcolor:str="{white}", hrc
 def area(buf):
   width = ttyio.getterminalwidth()
 
-  updatebottombar("{bggray}{white}%s{/all}" % (buf.ljust(width-2, " ")))
+  updatebottombar("{bggray}{white} %s {/all}" % (buf.ljust(width-2, " ")))
+  return
+
+def truedrive(args):
+  area("vice: truedrive")
+  title("vice: truedrive")
+  if "-truedrive" in vicecommandline:
+    defaultvalue = "Y"
+  elif "+truedrive" in vicecommandline:
+    defaultvalue = "N"
+  else:
+    defaultvalue = "Y"
+
+  if defaultvalue == "Y":
+    ch = ttyio.inputboolean("truedrive? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
+  else:
+    ch = ttyio.inputboolean("truedrive? [y{bggray}{white}N{/all}]: ", "N", "YN")
+
+  if ch is True:
+    if "+truedrive" in vicecommandline:
+      del vicecommandline["+truedrive"]
+    vicecommandline["-truedrive"] = None
+  else:
+    if "-truedrive" in vicecommandline:
+      del vicecommandline["-truedrive"]
+    vicecommandline["+truedrive"] = None
+
+def drivesound(args):
+  area("vice: drivesound")
+  title("vice: drivesound")
+
+  if ttyio.inputboolean("Enable sound emulation of disk drives? [{bggray}{white}Y{/all}n]: ", "Y", "YN") is True:
+    volume = ttyio.inputinteger("drive sound volume? [0-4000]: ", 100)
+    if "+drivesound" in vicecommandline:
+      del vicecommandline["+drivesound"]
+    vicecommandline["-drivesound"] = None
+    vicecommandline["-drivesoundvolume"] = volume
+  else:
+    if "-drivesound" in vicecommandline:
+      del vicecommandline["-drivesound"]
+    if "-drivesoundvolume" in vicecommandline:
+      del vicecommandline["-drivesoundvolume"]
+    vicecommandline["+drivesound"] = None
+  return
+
+def clock(args):
+  area("vice: clock")
+  title("rtc clock")
+  if ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN") is True:
+    ds12c887rtc(args)
+  if ttyio.inputboolean("use cmd fd-4000 RTC? [y{bggray}{white}N]: ", "N", "YN") is True:
+    cmd4000(args)
   return
 
 def checklocalhostdns(args):
-  ttyio.echo("checklocalhostdns.100: checking...", level="debug")
+  area("system: check for 'localhost' in dns")
   try:
     res = socket.gethostbyname("localhost")
   except:
-    ttyio.echo("{bgred}{orange}dns check for 'localhost' failed, reverting to ipv4 address.{/all}")
+    ttyio.echo("{bgred}{orange} dns check for 'localhost' failed, reverting to ipv4 address 127.0.0.1 {/all}")
     return "127.0.0.1"
   else:
-    ttyio.echo("{bglightgreen}{black}dns check for 'localhost' passed.{/all}")
+    ttyio.echo("{bggreen}{white} dns check for 'localhost' passed {/all}")
     return "localhost"
 
 def verifyFileExistsReadable(args, filename):
   filename = os.path.expanduser(filename)
   filename = os.path.expandvars(filename)
-  ttyio.echo("args=%r filename=%r" % (args, filename))
-
   if args.debug is True:
-    ttyio.echo("filename=%r" % (filename), level="debug")
+    ttyio.echo("args=%r filename=%r" % (args, filename))
 
   if os.access(filename, os.R_OK) is True and os.path.isfile(filename) is True:
     return True
@@ -94,7 +127,7 @@ def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kw):
   return ttyio.inputstring(prompt, default, verify=verify, completerdelims="\t\n", args=args, **kw)
 
 def gfd3(args):
-  if ttyio.inputboolean("use settings for 'gfd3'? [Yn]: ", "Y", "YN") is True:
+  if ttyio.inputboolean("use storage settings for 'gfd3'? [Yn]: ", "Y", "YN") is True:
     vicecommandline["-10"] = "/home/jam/projects/gfd3/drive10.d81"
     vicecommandline["-11"] = "/home/jam/projects/gfd3/drive11.d81"
     vicecommandline["-drive10type"] = "1581"
@@ -105,6 +138,9 @@ def gfd3(args):
   return None
 
 def keyboard(args):
+  area("vice: keyboard")
+  title("keyboard")
+
   keyboards = ("0: Symbpolic", "1: Positional", "2: symbolic (user)", "3: positional (user)")
   ch = ttyio.inputchar("Specify index of keymap file ({bggray}{white}0:symbolic{/all}, 1:positional, 2:symbolic (user), 3:positional (user))? [0123]: ","0123", "0")
   if ch == "0":
@@ -120,6 +156,8 @@ def keyboard(args):
   return
 
 def cmd4000(args):
+  area("vice: cmd4000")
+  title("device 9 cmd 4000")
   if ttyio.inputboolean("enable cmd fd-4000 on device 9? [Yn]: ", "Y", "YN") is True:
     vicecommandline["-dos4000"] = inputfilename(args, "dos4000 filename: ", "cmd-fd-4000-dos-v1.40-fd-350022.bin")
     vicecommandline["-drive9type"] = "4000"
@@ -128,7 +166,12 @@ def cmd4000(args):
     else:
       vicecommandline["+drive9rtcsave"] = None
 
+def inputioaddr(args, optionslist:list, currentvalue:str, defaultvalue:str):
+  pass
+
 def ds12c887rtc(args):
+  area("vice: ds12c887rtc")
+  title("ds12c887rtc")
   if "-ds12c887rtc" in vicecommandline:
     ch = ttyio.inputboolean("Enable DS12C887RTC? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
   elif "+ds12c887rtc" in vicecommandline:
@@ -172,16 +215,20 @@ def ds12c887rtc(args):
     if currentaddr == addresschoices[i] or defaultvalue == addresschoices[i]:
       menu.append("{bggray}{white}[%s] %s{/all}" % (chr(ch), addresschoices[i]))
       defaultvalue = chr(ch)
+    elif currentaddr in ioaddrs:
+      menu.append("{darkgray}[%s] %s{/all}" % (chr(ch), addresschoices[i]))
     else:
       menu.append("[%s] %s" % (chr(ch), addresschoices[i]))
     options += chr(ch)
     ch += 1
 
-  ch = ttyio.inputchar("Address "+" ".join(menu)+": ", options, defaultvalue, noneok=False)
+  ch = ttyio.inputchar("ioaddr "+" ".join(menu)+": ", options, defaultvalue, noneok=False)
   addr = addresschoices[ord(ch) - ord("A")]
-  ioaddrs.append(addr)
-  vicecommandline["-ds12c887rtcbase"] = addr
   ttyio.echo(addr)
+  if addr in ioaddrs:
+    if ttyio.inputboolean("that address is already used for %s. proceed? [y{bggray}{white}N{/all}]: " % (ioaddrs[addr]), "N", "YN") is True:
+      vicecommandline["-ds12c887rtcbase"] = addr
+      ioaddrs[addr] = "ds12c887rtc"
 
   # -ds12c887rtchalted -> Set the RTC oscillator to 'halted'
   # -ds12c887rtcrunning -> Set the RTC oscillator to 'running'
@@ -203,13 +250,6 @@ def ds12c887rtc(args):
     if "-ds12c887rtcrunning" in vicecommandline:
       del vicecommandline["-ds12c887rtcrunning"] 
 
-#  if "-ds12c887rtsrunning" in vicecommandline:
-#    ch = ttyio.inputchar("Set the RTC oscillator to {bggray}{white}[R]unning{/all} or [H]alted", "RH", "R")
-#  elif "-ds12c887rtchalted" in vicecommandline:
-#    ch = ttyio.inputboolean("Set the RTC oscillator to [R]unning or {bggray}{white}[H]alted", "RH", "H")
-#  else:
-#    ch = ttyio.inputchar("Set the RTC oscillator to {bggray}{white}[R]unning{/all} or [H]alted", "RH", "R")
-
   if ch is False:
     vicecommandline["-ds12c887running"] = None
     if "-ds12c887halted" in vicecommandline:
@@ -224,8 +264,8 @@ def ds12c887rtc(args):
   return
 
 def rs232(args):
-  area("vice")
-  title("vice: rs232")
+  area("vice: rs232/ip232")
+  title("vice: rs232/ip232")
   vicecommandline["+rsuser"] = None
   vicecommandline["-rsdev4"] = "%s:%s" % (localhost, tcpsercommandline["-v"])
   vicecommandline["-rsdev4ip232"] = None
@@ -242,25 +282,25 @@ def acia(args):
     vicecommandline["+acia1"] = None
     return
 
-  ch = ttyio.inputchar("Set the ACIA mode (0: Normal, {bggray}{white}[1]: Swiftlink{/all}, 2: Turbo232): ", "012", "1")
-  if ch == "0":
-    ttyio.echo("0: Normal")
-  elif ch == "1":
-    ttyio.echo("1: Swiftlink")
-  elif ch == "2":
-    ttyio.echo("2: Turbo32")
+  ch = ttyio.inputchar("Set the ACIA mode [A] normal [B] swiftlink [C] turbo32", "ABC", "B")
+  if ch == "A":
+    ttyio.echo("A: Normal")
+  elif ch == "B":
+    ttyio.echo("B: Swiftlink")
+  elif ch == "C":
+    ttyio.echo("C: Turbo32")
 
   vicecommandline["-acia1mode"] = ch
 
   ch = ttyio.inputchar("Base address of the ACIA cartridge ({bggray}0: 0xDE00{/all}, 1: 0xDF00): ", "01", "0")
   if ch == "0":
-    ttyio.echo("0: 0xDE00")
+    ttyio.echo("A: 0xDE00")
     vicecommandline["-acia1base"] = "0xDE00"
-    ioaddrs.append("0xDE00")
+    ioaddrs["0xDE00"] = "acia1"
   else:
-    ttyio.echo("1: 0xDF00")
+    ttyio.echo("B: 0xDF00")
     vicecommandline["-acia1base"] = "0xDF00"
-    ioaddrs.append("0xDF00")
+    ioaddrs["0xDF00"] = "acia1"
 
   ch = ttyio.inputchar("Set the ACIA interrupt (0: None, {bggray}{white}[1]: NMI{/all}, 2: IRQ): ", "012", "1")
   if ch == "0":
@@ -271,7 +311,7 @@ def acia(args):
     ttyio.echo("2: IRQ")
   vicecommandline["-acia1irq"] = ch
 
-  vicecommandline["-myaciadev"] = 3
+  vicecommandline["-myaciadev"] = 3 # serial4
   vicecommandline["-acia1"] = None
   return
 
@@ -552,8 +592,10 @@ def storage(args):
       ch = vicecommandline["-ltkio"] = ttyio.inputchar("Set LTK IO page (0: $DExx, {bggray}{white}1: $DFxx{/all}): ", "01", "1")
       if ch == "1":
         ttyio.echo("1: $DFxx (default)")
+        ioaddrs["0xDF00"] = "ltkio"
       elif ch == "0":
         ttyio.echo("0: $DExx")
+        ioaddrs["0xDE00"] = "ltkio"
       vicecommandline["-ltkio"] = ch
 
       ch = ttyio.inputboolean("use ltk dos72-s1 disk on device 9? [yN]: ", "N", "YN")
@@ -759,6 +801,8 @@ def edata(args):
   data.append({"record": 58, "type": "inputnewusercredits", "prompt": "Credits for new user", "default": "100"})
 
 def drivesound(args):
+  area("vice")
+  title("sound emulation of disk drives")
   if ttyio.inputboolean("Enable sound emulation of disk drives [Yn]: ", "Y", "YN") is True:
     vicecommandline["-drivesound"] = None
     vol = ttyio.inputinteger("Set volume for disk drive sound emulation (0-4000): ", 100)
@@ -791,10 +835,9 @@ def main():
 
     terminalwidth = ttyio.getterminalwidth()
 
-
     ttyio.echo("{clear}{home}")
     initscreen(bottommargin=1)
-    updatebottombar("setup image bbs")
+    area("setup image bbs")
 
     if args.debug is True:
         ttyio.echo("setupbbs.main.100: args=%r" % (args))
@@ -807,9 +850,6 @@ def main():
 
     localhost = checklocalhostdns(args)
 
-    ds12c887rtc(args)
-    ds12c887rtc(args)
-    return
 
     tests = (
       # "loadjson",
@@ -817,15 +857,15 @@ def main():
       "checkvice",
       "gfd3",
       "defaultconfig",
-      "sounddrive",
+      "drivesound",
       "acia",
       "tcpser",
       "displaysync",
       "rs232",
-      "cmd4000",
+      "clock",
       "storage",
-      "iocollision",
-      "checkltkaciaconflict",
+#      "iocollision",
+#      "checkltkaciaconflict",
       "keyboard",
       "saveonviceexit",
       #"ramlink",
@@ -843,8 +883,8 @@ def main():
         continue
       res = func(args)
       if res is False:
-        if ttyio.inputboolean("{bgred}{white}%r failed.{/all}{f6}proceed anyway? [Yn]: " % (t), "Y", "YN") is False:
-          ttyio.echo("{bgred}{white}aborted{/all}", end="")
+        if ttyio.inputboolean("{bgred}{white} %r failed. {/all}{f6}proceed anyway? [Yn]: " % (t), "Y", "YN") is False:
+          ttyio.echo("{bgred}{black} aborted {/all}", end="")
           return False
       ttyio.echo()
 
@@ -854,5 +894,6 @@ if __name__ == "__main__":
   try:
     main()
   finally:
-    updatebottombar("")
+    terminalheight = ttyio.getterminalheight()
+    ttyio.echo("{curpos:%d,0}{el}" % (terminalheight))
     ttyio.echo("{reset}{/all}")
