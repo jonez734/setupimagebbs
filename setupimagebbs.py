@@ -86,11 +86,11 @@ def drivesound(args):
   return
 
 def clock(args):
-  area("vice: clock")
+  area("vice: rtc clock")
   title("rtc clock")
   if ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN") is True:
     ds12c887rtc(args)
-  if ttyio.inputboolean("use cmd fd-4000 RTC? [y{bggray}{white}N]: ", "N", "YN") is True:
+  if ttyio.inputboolean("use cmd fd-4000 RTC? [y{bggray}{white}N{/all}]: ", "N", "YN") is True:
     cmd4000(args)
   return
 
@@ -128,13 +128,13 @@ def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kw):
 
 def gfd3(args):
   if ttyio.inputboolean("use storage settings for 'gfd3'? [Yn]: ", "Y", "YN") is True:
-    vicecommandline["-10"] = "/home/jam/projects/gfd3/drive10.d81"
-    vicecommandline["-11"] = "/home/jam/projects/gfd3/drive11.d81"
+    vicecommandline["-10"] = os.path.join(args.basedir, "drive10.d81")
+    vicecommandline["-11"] = os.path.join(args.basedir, "drive11.d81")
     vicecommandline["-drive10type"] = "1581"
     vicecommandline["-drive11type"] = "1581"
-    vicecommandline["-ltkimage0"] = "/home/jam/projects/gfd3/drive8-0.dlk"
-    vicecommandline["-ltkimage1"] = "/home/jam/projects/gfd3/drive8-1.dlk"
-    vicecommandline["-ltkimage2"] = "/home/jam/projects/gfd3/drive8-2.dlk"
+    vicecommandline["-ltkimage0"] = os.path.join(args.basedir, "drive8-0.dlk")
+    vicecommandline["-ltkimage1"] = os.path.join(args.basedir, "drive8-1.dlk")
+    vicecommandline["-ltkimage2"] = os.path.join(args.basedir, "drive8-2.dlk")
   return None
 
 def keyboard(args):
@@ -282,7 +282,7 @@ def acia(args):
     vicecommandline["+acia1"] = None
     return
 
-  ch = ttyio.inputchar("Set the ACIA mode [A] normal [B] swiftlink [C] turbo32", "ABC", "B")
+  ch = ttyio.inputchar("Set the ACIA mode [A] normal [B] swiftlink [C] turbo32: [ABC]? ", "ABC", "B")
   if ch == "A":
     ttyio.echo("A: Normal")
   elif ch == "B":
@@ -563,7 +563,7 @@ def drivetype(args, devicenumber, oldvalue=None):
     return "0"
 
 def storage(args):
-  area("vice")
+  area("vice: storage")
   title("vice: storage")
   storage = args.storage.upper() if args.storage is not None else None
   if args.debug is True:
@@ -835,8 +835,9 @@ def main():
 
     terminalwidth = ttyio.getterminalwidth()
 
-    ttyio.echo("{clear}{home}")
+    ttyio.echo("{f6:5}{curpos:%d,0}" % (ttyio.getterminalheight()-3))
     initscreen(bottommargin=1)
+
     area("setup image bbs")
 
     if args.debug is True:
