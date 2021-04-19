@@ -16,7 +16,7 @@
 
 ## bugs/quirks
 
-- I could not get "ccgms 2020" to run while the ltk was enabled.
+- I could not get "ccgms 2020" to run with ltk enabled.
   - sometimes I get a blue screen
   - other times a "cpu jam".
   - in troubleshooting this, I did not notice any base address conflicts between swiftlink/ltk
@@ -69,6 +69,7 @@
 - [ ] if ltk is configured, prompt for each of the image devices, using LU, similar for CMD and CBM
 - [ ] build list of ioaddrs using x64sc --help
 - [ ] using tech from empyre (player.status()), make multicolumn menus where needed. similar to 'im' in 3.0.
+- [ ] if dsxxx chip is used, set default for FD-4000 to none, allow --storage override
 
 ## dependencies
 - ttyio4 (on my github)
