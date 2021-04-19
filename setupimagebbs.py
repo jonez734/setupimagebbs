@@ -589,12 +589,12 @@ def storage(args):
       vicecommandline["-ltkimage2"] = inputfilename(args, "-ltkimage2: ", "drive8-2.dlk")
       vicecommandline["-ltkport"] = ttyio.inputstring("Set LTK port number (0..15): ", "0", verify=verifyLTKPortInRange)
 
-      ch = vicecommandline["-ltkio"] = ttyio.inputchar("Set LTK IO page (0: $DExx, {bggray}{white}1: $DFxx{/all}): ", "01", "1")
+      ch = vicecommandline["-ltkio"] = ttyio.inputchar("Set LTK IO page (0: $DE00, {bggray}{white}1: $DF00{/all}): ", "01", "1")
       if ch == "1":
-        ttyio.echo("1: $DFxx (default)")
+        ttyio.echo("1: $DF00 (default)")
         ioaddrs["0xDF00"] = "ltkio"
       elif ch == "0":
-        ttyio.echo("0: $DExx")
+        ttyio.echo("0: $DE00")
         ioaddrs["0xDE00"] = "ltkio"
       vicecommandline["-ltkio"] = ch
 
