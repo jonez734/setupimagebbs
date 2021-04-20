@@ -88,9 +88,19 @@ def drivesound(args):
 def clock(args):
   area("vice: rtc clock")
   title("rtc clock")
-  if ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN") is True:
+  clock1 =  ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
+  if clock1 is True:
     ds12c887rtc(args)
-  if ttyio.inputboolean("use cmd fd-4000 RTC? [y{bggray}{white}N{/all}]: ", "N", "YN") is True:
+  if clock1 is False:
+    clock2 = ttyio.inputboolean("use cmd fd-4000 RTC? [y{bggray}{white}N{/all}]: ", "N", "YN")
+  else:
+    clock2 = ttyio.inputboolean("use cmd fd-4000 RTC? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
+
+  if clock1 is True and clock2 is True:
+    if ttyio.inputboolean("do you really want to use both the cmd rtc and ds12c887rtc? [yN]: ", "N", "YN") is True:
+      ttyio.echo("aborted", level="error")
+      return
+  if clock2 is True:
     cmd4000(args)
   return
 
@@ -99,10 +109,10 @@ def checklocalhostdns(args):
   try:
     res = socket.gethostbyname("localhost")
   except:
-    ttyio.echo("{bgred}{orange} dns check for 'localhost' failed, reverting to ipv4 address 127.0.0.1 {/all}")
+    ttyio.echo("dns check for 'localhost' failed, reverting to ipv4 address 127.0.0.1", level="warn")
     return "127.0.0.1"
   else:
-    ttyio.echo("{bggreen}{white} dns check for 'localhost' passed {/all}")
+    ttyio.echo("dns check for 'localhost' passed", level="success")
     return "localhost"
 
 def verifyFileExistsReadable(args, filename):
@@ -260,7 +270,7 @@ def ds12c887rtc(args):
       del vicecommandline["-ds12c887running"]
 
   ttyio.echo()
-  # remove contents of -ltkio from choices so there is not a conflict.
+  # add ltkio to ioaddrs
   return
 
 def rs232(args):
@@ -290,10 +300,10 @@ def acia(args):
   elif ch == "C":
     ttyio.echo("C: Turbo32")
 
-  vicecommandline["-acia1mode"] = ch
+  vicecommandline["-acia1mode"] = ord(ch) - ord("A")
 
-  ch = ttyio.inputchar("Base address of the ACIA cartridge ({bggray}0: 0xDE00{/all}, 1: 0xDF00): ", "01", "0")
-  if ch == "0":
+  ch = ttyio.inputchar("Base address of the ACIA cartridge ({bggray}{white}A: 0xDE00{/all}, B: 0xDF00): ", "AB", "A")
+  if ch == "A":
     ttyio.echo("A: 0xDE00")
     vicecommandline["-acia1base"] = "0xDE00"
     ioaddrs["0xDE00"] = "acia1"
@@ -302,16 +312,43 @@ def acia(args):
     vicecommandline["-acia1base"] = "0xDF00"
     ioaddrs["0xDF00"] = "acia1"
 
-  ch = ttyio.inputchar("Set the ACIA interrupt (0: None, {bggray}{white}[1]: NMI{/all}, 2: IRQ): ", "012", "1")
-  if ch == "0":
-    ttyio.echo("0: None")
-  elif ch == "1":
-    ttyio.echo("1: NMI")
-  elif ch == "2":
-    ttyio.echo("2: IRQ")
-  vicecommandline["-acia1irq"] = ch
+  if "-aciairq" in vicecommandline:
+    default = vicecommandline["-aciairq"]
+  else:
+    default = "B"
 
-  vicecommandline["-myaciadev"] = 3 # serial4
+  if default == "A":
+    ttyio.echo("{bggray}{white}[A] None{/all}")
+  else:
+    ttyio.echo("[A] None")
+  if default == "B":
+    ttyio.echo("{bggray}{white}[B] NMI{/all}")
+  else:
+    ttyio.echo("[B] NMI")
+  if default == "C":
+    ttyio.echo("{bggray}{white}[C] IRQ{/all}")
+  else:
+    ttyio.echo("[C] IRQ")
+  ch = ttyio.inputchar("Set the ACIA interrupt (A: None, {bggray}{white}[B]: NMI{/all}, C: IRQ): ", "012", default)
+  if ch == "A":
+    vicecommandline["-acia1irq"] = 0
+    ttyio.echo("A: None")
+  elif ch == "B":
+    vicecommandline["-acia1irq"] = 1
+    ttyio.echo("B: NMI")
+  elif ch == "C":
+    ttyio.echo("C: IRQ")
+    vicecommandline["-acia1irq"] = 2
+
+  default = "D"
+
+  ttyio.echo("[A] serial1")
+  ttyio.echo("[B] serial2")
+  ttyio.echo("[C] serial3")
+  ttyio.echo("[D] serial4")
+  ch = ttyio.inputchar("acia device [ABCD]: ", "ABCD", default)
+  vicecommandline["-myaciadev"] = ord(ch) - ord("A")
+  # vicecommandline["-myaciadev"] = 3 # serial4
   vicecommandline["-acia1"] = None
   return
 
@@ -593,9 +630,13 @@ def storage(args):
       if ch == "1":
         ttyio.echo("1: $DF00 (default)")
         ioaddrs["0xDF00"] = "ltkio"
+        if "0xDE00" in ioaddrs and ioaddrs["0xDE00"] == "ltkio":
+          del ioaddrs["0xDE00"]
       elif ch == "0":
         ttyio.echo("0: $DE00")
         ioaddrs["0xDE00"] = "ltkio"
+        if "0xDF00" in ioaddrs and ioaddrs["0xDF00"] == "ltkio":
+          del ioaddrs["0xDF00"]
       vicecommandline["-ltkio"] = ch
 
       ch = ttyio.inputboolean("use ltk dos72-s1 disk on device 9? [yN]: ", "N", "YN")
@@ -659,6 +700,9 @@ def summary(args):
     del vicecommandline["-default"]
   else:
     resetdefaults = False
+
+  for k, v in ioaddrs.items():
+    ttyio.echo("k=%r, v=%r" % (k, v))
 
   opts = []
 
@@ -810,8 +854,35 @@ def drivesound(args):
   else:
     vicecommandline["+drivesound"] = None
 
-def iocollision(args):
-  ch = ttyio.inputchar("Select the way the I/O collisions should be handled ([0]: error message and detach all involved carts, [1]: error message and detach last attached involved carts, [2]: warning in log and 'AND' the valid return values", "012", "0")
+def iocollisionhandler(args):
+  title("iocollision handling")
+  if "-iocollision" in vicecommandline:
+    default = vicecommandline["-iocollision"]
+  else:
+    default = "1"
+
+  if default == "0":
+    ttyio.echo("{bggray}{white}[0] error message, detatch all involved carts{/all}")
+  else:
+    ttyio.echo("[0] error message, detatch all involved carts")
+
+  if default == "1":
+    ttyio.echo("{bggray}{white}[1] error message, detach most recent involved cart{/all}")
+  else:
+    ttyio.echo("[1] error message, detach most recent involved cart")
+  
+  if default == "2":
+    ttyio.echo("{bggray}{white}[2] warning in log, bitwise-and valid return values{/all}")
+  else:
+    ttyio.echo("[2] warning in log, bitwise-and valid return values")
+
+  ch = ttyio.inputchar("iocollision handling [012]: ", "012", default)
+  if ch == "0":
+    ttyio.echo("detach all involved carts")
+  elif ch == "1":
+    ttyio.echo("detach most recent involved cart")
+  elif ch == "2":
+    ttyio.echo("warn, bitwise-and valid return values")
   vicecommandline["-iocollision"] = ch
   return
 
@@ -865,8 +936,8 @@ def main():
       "rs232",
       "clock",
       "storage",
-#      "iocollision",
-#      "checkltkaciaconflict",
+      "iocollisionhandler",
+      "checkltkaciaconflict",
       "keyboard",
       "saveonviceexit",
       #"ramlink",
@@ -884,8 +955,8 @@ def main():
         continue
       res = func(args)
       if res is False:
-        if ttyio.inputboolean("{bgred}{white} %r failed. {/all}{f6}proceed anyway? [Yn]: " % (t), "Y", "YN") is False:
-          ttyio.echo("{bgred}{black} aborted {/all}", end="")
+        if ttyio.inputboolean("{bgred}{black} %r failed. {/all}{f6}proceed anyway? [Yn]: " % (t), "Y", "YN") is False:
+          ttyio.echo("{bgred}{black} aborted {/all}", end="", level="error")
           return False
       ttyio.echo()
 
@@ -896,5 +967,4 @@ if __name__ == "__main__":
     main()
   finally:
     terminalheight = ttyio.getterminalheight()
-    ttyio.echo("{curpos:%d,0}{el}" % (terminalheight))
-    ttyio.echo("{reset}{/all}")
+    ttyio.echo("{curpos:%d,0}{el}{reset}{/all}" % (terminalheight))
