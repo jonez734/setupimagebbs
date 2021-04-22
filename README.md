@@ -70,6 +70,9 @@
 - [ ] build list of ioaddrs using x64sc --help
 - [ ] using tech from empyre (player.status()), make multicolumn menus where needed. similar to 'im' in 3.0.
 - [ ] if dsxxx chip is used, set default for FD-4000 to none, allow --storage override
+- [x] move ds12c887rtc() and cmd4000() to new 'clock()' test.
+- [ ] in clock(), check to see if both clocks are being used and prompt.
+- [ ] considering adding ramlink rtc to clock()
 
 ## dependencies
 - ttyio4 (on my github)
