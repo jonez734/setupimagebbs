@@ -97,7 +97,7 @@ def clock(args):
     clock2 = ttyio.inputboolean("use cmd fd-4000 RTC? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
 
   if clock1 is True and clock2 is True:
-    if ttyio.inputboolean("do you really want to use both the cmd rtc and ds12c887rtc? [yN]: ", "N", "YN") is True:
+    if ttyio.inputboolean("do you really want to use both the cmd rtc and ds12c887rtc? [yN]: ", "N", "YN") is False:
       ttyio.echo("aborted", level="error")
       return
   if clock2 is True:
@@ -857,33 +857,35 @@ def drivesound(args):
 def iocollisionhandler(args):
   title("iocollision handling")
   if "-iocollision" in vicecommandline:
-    default = vicecommandline["-iocollision"]
+    default = ord("A") + int(vicecommandline["-iocollision"])
   else:
-    default = "1"
+    default = "B"
 
-  if default == "0":
-    ttyio.echo("{bggray}{white}[0] error message, detatch all involved carts{/all}")
+  if default == "A":
+    ttyio.echo("{bggray}{white}[A] error message, detatch all involved carts{/all}")
   else:
-    ttyio.echo("[0] error message, detatch all involved carts")
+    ttyio.echo("[A] error message, detatch all involved carts")
 
-  if default == "1":
-    ttyio.echo("{bggray}{white}[1] error message, detach most recent involved cart{/all}")
+  if default == "B":
+    ttyio.echo("{bggray}{white}[B] error message, detach most recent involved cart{/all}")
   else:
-    ttyio.echo("[1] error message, detach most recent involved cart")
+    ttyio.echo("[B] error message, detach most recent involved cart")
   
-  if default == "2":
-    ttyio.echo("{bggray}{white}[2] warning in log, bitwise-and valid return values{/all}")
+  if default == "C":
+    ttyio.echo("{bggray}{white}[C] warning in log, bitwise-and valid return values{/all}")
   else:
-    ttyio.echo("[2] warning in log, bitwise-and valid return values")
+    ttyio.echo("[C] warning in log, bitwise-and valid return values")
 
-  ch = ttyio.inputchar("iocollision handling [012]: ", "012", default)
-  if ch == "0":
-    ttyio.echo("detach all involved carts")
-  elif ch == "1":
-    ttyio.echo("detach most recent involved cart")
-  elif ch == "2":
-    ttyio.echo("warn, bitwise-and valid return values")
-  vicecommandline["-iocollision"] = ch
+  ch = ttyio.inputchar("iocollision handling [ABC]: ", "ABC", default)
+  if ch == "A":
+    ttyio.echo("A: detach all involved carts")
+  elif ch == "B":
+    ttyio.echo("B: detach most recent involved cart")
+  elif ch == "C":
+    ttyio.echo("C: warn, bitwise-and valid return values")
+  val = ord(ch) - ord("A")
+  # ttyio.echo("val=%r" % (val), level="debug")
+  vicecommandline["-iocollision"] = val
   return
 
 def main():
@@ -898,7 +900,7 @@ def main():
 
     parser.add_argument("--storage", action="store", choices=["ltk", "cmd"], dest="storage")
     # parser.add_argument("--ramlink", action="store_true", dest="ramlink")
-    parser.add_argument("--basedir", action="store", dest="basedir", default="sandbox/")
+    parser.add_argument("--basedir", action="store", dest="basedir", default="~jam/projects/gfd3/")
     args = parser.parse_args()
     # ttyio.echo("args=%r" % (args), level="debug")
 
@@ -922,28 +924,27 @@ def main():
 
     localhost = checklocalhostdns(args)
 
-
     tests = (
       # "loadjson",
-      "checktcpser",
-      "checkvice",
-      "gfd3",
-      "defaultconfig",
-      "drivesound",
-      "acia",
-      "tcpser",
-      "displaysync",
-      "rs232",
+#      "checktcpser",
+#      "checkvice",
+#      "gfd3",
+#      "defaultconfig",
+#      "drivesound",
+#      "acia",
+#      "tcpser",
+#      "displaysync",
+#      "rs232",
       "clock",
-      "storage",
-      "iocollisionhandler",
-      "checkltkaciaconflict",
-      "keyboard",
-      "saveonviceexit",
+#      "storage",
+#      "iocollisionhandler",
+#      "checkltkaciaconflict",
+#      "keyboard",
+#      "saveonviceexit",
       #"ramlink",
       #"reu",
-      "summary",
-      "savejson"
+#      "summary",
+#      "savejson"
     )
 
     for t in tests:
