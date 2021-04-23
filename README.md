@@ -71,8 +71,15 @@
 - [ ] using tech from empyre (player.status()), make multicolumn menus where needed. similar to 'im' in 3.0.
 - [ ] if dsxxx chip is used, set default for FD-4000 to none, allow --storage override
 - [x] move ds12c887rtc() and cmd4000() to new 'clock()' test.
-- [ ] in clock(), check to see if both clocks are being used and prompt.
-- [ ] considering adding ramlink rtc to clock()
+- [x] in clock(), check to see if more than 1 clock is being used and prompt.
+- [ ] add ramlink rtc to clock()
+- [ ] prompt "Set the ACIA mode [A] normal [B] swiftlink [C] turbo32: [ABC]?" does not show default value in separate color.
+- [ ] "acia device [ABCD]" does not have a default value, should be "D" (serial4)
+- [ ] "speed in bits per second (-s)" is set to 2400 by default.. problem w empty "ACIA device"?
+- [ ] "do you really want to use both the cmd rtc and ds12c887rtc? [yN]: Yes" yields 'aborted'
+- [x] iocollision handling should use ABC instead of 012
+- [ ] "enable cmd fd-4000 on device 9?" does not have a default value highlighted.
+- [ ] "do you really want to use both the cmd rtc and ds12c887rtc?" does not highlight default (N)
 
 ## dependencies
 - ttyio4 (on my github)
@@ -94,7 +101,7 @@ located on your email drive
 
 larry: To get around the error, you could either use the Lt.K "autocopy"
 command to copy nm.times to whatever LU you assigned as the email drive
-during setup or you could use the basic program ""edata edit 3.0" located on
+during setup or you could use the basic program "edata edit 3.0" located on
 the "3.0 utilities.d81" disk to edit record 53 of e.data for the location of
 the nm.times file.
 
