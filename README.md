@@ -59,8 +59,11 @@
 - [ ] options for e.data values (see links section for the PRG)
 - [x] make a "save settings on vice exit?" default to *YES* (larry)
 - [ ] add tcpser to systemd
-- [ ] iocollision()
-- [ ] check all ioaddrs, darkgray out used. does it break when the same test is called twice like I am doing with ds12c887rtc?
+- [ ] iocollisions
+  * [ ] if there is a collision, prompt to proceed anyway.
+  * [ ] test 'iocollision'
+  * [ ] check all ioaddrs, darkgray out used. does it break when the same test is called twice like I am doing with ds12c887rtc?
+  * [ ] gray out already used ioaddrs including which test allocated it
 - [ ] confirm baud rates are set properly
 - [x] highlight default ioaddr value of -ds12c887rtcbase (larry, ryan, al) imagebbs jitsi 20210410
 - [ ] in code that handles an ioaddr, sort the list
@@ -73,13 +76,14 @@
 - [x] move ds12c887rtc() and cmd4000() to new 'clock()' test.
 - [x] in clock(), check to see if more than 1 clock is being used and prompt.
 - [ ] add ramlink rtc to clock()
-- [ ] prompt "Set the ACIA mode [A] normal [B] swiftlink [C] turbo32: [ABC]?" does not show default value in separate color.
+- [ ] prompt "Set the ACIA mode [A] normal [B] swiftlink [C] turbo32: [ABC]?" does not show default/existing value in separate color.
 - [ ] "acia device [ABCD]" does not have a default value, should be "D" (serial4)
 - [ ] "speed in bits per second (-s)" is set to 2400 by default.. problem w empty "ACIA device"?
-- [ ] "do you really want to use both the cmd rtc and ds12c887rtc? [yN]: Yes" yields 'aborted'
-- [x] iocollision handling should use ABC instead of 012
-- [ ] "enable cmd fd-4000 on device 9?" does not have a default value highlighted.
-- [ ] "do you really want to use both the cmd rtc and ds12c887rtc?" does not highlight default (N)
+- [x] "do you really want to use both the cmd rtc and ds12c887rtc? [yN]: Yes" yields 'aborted'
+- [x] iocollisionhandler() should use ABC instead of 012
+- [ ] "enable cmd fd-4000 on device 9?" does not have a default/existing value highlighted.
+- [ ] "do you really want to use both the cmd rtc and ds12c887rtc?" does not highlight default/existing value
+- [ ] in clock(), do not prompt twice to enable ds12c887rtc
 
 ## dependencies
 - ttyio4 (on my github)
