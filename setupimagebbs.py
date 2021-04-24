@@ -88,8 +88,8 @@ def drivesound(args):
 def clock(args):
   area("vice: clock")
   title("clock")
-  clock1 = ds12c887rtc(args)
-  # clock1 =  ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
+  # clock1 = ds12c887rtc(args)
+  clock1 =  ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
   if clock1 is False:
     clock2 = ttyio.inputboolean("use cmd fd-4000 RTC? [y{bggray}{white}N{/all}]: ", "N", "YN")
   else:
@@ -270,7 +270,6 @@ def ds12c887rtc(args):
       del vicecommandline["-ds12c887running"]
 
   ttyio.echo()
-  # add ltkio to ioaddrs
   return
 
 def rs232(args):
@@ -707,7 +706,6 @@ def summary(args):
   opts = []
 
   if resetdefaults is True:
-    ttyio.echo("using -default")
     opts.append("-default")
 
   for k, v in vicecommandline.items():
@@ -732,37 +730,6 @@ def summary(args):
 
   ttyio.echo("tcpser %s" % (" ".join(opts)))
 
-  return
-
-def verifyREUSize(args, buf):
-  if buf in ["128", "256", "512", "1024", "2048", "4096", "8192", "16384"]:
-    return True
-  return False
-
-class completeREUSize(object):
-  def __init__(self, args, vocab):
-      # ttyio.echo("completeAttributeName.100: called")
-      self.vocab = vocab
-
-  def complete(self:object, text:str, state:int):
-    results = [x for x in self.vocab if x.startswith(text)] + [None]
-    return results[state]
-
-def reu(args):
-  area("vice: RAM Expansion Unit")
-  title("vice: RAM Expansion Unit")
-
-  if ttyio.inputboolean("Enable the RAM Expansion Unit? [yN]: ", "N", "YN") is True:
-    vicecommandline["-reu"] = None
-    ttyio.inputinteger("Size of the RAM expansion unit. (128/256/512/1024/2048/4096/8192/16384): ", 512, verify=verifyREUSize)
-    vicecommandline["-reuimage"] = inputfilename(args, "REU image: ")
-    if ttyio.inputboolean("Allow writing to REU image? [Yn]: ", "Y", "YN") is True:
-      vicecommandline["-reuimagerw"] = None
-    else:
-      vicecommandline["+reuimagerw"] = None
-    vicecommandline["-cartreu"] = inputfilename(args, "Attach raw REU cartridge image: ")
-  else:
-    vicecommandline["+reu"] = None
   return
 
 def defaultconfig(args):
@@ -926,25 +893,24 @@ def main():
 
     tests = (
       # "loadjson",
-#      "checktcpser",
-#      "checkvice",
-#      "gfd3",
-#      "defaultconfig",
-#      "drivesound",
-#      "acia",
-#      "tcpser",
-#      "displaysync",
-#      "rs232",
+      "checktcpser",
+      "checkvice",
+      "gfd3",
+      "defaultconfig",
+      "drivesound",
+      "acia",
+      "tcpser",
+      "displaysync",
+      "rs232",
       "clock",
-#      "storage",
+      "storage",
 #      "iocollisionhandler",
 #      "checkltkaciaconflict",
 #      "keyboard",
 #      "saveonviceexit",
       #"ramlink",
-      #"reu",
-#      "summary",
-#      "savejson"
+      "summary",
+      "savejson"
     )
 
     for t in tests:
