@@ -86,11 +86,10 @@ def drivesound(args):
   return
 
 def clock(args):
-  area("vice: rtc clock")
-  title("rtc clock")
-  clock1 =  ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
-  if clock1 is True:
-    ds12c887rtc(args)
+  area("vice: clock")
+  title("clock")
+  clock1 = ds12c887rtc(args)
+  # clock1 =  ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
   if clock1 is False:
     clock2 = ttyio.inputboolean("use cmd fd-4000 RTC? [y{bggray}{white}N{/all}]: ", "N", "YN")
   else:
@@ -100,6 +99,7 @@ def clock(args):
     if ttyio.inputboolean("do you really want to use both the cmd rtc and ds12c887rtc? [yN]: ", "N", "YN") is False:
       ttyio.echo("aborted", level="error")
       return
+
   if clock2 is True:
     cmd4000(args)
   return
