@@ -25,8 +25,9 @@
 - sub.modem
   * sending dtr drop/hangup/reset 3 times.
   * works on real hardware, tcpser/vice choke.
-  * fix should be to try up to 3 times for an "OK"/0 (check both for compat)
+  * fix should be to try up to 3 times for an "OK"/0 (both?)
   * should fix the need for a kludge in tcpser
+  * may be limited to 2.0, since gfd3 works fine, tho I am using dtr hangup if that matters.
 
 ## todo
 - [x] if ltk is enabled and configured, make sure no disk images can be assigned to it's device (8 by default, cannot be changed within vice settings or command line)
@@ -92,6 +93,11 @@
 - [ ] "do you really want to use both the cmd rtc and ds12c887rtc?" does not highlight default/existing value
 - [ ] in clock(), do not prompt twice to enable ds12c887rtc
 - [ ] figure a way so that inverting DCD in tcpser is not required. bbsserver? real hardware?
+- [ ] swiftlink baud rate defaults to 2400, should be 38400
+- [ ] if there is a syntax error in an AT command that is partially right, like "atfoo" (f is a command), tcpser returns an empty line.
+- [ ] if there is a syntax error for the entire command, like "atblah", a "4" is returned assuming an 'ate1' was accepted, otherwise "error"
+- [ ] at times, tcpser returns an empty line for the "AT" command
+- [ ] tested the init string used by gfd3, and I get no errors. tested each command separate as well as all in one, no problems.
 
 ## dependencies
 - ttyio4 (on my github)
@@ -131,6 +137,12 @@ x64sc -default +acia1 -ntsc -rsuser -rsdev1 localhost:25232 -rsdev1ip232 -rsdev1
 tcpser -I -s 2400 -v 25232 -p 6400 -i e0v0s0=1s2=27 -t sI -l 7
 ```
 
+
+```
+ate0v0x1b1
+ats0=1s2=27s7=25
+```
+
 ## links
 - [vice emulator wiki](https://sourceforge.net/p/vice-emu/wiki/Home/)
 - [commodore.software terminal programs](https://commodore.software/downloads/category/66-miscellaneous-terminal-programs)
@@ -152,3 +164,5 @@ tcpser -I -s 2400 -v 25232 -p 6400 -i e0v0s0=1s2=27 -t sI -l 7
 - https://vice-emu.sourceforge.io/vice_14.html
 - https://github.com/Pinacolada64/ImageBBS/blob/5b564adb919f49e7644c303e7c21e8b75fd192f0/v2/tests/rtc/rtc-image.lbl
 - [image bbs 3.0 e.data records](https://pinacolada64.github.io/ImageBBS3-docs.github.io/Image-BBS-3-PRG.html#truee-data)
+- [vicekb w image of positional keymap](https://vice-emu.pokefinder.org/index.php/VICEKB)
+- http://www.messagestick.net/modem/Hayes_Ch1-3.html
