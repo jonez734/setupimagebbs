@@ -28,11 +28,58 @@ def updatebottombar(buf:str) -> None:
   ttyio.echo("{decsc}{/all}{curpos:%d,0}%s{el}{decrc}" % (terminalheight, buf), wordwrap=False, end="")
   return
 
+def displaymenu(menuitems:list, title:str=None):
+  terminalwidth = ttyio.getterminalwidth()
+  # ttyio.echo("terminalwidth=%r" % (terminalwidth), level="debug")
+
+  maxlen = 0
+  for m in menuitems:
+        l = len(m["label"])
+        if l > maxlen:
+            maxlen = l
+
+  firstline = False
+  ttyio.echo(" {white}{bggray}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
+  if title is None or title == "":
+    ttyio.echo(" {white}{bggray} {black}{acs:ulcorner}{acs:hline:%d}{black}{acs:urcorner}{bggray}  {/all}" % (terminalwidth - 7))
+  else:
+    ttyio.echo(" {white}{bggray} {black}{acs:ulcorner}{acs:hline:%d}{acs:urcorner}{bggray}  {/all}" % (terminalwidth - 7))
+    ttyio.echo(" {white}{bggray} {black}{acs:vline}{black}%s{black[C}{acs:vline}{bgblack} {bggray} {/all}" % (title.center(terminalwidth-7)))
+    ttyio.echo(" {white}{bggray} {black}{acs:ltee}{acs:hline:%d}{acs:rtee}{bgblack} {bggray} {/all}" % (terminalwidth - 7))
+  ch = ord("A")
+  options = ""
+  for m in menuitems:
+      buf = "[%s] %s" % (chr(ch), m["label"])
+      if firstline is True:
+          ttyio.echo(" {white}{bggray} {black}{black} %s {bggray}  {/all}" % (buf.ljust(terminalwidth-7)), wordwrap=False)
+          firstline = False
+      else:
+          ttyio.echo(" {white}{bgblack} {black}{acs:vline}{cyan}%s {acs:vline}{bgblack} {bggray} {/all}" % (buf.ljust(terminalwidth-8)), wordwrap=False)
+      options += chr(ch)
+      ch += 1
+
+  ttyio.echo(" {white}{bggray} {black}{acs:vline}%s {black}{acs:vline}{bgblack} {bggray} {/all}" % (" "*(terminalwidth-8)), wordwrap=False)
+
+  ttyio.echo(" {bggray} {black}{acs:vline}{black}%s {black}{acs:vline}{bgblack} {bggray} {/all}" % ("[Q] quit".ljust(terminalwidth-8)), wordwrap=False)
+  options += "Q"
+
+  ttyio.echo(" {white}{bggray} {black}{acs:llcorner}{acs:hline:%d}{acs:lrcorner}{bgblack} {bggray} {/all}" % (terminalwidth-7))
+
+  ttyio.echo(" {white}{bggray}  {bgblack}%s {bggray} {/all}" % (" "*(terminalwidth-6)), wordwrap=False)
+  ttyio.echo(" {bggray}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
+  return
+
 def handlemenu(menuitems:list, prompt:str):
   terminalwidth = ttyio.getterminalwidth()
 
-  firstline = True
-  ttyio.echo(" {black}{bgblue}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
+  firstline = False
+  ttyio.echo(" {white}{bggray}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
+  if title is None or title == "":
+    ttyio.echo(" {white}{bggray} {black}{acs:ulcorner}{acs:hline:%d}{black}{acs:urcorner}{bggray}  {/all}" % (terminalwidth - 7))
+  else:
+    ttyio.echo(" {white}{bggray} {black}{acs:ulcorner}{acs:hline:%d}{acs:urcorner}{bggray}  {/all}" % (terminalwidth - 7))
+    ttyio.echo(" {white}{bggray} {black}{acs:vline}{black}%s{black[C}{acs:vline}{bgblack} {bggray} {/all}" % (title.center(terminalwidth-7)))
+    ttyio.echo(" {white}{bggray} {black}{acs:ltee}{acs:hline:%d}{acs:rtee}{bgblack} {bggray} {/all}" % (terminalwidth - 7))
   ch = ord("A")
   options = ""
   for m in menuitems:
