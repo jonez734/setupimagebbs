@@ -28,7 +28,7 @@ def updatebottombar(buf:str) -> None:
   ttyio.echo("{decsc}{/all}{curpos:%d,0}%s{el}{decrc}" % (terminalheight, buf), wordwrap=False, end="")
   return
 
-def displaymenu(menuitems:list, title:str=None):
+def displaymenu(menuitems:list, title:str=None, default=None):
   terminalwidth = ttyio.getterminalwidth()
   # ttyio.echo("terminalwidth=%r" % (terminalwidth), level="debug")
 
@@ -69,7 +69,7 @@ def displaymenu(menuitems:list, title:str=None):
   ttyio.echo(" {bggray}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
   return
 
-def handlemenu(menuitems:list, prompt:str):
+def handlemenu(menuitems:list, prompt:str, default=None):
   terminalwidth = ttyio.getterminalwidth()
 
   firstline = False
@@ -974,14 +974,12 @@ def main():
       "displaysync",
       "rs232",
       "clock",
-      "storage",
+      "storage"
 #      "iocollisionhandler",
 #      "checkltkaciaconflict",
 #      "keyboard",
 #      "saveonviceexit",
       #"ramlink",
-      "summary",
-      "savejson"
     )
 
     for t in tests:
@@ -997,6 +995,9 @@ def main():
           ttyio.echo("{bgred}{black} aborted {/all}", end="", level="error")
           return False
       ttyio.echo()
+
+    summary()
+    savejson()
 
     return    
 
