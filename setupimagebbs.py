@@ -13,6 +13,51 @@ tcpsercommandline = {}
 localhost = "localhost"
 ioaddrs = {}
 
+# @since 20210523
+# imported from bbsengine5
+def runcallback(args:object, callback:str, **kwargs):
+  if callable(callback) is True:
+    ttyio.echo("runcallback.420: callable", level="debug")
+    return callback(args)
+
+  s = callback.split(".")
+  if len(s) > 1:
+    modulepath = ".".join(s[:-1])
+    functionname = s[len(s)-1:][0]
+  else:
+    modulepath = None
+    functionname = s[0]
+
+  ttyio.echo("runcallback.160: modulepath=%r functionname=%r" % (modulepath, functionname), level="debug", interpret=False)
+
+  if modulepath is not None:
+    try:
+        m = importlib.import_module(modulepath)
+    except ModuleNotFoundError:
+        ttyio.echo("runcallback.180: %s module not found" % (modulepath), level="error")
+    else:
+        ttyio.echo("runcallback.200: m=%r" % (m), level="debug")
+        func = getattr(m, functionname)
+        ttyio.echo("runcallback.220: func=%r" % (func), level="debug")
+        if callable(func) is True:
+            func(args, **kwargs)
+  else:
+    ttyio.echo("runcallback.240: functionname=%r" % (functionname), level="debug")
+    try:
+      func = eval(functionname)
+    except NameError:
+      ttyio.echo("runcallback.320: %r not found." % (functionname), level="error")
+      return False
+    if callable(func) is True:
+      ttyio.echo("runcallback.260: callable", level="debug")
+      rc = func(args, **kwargs)
+    else:
+      ttyio.echo("runcallback.280: not callable", level="debug")
+      rc = False
+
+  ttyio.echo("runcallback.300: callback completed", level="debug")
+  return rc
+
 def initscreen(topmargin=0, bottommargin=0):
   terminalheight = ttyio.getterminalheight()
   # ttyio.echo("initscreen.100: terminalheight=%r" % (terminalheight))
@@ -43,9 +88,9 @@ def displaymenu(menuitems:list, title:str=None, default=None):
   if title is None or title == "":
     ttyio.echo(" {white}{bggray} {black}{acs:ulcorner}{acs:hline:%d}{black}{acs:urcorner}{bggray}  {/all}" % (terminalwidth - 7))
   else:
-    ttyio.echo(" {white}{bggray} {black}{acs:ulcorner}{acs:hline:%d}{acs:urcorner}{bggray}  {/all}" % (terminalwidth - 7))
-    ttyio.echo(" {white}{bggray} {black}{acs:vline}{black}%s{black[C}{acs:vline}{bgblack} {bggray} {/all}" % (title.center(terminalwidth-7)))
-    ttyio.echo(" {white}{bggray} {black}{acs:ltee}{acs:hline:%d}{acs:rtee}{bgblack} {bggray} {/all}" % (terminalwidth - 7))
+    ttyio.echo(" {white}{bggray} {lightblue}{acs:ulcorner}{acs:hline:%d}{acs:urcorner}{bggray}  {/all}" % (terminalwidth - 7))
+    ttyio.echo(" {white}{bggray} {lightblue}{acs:vline}{black}%s{black[C}{acs:vline}{bgblack} {bggray} {/all}" % (title.center(terminalwidth-7)))
+    ttyio.echo(" {white}{bggray} {lightblue}{acs:ltee}{acs:hline:%d}{acs:rtee}{bgblack} {bggray} {/all}" % (terminalwidth - 7))
   ch = ord("A")
   options = ""
   for m in menuitems:
@@ -54,7 +99,7 @@ def displaymenu(menuitems:list, title:str=None, default=None):
           ttyio.echo(" {white}{bggray} {black}{black} %s {bggray}  {/all}" % (buf.ljust(terminalwidth-7)), wordwrap=False)
           firstline = False
       else:
-          ttyio.echo(" {white}{bgblack} {black}{acs:vline}{cyan}%s {acs:vline}{bgblack} {bggray} {/all}" % (buf.ljust(terminalwidth-8)), wordwrap=False)
+          ttyio.echo(" {white}{bgblack} {black}{acs:vline}{cyan}%s {lightblue}{acs:vline}{bgblack} {bggray} {/all}" % (buf.ljust(terminalwidth-8)), wordwrap=False)
       options += chr(ch)
       ch += 1
 
@@ -69,35 +114,49 @@ def displaymenu(menuitems:list, title:str=None, default=None):
   ttyio.echo(" {bggray}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
   return
 
-def handlemenu(menuitems:list, prompt:str, default=None):
+def handlemenu(args:object, menuitems:list, prompt:str, title:str=None, default=None):
   terminalwidth = ttyio.getterminalwidth()
 
+  ttyio.echo("handlemenu.100: title=%r" % (title), level="debug")
   firstline = False
-  ttyio.echo(" {white}{bggray}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
+  ttyio.echo(" {white}{bgblue}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
   if title is None or title == "":
-    ttyio.echo(" {white}{bggray} {black}{acs:ulcorner}{acs:hline:%d}{black}{acs:urcorner}{bggray}  {/all}" % (terminalwidth - 7))
+    ttyio.echo(" {white}{bgblue} {lightblue}{acs:ulcorner}{acs:hline:%d}{acs:urcorner}{bgblue}  {/all}" % (terminalwidth - 7))
   else:
-    ttyio.echo(" {white}{bggray} {black}{acs:ulcorner}{acs:hline:%d}{acs:urcorner}{bggray}  {/all}" % (terminalwidth - 7))
-    ttyio.echo(" {white}{bggray} {black}{acs:vline}{black}%s{black[C}{acs:vline}{bgblack} {bggray} {/all}" % (title.center(terminalwidth-7)))
-    ttyio.echo(" {white}{bggray} {black}{acs:ltee}{acs:hline:%d}{acs:rtee}{bgblack} {bggray} {/all}" % (terminalwidth - 7))
+    ttyio.echo(" {white}{bgblue} {lightblue}{acs:ulcorner}{acs:hline:%d}{acs:urcorner}{bgblue}  {/all}" % (terminalwidth - 7))
+    ttyio.echo(" {white}{bgblue} {lightblue}{acs:vline}{bgcyan}{black}%s{bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (title.center(terminalwidth-7)))
+    ttyio.echo(" {white}{bgblue} {lightblue}{acs:ltee}{acs:hline:%d}{acs:rtee}{bgblack} {bgblue} {/all}" % (terminalwidth - 7))
   ch = ord("A")
   options = ""
   for m in menuitems:
       buf = "[%s] %s" % (chr(ch), m["label"])
       if firstline is True:
-          ttyio.echo(" {black}{bgblue} {bgcyan} %s {bgblue}  {/all}" % (buf.ljust(terminalwidth-7)), wordwrap=False)
+          ttyio.echo(" {black}{bgblue} {acs:vline}{bgcyan} %s {acs:vline}{bgblue}  {/all}" % (buf.ljust(terminalwidth-7)), wordwrap=False)
           firstline = False
       else:
-          ttyio.echo(" {black}{bgblue} {bgcyan} %s {bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-7)), wordwrap=False)
+          ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan}{black} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-9)), wordwrap=False)
       options += chr(ch)
       ch += 1
-  ttyio.echo(" {black}{bgblue} {bgcyan} %s {bgblack} {bgblue} {/all}" % (" "*(terminalwidth-7)), wordwrap=False)
-  ttyio.echo(" {black}{bgblue} {bgcyan} %s {bgblack} {bgblue} {/all}" % ("[Q] Quit".ljust(terminalwidth-7)), wordwrap=False)
+  ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (" "*(terminalwidth-9)), wordwrap=False)
+  ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{black}{bgcyan} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % ("[Q] Quit".ljust(terminalwidth-9)), wordwrap=False)
   options += "Q"
 
-  ttyio.echo(" {white}{bgblue}  {bgblack}%s {bgblue} {/all}" % (" "*(terminalwidth-6)), wordwrap=False)
-  ttyio.echo(" {bgblue}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
-  return ttyio.inputchar(prompt, options, "Q")
+  ttyio.echo(" {bgblue} {lightblue}{acs:llcorner}{acs:hline:%s}{acs:lrcorner}{bgblack} {bgblue} {/all}" % (terminalwidth-7), wordwrap=False)
+  ttyio.echo(" {white}{bgblue}  {bgblack}%s{bgblue} {/all}" % (" "*(terminalwidth-5)), wordwrap=False)
+  ttyio.echo(" {white}{bgblue}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
+  ch = ttyio.inputchar(prompt, options, "Q")
+  if ch == "Q":
+    ttyio.echo("quit")
+    return None
+
+  i = ord(ch) - ord("A")
+  mi = menuitems[i]
+  callback = mi["callback"]
+  label = mi["label"]
+  ttyio.echo("%s" % (label))
+#  ttyio.echo("handlemenu.100: %r" % (mi), level="debug", interpret=False)
+  return runcallback(args, callback)
+
 
 def title(title:str, titlecolor:str="{bgray}{white}", hrcolor:str="{white}", hrchars:str="{acs:hline}", llcorner="{acs:llcorner}", lrcorner="{acs:lrcorner}", ulcorner="{acs:ulcorner}", urcorner="{acs:urcorner}", width=None):
   if width is None:
@@ -154,7 +213,7 @@ def drivesound(args):
     if "-drivesoundvolume" in vicecommandline:
       del vicecommandline["-drivesoundvolume"]
     vicecommandline["+drivesound"] = None
-  return
+  return True
 
 def clock(args):
   area("vice: clock")
@@ -169,11 +228,11 @@ def clock(args):
   if clock1 is True and clock2 is True:
     if ttyio.inputboolean("do you really want to use both the cmd rtc and ds12c887rtc? [yN]: ", "N", "YN") is False:
       ttyio.echo("aborted", level="error")
-      return
+      return False
 
   if clock2 is True:
     cmd4000(args)
-  return
+  return True
 
 def checklocalhostdns(args):
   area("system: check for 'localhost' in dns")
@@ -216,7 +275,7 @@ def gfd3(args):
     vicecommandline["-ltkimage0"] = os.path.join(args.basedir, "drive8-0.dlk")
     vicecommandline["-ltkimage1"] = os.path.join(args.basedir, "drive8-1.dlk")
     vicecommandline["-ltkimage2"] = os.path.join(args.basedir, "drive8-2.dlk")
-  return None
+  return True
 
 def keyboard(args):
   area("vice: keyboard")
@@ -234,7 +293,7 @@ def keyboard(args):
     ttyio.echo("3:positional (user)")
 
   vicecommandline["-keymap"] = ch
-  return
+  return True
 
 def cmd4000(args):
   area("vice: cmd4000")
@@ -264,7 +323,7 @@ def ds12c887rtc(args):
     vicecommandline["+ds12c887rtc"] = None
     if "-ds12c887rtc" in vicecommandline:
       del vicecommandline["-ds12c887rtc"]
-    return
+    return True
   else:
     vicecommandline["-ds12c887rtc"] = None
     if "+ds12c887rtc" in vicecommandline:
@@ -341,18 +400,19 @@ def ds12c887rtc(args):
       del vicecommandline["-ds12c887running"]
 
   ttyio.echo()
-  return
+  return True
 
 def rs232(args):
   area("vice: rs232/ip232")
   title("vice: rs232/ip232")
+  dev = int(ttyio.inputchar("device [1-4]: ", "1234", "4"))
   vicecommandline["+rsuser"] = None
-  vicecommandline["-rsdev4"] = "%s:%s" % (localhost, tcpsercommandline["-v"])
-  vicecommandline["-rsdev4ip232"] = None
-  vicecommandline["-rsdev4baud"] = tcpsercommandline["-s"] # 38400
+  vicecommandline["-rsdev%d" % (dev)] = "%s:%s" % (localhost, tcpsercommandline["-v"])
+  vicecommandline["-rsdev%dip232" % (dev)] = None
+  vicecommandline["-rsdev%dbaud" % (dev)] = tcpsercommandline["-s"] # 38400
 
-  ttyio.echo("configured rsdev4 as ip232.")
-  return
+  ttyio.echo("configured rsdev%d as ip232." % (dev))
+  return True
 
 def acia(args):
   area("vice")
@@ -360,7 +420,7 @@ def acia(args):
 
   if ttyio.inputboolean("Enable the ACIA RS232 interface emulation (Swiftlink)? [Yn]: ", "Y", "YN") is False:
     vicecommandline["+acia1"] = None
-    return
+    return True
 
   ch = ttyio.inputchar("Set the ACIA mode [A] normal [B] swiftlink [C] turbo32: [ABC]? ", "ABC", "B")
   if ch == "A":
@@ -420,7 +480,7 @@ def acia(args):
   vicecommandline["-myaciadev"] = ord(ch) - ord("A")
   # vicecommandline["-myaciadev"] = 3 # serial4
   vicecommandline["-acia1"] = None
-  return
+  return True
 
 def checktcpser(args, filename="tcpser"): # filename="/home/jam/tmp/tcpser-1.1.4/tcpser"):
   area("tcpser")
@@ -580,17 +640,18 @@ def tcpser(args):
   if args.debug is True:
     ttyio.echo("level=%r" % (i))
   tcpsercommandline["-l"] = i
+  return True
 
 def ramlink(args):
   area("vice")
   title("vice: ramlink")
 
   if args.ramlink is True:
-    ttyio.echo("ramlink enabled by command line option")
+    ttyio.echo("use ramlink? Yes (command line option)")
   else:
     if ttyio.inputboolean("use ramlink? ", "N", "YN") is False:
           vicecommandline["-ramlink"] = None
-          return
+          return True
 
   vicecommandline["+ramlink"] = None
 
@@ -608,7 +669,7 @@ def ramlink(args):
 
   vicecommandline["-cartramlink"] = inputfilename(args, "ramlink bin: ", "ramlink.bin")
 
-  return
+  return True
 
 def displaysync(args):
   area("vice")
@@ -620,7 +681,7 @@ def displaysync(args):
   elif sync == "P":
     ttyio.echo("PAL")
     vicecommandline["-pal"] = None
-  return
+  return True
 
 def drivetype(args, devicenumber, oldvalue=None):
     types = {
@@ -703,7 +764,7 @@ def storage(args):
         if "0xDE00" in ioaddrs and ioaddrs["0xDE00"] == "ltkio":
           del ioaddrs["0xDE00"]
       elif ch == "0":
-        ttyio.echo("0: $DE00")
+        ttyio.echo("0: 0xDE00")
         ioaddrs["0xDE00"] = "ltkio"
         if "0xDF00" in ioaddrs and ioaddrs["0xDF00"] == "ltkio":
           del ioaddrs["0xDF00"]
@@ -761,6 +822,7 @@ def storage(args):
       image = inputfilename(args, "drive %d image: " % (drivenumber), default, noneok=True, multiple=False)
       if image is not None:
         vicecommandline[option] = image
+  return True
 
 def summary(args):
   area("setupimagebbs")
@@ -838,7 +900,7 @@ def savejson(args):
   
   if ttyio.inputboolean("save setup data? [Yn]: ", "Y", "YN") is False:
     ttyio.echo("setup data {bold}not{/bold} saved.{f6}")
-    return
+    return True
 
   data = {}
 
@@ -892,6 +954,8 @@ def drivesound(args):
   else:
     vicecommandline["+drivesound"] = None
 
+  return True
+
 def iocollisionhandler(args):
   title("iocollision handling")
   if "-iocollision" in vicecommandline:
@@ -924,7 +988,7 @@ def iocollisionhandler(args):
   val = ord(ch) - ord("A")
   # ttyio.echo("val=%r" % (val), level="debug")
   vicecommandline["-iocollision"] = val
-  return
+  return True
 
 def main():
     # parser = OptionParser(usage="usage: %prog [options] projectid")
@@ -937,7 +1001,7 @@ def main():
     parser.add_argument("--debug", action="store_true", default=False, dest="debug")
 
     parser.add_argument("--storage", action="store", choices=["ltk", "cmd"], dest="storage")
-    # parser.add_argument("--ramlink", action="store_true", dest="ramlink")
+    parser.add_argument("--ramlink", action="store_true", dest="ramlink")
     parser.add_argument("--basedir", action="store", dest="basedir", default="~jam/projects/gfd3/")
     args = parser.parse_args()
     # ttyio.echo("args=%r" % (args), level="debug")
@@ -949,7 +1013,7 @@ def main():
     ttyio.echo("{f6:5}{curpos:%d,0}" % (ttyio.getterminalheight()-3))
     initscreen(bottommargin=1)
 
-    area("setup image bbs")
+    area("setup image bbs v3.0")
 
     if args.debug is True:
         ttyio.echo("setupbbs.main.100: args=%r" % (args))
@@ -962,42 +1026,61 @@ def main():
 
     localhost = checklocalhostdns(args)
 
-    tests = (
-      # "loadjson",
-      "checktcpser",
-      "checkvice",
-      "gfd3",
-      "defaultconfig",
-      "drivesound",
-      "acia",
-      "tcpser",
-      "displaysync",
-      "rs232",
-      "clock",
-      "storage"
+    checktcpser(args)
+    checkvice(args)
+    tcpser(args)
+    gfd3(args)
+    defaultconfig(args)
+
+    menuitems = (
+#      { "callback": "checktcpser", "label": "check tcpser" },
+#      { "callback": "checkvice", "label": "check vice"},
+#      { "callback": "gfd3",          "label": "use gfd3 config"},
+#      { "callback": "defaultconfig", "label": "reset to default config"},
+      { "callback": "drivesound",    "label": "enable drive sound"},
+      { "callback": "acia",          "label": "acia setup (swiftlink)"},
+      { "callback": "displaysync",   "label": "displaysync"},
+      { "callback": "rs232",         "label": "rs232/ip232"},
+      { "callback": "clock",         "label": "rtc (real-time clock)"},
+      { "callback": "storage",       "label": "storage"},
+      { "callback": "keyboard",      "label": "keyboard settings"},
+      { "callback": "ramlink",       "label": "ramlink"}
+    )
+    done = False
+    while not done:
+      res = handlemenu(args, menuitems, "setup: ", title="%%%")
+      if res is True:
+        ttyio.echo("OK", level="success")
+        continue
+      elif res is False:
+        ttyio.echo("FAILED", level="error")
+        if ttyio.inputboolean("proceed anyway? [yN]: ", "YN", "N") is False:
+          done = True
+      elif res is None:
+        done = True
+      else:
+        ttyio.echo("???")
 #      "iocollisionhandler",
 #      "checkltkaciaconflict",
-#      "keyboard",
 #      "saveonviceexit",
-      #"ramlink",
-    )
+#    )
 
-    for t in tests:
-      if args.debug is True:
-        ttyio.echo("t=%r" % (t), level="debug")
-      func = eval(t)
-      if callable(func) is False:
-        ttyio.echo("%r is not callable." % (t), level="error")
-        continue
-      res = func(args)
-      if res is False:
-        if ttyio.inputboolean("{bgred}{black} %r failed. {/all}{f6}proceed anyway? [Yn]: " % (t), "Y", "YN") is False:
-          ttyio.echo("{bgred}{black} aborted {/all}", end="", level="error")
-          return False
-      ttyio.echo()
+#    for t in tests:
+#      if args.debug is True:
+#        ttyio.echo("t=%r" % (t), level="debug")
+#      func = eval(t)
+#      if callable(func) is False:
+#        ttyio.echo("%r is not callable." % (t), level="error")
+#        continue
+#      res = func(args)
+#      if res is False:
+#        if ttyio.inputboolean("{bgred}{black} %r failed. {/all}{f6}proceed anyway? [Yn]: " % (t), "Y", "YN") is False:
+#          ttyio.echo("{bgred}{black} aborted {/all}", end="", level="error")
+#          return False
+#      ttyio.echo()
 
-    summary()
-    savejson()
+#    summary()
+#    savejson()
 
     return    
 
