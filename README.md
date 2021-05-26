@@ -98,6 +98,8 @@
 - [ ] if there is a syntax error for the entire command, like "atblah", a "4" is returned assuming an 'ate1' was accepted, otherwise "error"
 - [ ] at times, tcpser returns an empty line for the "AT" command
 - [ ] tested the init string used by gfd3, and I get no errors. tested each command separate as well as all in one, no problems.
+- [ ] make a test to turn off audio-- solves some performance problems.
+- [ ] rs232(): prompt for things!
 
 ## dependencies
 - ttyio4 (on my github)
