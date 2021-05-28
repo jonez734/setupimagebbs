@@ -116,9 +116,13 @@ def displaymenu(menuitems:list, title:str=None, default=None):
 
 def handlemenu(args:object, menuitems:list, prompt:str, title:str=None, default=None):
   terminalwidth = ttyio.getterminalwidth()
+  maxlen = 0
+  for m in menuitems:
+    l = len(m["label"])+4
+    if l > maxlen:
+      maxlen = l
 
-  ttyio.echo("handlemenu.100: title=%r" % (title), level="debug")
-  firstline = False
+  ttyio.echo("handlemenu.100: maxlen=%r title=%r" % (maxlen, title), level="debug")
   ttyio.echo(" {white}{bgblue}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
   if title is None or title == "":
     ttyio.echo(" {white}{bgblue} {lightblue}{acs:ulcorner}{acs:hline:%d}{acs:urcorner}{bgblue}  {/all}" % (terminalwidth - 7))
@@ -129,14 +133,14 @@ def handlemenu(args:object, menuitems:list, prompt:str, title:str=None, default=
   ch = ord("A")
   options = ""
   for m in menuitems:
-      buf = "[%s] %s" % (chr(ch), m["label"])
-      if firstline is True:
-          ttyio.echo(" {black}{bgblue} {acs:vline}{bgcyan} %s {acs:vline}{bgblue}  {/all}" % (buf.ljust(terminalwidth-7)), wordwrap=False)
-          firstline = False
-      else:
-          ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan}{black} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-9)), wordwrap=False)
-      options += chr(ch)
-      ch += 1
+    if "result" in m:
+      result = "(%r)" % (m["result"])
+    else:
+      result = ""
+    buf = "[%s] %s %s" % (chr(ch), m["label"], result)
+    ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan}{black} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-9)), wordwrap=False)
+    options += chr(ch)
+    ch += 1
   ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (" "*(terminalwidth-9)), wordwrap=False)
   ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{black}{bgcyan} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % ("[Q] Quit".ljust(terminalwidth-9)), wordwrap=False)
   options += "Q"
@@ -155,8 +159,9 @@ def handlemenu(args:object, menuitems:list, prompt:str, title:str=None, default=
   label = mi["label"]
   ttyio.echo("%s" % (label))
 #  ttyio.echo("handlemenu.100: %r" % (mi), level="debug", interpret=False)
-  return runcallback(args, callback)
-
+  res = runcallback(args, callback)
+  mi["result"] = res
+  return res
 
 def title(title:str, titlecolor:str="{bgray}{white}", hrcolor:str="{white}", hrchars:str="{acs:hline}", llcorner="{acs:llcorner}", lrcorner="{acs:lrcorner}", ulcorner="{acs:ulcorner}", urcorner="{acs:urcorner}", width=None):
   if width is None:
@@ -172,6 +177,67 @@ def area(buf):
 
   updatebottombar("{bggray}{white} %s {/all}" % (buf.ljust(width-2, " ")))
   return
+
+def sound(args):
+  if ttyio.inputboolean("enable sound? [Yn]: ", "Y", "YN") is False:
+    vicecommandline["+sound"] = None
+    if "-sound" in vicecommandline:
+      del vicecommandline["-sound"]
+    return True
+  if "+sound" in vicecommandline:
+    del vicecommandline["+sound"]
+  # -soundrate
+  # -soundbufsize
+  # -soundfragsize
+  # -soundsync
+  d = vicecommandline["-soundsync"] if "-soundsync" in vicecommandline else "0"
+  ch = ttyio.inputchar("soundsync 0: system 1: mono 2: stereo: ", "012", d)
+  vicecommandline["-soundsync"] = ch
+  if ch == "0":
+    ttyio.echo("system")
+  elif ch == "1":
+    ttyio.echo("mono")
+  elif ch == "2":
+    ttyio.echo("stereo")
+  # -soundsuspend
+  # -soundvolume
+  d = vicecommandline["-soundvolume"] if "-soundvolume" in vicecommandline else "70"
+  vol = ttyio.inputinteger("soundvolume (0-100): ", d)
+  vicecommandline["-soundvolume"] = vol
+  # -sounddev
+  d = vicecommandline["-sounddev"] if "-sounddev" in vicecommandline else "P"
+  opts = []
+  if d == "P":
+    opts.append("{bggray}{white}[P]ulse{/all}")
+  else:
+    opts.append("[P]ulse")
+  if d == "A":
+    opts.append("{bggray}{white}{A]LSA{/all}")
+  else:
+    opts.append("[A]LSA")
+  if d == "S":
+    opts.append("{bggray}{white}[S]DL{/all}")
+  else:
+    opts.append("[S]DL")
+  if d == "D":
+    opts.append("{bggray}{white}[D]ummy{/all}")
+  else:
+    opts.append("[D]ummy")
+  dev = ttyio.inputchar("%s: " % (" ".join(opts)), "PASD", d)
+  if dev == "P":
+    ttyio.echo("Pulse")
+    vicecommandline["-sounddev"] = "pulse"
+  elif dev == "A":
+    ttyio.echo("ALSA")
+    vicecommandline["-sounddev"] = "alsa"
+  elif dev == "S":
+    ttyio.echo("SDL")
+    vicecommandline["-sounddev"] = "sdl"
+  elif dev == "D":
+    ttyio.echo("Dummy")
+    vicecommandline["-sounddev"] = "dummy"
+
+  return True
 
 def truedrive(args):
   area("vice: truedrive")
@@ -1028,24 +1094,26 @@ def main():
 
     checktcpser(args)
     checkvice(args)
-    tcpser(args)
+#    tcpser(args)
     gfd3(args)
     defaultconfig(args)
 
-    menuitems = (
+    menuitems = [
 #      { "callback": "checktcpser", "label": "check tcpser" },
 #      { "callback": "checkvice", "label": "check vice"},
 #      { "callback": "gfd3",          "label": "use gfd3 config"},
 #      { "callback": "defaultconfig", "label": "reset to default config"},
+      { "callback": "rs232",         "label": "rs232/ip232"},
       { "callback": "drivesound",    "label": "enable drive sound"},
       { "callback": "acia",          "label": "acia setup (swiftlink)"},
       { "callback": "displaysync",   "label": "displaysync"},
-      { "callback": "rs232",         "label": "rs232/ip232"},
+      { "callback": "tcpser",        "label": "tcpser parameters", "requires":("rs232")},
       { "callback": "clock",         "label": "rtc (real-time clock)"},
       { "callback": "storage",       "label": "storage"},
       { "callback": "keyboard",      "label": "keyboard settings"},
-      { "callback": "ramlink",       "label": "ramlink"}
-    )
+      { "callback": "ramlink",       "label": "ramlink"},
+      { "callback": "sound",         "label": "sound"}
+    ]
     done = False
     while not done:
       res = handlemenu(args, menuitems, "setup: ", title="%%%")
