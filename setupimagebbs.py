@@ -138,7 +138,7 @@ def resolverequires(args, menuitems, name):
   res = None
   for r in requires:
     m = find(r)
-    ttyio.echo("resolverequires.180: r=%r m=%r" % (r, m), interpret=False)
+#    ttyio.echo("resolverequires.180: r=%r m=%r" % (r, m), interpret=False)
     if m is None:
       return False
     if "result" in m:
@@ -168,7 +168,15 @@ def handlemenu(args:object, menuitems:list, prompt:str, title:str=None, default=
   options = ""
   for m in menuitems:
     if "result" in m:
-      result = "(%r)" % (m["result"])
+      result = m["result"]
+      if type(result) == tuple:
+        resultbuf = ""
+        r, s = result
+        if r is True:
+          resultbuf = s
+        result = "%s" % (resultbuf)
+      else:
+        result = "(%r)" % (result)
     else:
       result = ""
     requires = m["requires"] if "requires" in m else ()
@@ -289,7 +297,7 @@ def sound(args):
     ttyio.echo("Dummy")
     vicecommandline["-sounddev"] = "dummy"
 
-  return True
+  return (True, (vicecommandline["-sounddev"]))
 
 def truedrive(args):
   area("vice: truedrive")
@@ -331,7 +339,10 @@ def drivesound(args):
     if "-drivesoundvolume" in vicecommandline:
       del vicecommandline["-drivesoundvolume"]
     vicecommandline["+drivesound"] = None
-  return True
+  resultbuf = "(disabled)"
+  if "-drivesound" in vicecommandline:
+    resultbuf = "(enabled, volume=%s)" % (vicecommandline["-drivesoundvolume"])
+  return (True, resultbuf)
 
 def clock(args):
   area("vice: clock")
@@ -402,16 +413,18 @@ def keyboard(args):
   keyboards = ("0: Symbpolic", "1: Positional", "2: symbolic (user)", "3: positional (user)")
   ch = ttyio.inputchar("Specify index of keymap file ({bggray}{white}0:symbolic{/all}, 1:positional, 2:symbolic (user), 3:positional (user))? [0123]: ","0123", "0")
   if ch == "0":
-    ttyio.echo("0:symbolic")
+    resultbuf = "0: symbolic"
   elif ch == "1":
-    ttyio.echo("1:positional")
+    resultbuf = "1: positional"
   elif ch == "2":
-    ttyio.echo("2:symbolic (user)")
+    resultbuf = "2: symbolic (user)"
   elif ch == "3":
-    ttyio.echo("3:positional (user)")
+    resultbuf = "3: positional (user)"
+  else:
+    resultbuf = ""
 
   vicecommandline["-keymap"] = ch
-  return True
+  return (True, resultbuf)
 
 def cmd4000(args):
   area("vice: cmd4000")
@@ -796,10 +809,12 @@ def displaysync(args):
   if sync == "N":
     ttyio.echo("NTSC")
     vicecommandline["-ntsc"] = None
+    resultbuf = "(NTSC)"
   elif sync == "P":
     ttyio.echo("PAL")
     vicecommandline["-pal"] = None
-  return True
+    resultbuf = "(PAL)"
+  return (True, resultbuf)
 
 def drivetype(args, devicenumber, oldvalue=None):
     types = {
@@ -1064,18 +1079,6 @@ def edata(args):
   data.append({"record": 57, "type": "inputdevicedrive", "prompt": "User", "default": "8,1"})
   data.append({"record": 58, "type": "inputnewusercredits", "prompt": "Credits for new user", "default": "100"})
 
-def drivesound(args):
-  area("vice")
-  title("sound emulation of disk drives")
-  if ttyio.inputboolean("Enable sound emulation of disk drives [Yn]: ", "Y", "YN") is True:
-    vicecommandline["-drivesound"] = None
-    vol = ttyio.inputinteger("Set volume for disk drive sound emulation (0-4000): ", 100)
-    vicecommandline["-drivesoundvolume"] = vol
-  else:
-    vicecommandline["+drivesound"] = None
-
-  return True
-
 def iocollisionhandler(args):
   title("iocollision handling")
   if "-iocollision" in vicecommandline:
@@ -1169,7 +1172,7 @@ def main():
     ]
     done = False
     while not done:
-      res = handlemenu(args, menuitems, "setup: ", title="%%%")
+      res = handlemenu(args, menuitems, "setup: ")
       if res is True:
         ttyio.echo("OK", level="success")
         continue
@@ -1179,6 +1182,8 @@ def main():
           done = True
       elif res is None:
         done = True
+      elif type(res) == ():
+        ttyio.echo("tuple")
       else:
         ttyio.echo("???")
 #      "iocollisionhandler",
