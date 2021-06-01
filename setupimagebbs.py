@@ -114,6 +114,40 @@ def displaymenu(menuitems:list, title:str=None, default=None):
   ttyio.echo(" {bggray}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
   return
 
+def resolverequires(args, menuitems, name):
+  def find(name):
+    for m in menuitems:
+      if name == m["name"]:
+        return m
+    else:
+      return None
+
+#  ttyio.echo("resolverequires.140: name=%r" % (name), interpret=False)
+  menuitem = find(name)
+#  ttyio.echo("resolverequires.160: menuitem=%r" % (menuitem), interpret=False)
+  if menuitem is None:
+#    ttyio.echo("resolverequires.160: name=%r not found" % (name))
+    return None
+
+  res = None
+  requires = menuitem["requires"] if "requires" in menuitem else ()
+#  ttyio.echo("resolverequires.200: requires=%r" % (requires,), interpret=False)
+  if len(requires) == 0:
+    return True
+
+  res = None
+  for r in requires:
+    m = find(r)
+    ttyio.echo("resolverequires.180: r=%r m=%r" % (r, m), interpret=False)
+    if m is None:
+      return False
+    if "result" in m:
+      if m["result"] is False:
+        return False
+    else:
+      return False
+  return True
+
 def handlemenu(args:object, menuitems:list, prompt:str, title:str=None, default=None):
   terminalwidth = ttyio.getterminalwidth()
   maxlen = 0
@@ -137,8 +171,21 @@ def handlemenu(args:object, menuitems:list, prompt:str, title:str=None, default=
       result = "(%r)" % (m["result"])
     else:
       result = ""
-    buf = "[%s] %s %s" % (chr(ch), m["label"], result)
-    ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan}{black} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-9)), wordwrap=False)
+    requires = m["requires"] if "requires" in m else ()
+
+    if len(requires) == 0:
+      requiresbuf = ""
+    else:
+      requiresbuf = "(requires: %s)" % (ttyio.readablelist(requires))
+    name = m["name"] if "name" in m else None
+    if resolverequires(args, menuitems, name) is True:
+      buf = "[%s] %s %s %s" % (chr(ch), m["label"], result, requiresbuf)
+      ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan}{black} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-9)), wordwrap=False)
+    else:
+      buf = "[%s] %s %s %s" % (chr(ch), m["label"], result, requiresbuf)
+      ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan}{black} {bggray}{white}%s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-9)), wordwrap=False)
+    bufstripped = ttyio.interpretmci(buf, strip=True)
+    # ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan}{black} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-len(bufstripped))), wordwrap=False)
     options += chr(ch)
     ch += 1
   ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (" "*(terminalwidth-9)), wordwrap=False)
@@ -157,8 +204,13 @@ def handlemenu(args:object, menuitems:list, prompt:str, title:str=None, default=
   mi = menuitems[i]
   callback = mi["callback"]
   label = mi["label"]
+  name = mi["name"]
   ttyio.echo("%s" % (label))
 #  ttyio.echo("handlemenu.100: %r" % (mi), level="debug", interpret=False)
+  if resolverequires(args, menuitems, name) is False:
+    if ttyio.inputboolean("requirements not resolved. proceed? [y{bggray}N{/all}]: ", "N", "YN") is False:
+      ttyio.echo("aborted.")
+      return False
   res = runcallback(args, callback)
   mi["result"] = res
   return res
@@ -936,6 +988,7 @@ def defaultconfig(args):
 
   if ttyio.inputboolean("restore default config before processing options? [Yn]: ", "Y", "YN") is True:
     vicecommandline["-default"] = None
+  return True
 
 def saveonviceexit(args):
   area("vice")
@@ -945,6 +998,7 @@ def saveonviceexit(args):
     vicecommandline["-saveres"] = None
   else:
     vicecommandline["+saveres"] = None
+  return True
 
 def checkltkaciaconflict(args):
   area("setupimagebbs")
@@ -1102,17 +1156,16 @@ def main():
 #      { "callback": "checktcpser", "label": "check tcpser" },
 #      { "callback": "checkvice", "label": "check vice"},
 #      { "callback": "gfd3",          "label": "use gfd3 config"},
-#      { "callback": "defaultconfig", "label": "reset to default config"},
-      { "callback": "rs232",         "label": "rs232/ip232"},
-      { "callback": "drivesound",    "label": "enable drive sound"},
-      { "callback": "acia",          "label": "acia setup (swiftlink)"},
-      { "callback": "displaysync",   "label": "displaysync"},
-      { "callback": "tcpser",        "label": "tcpser parameters", "requires":("rs232")},
-      { "callback": "clock",         "label": "rtc (real-time clock)"},
-      { "callback": "storage",       "label": "storage"},
-      { "callback": "keyboard",      "label": "keyboard settings"},
-      { "callback": "ramlink",       "label": "ramlink"},
-      { "callback": "sound",         "label": "sound"}
+      { "name": "acia",          "callback": "acia",          "label": "acia setup (normal, swiftlink, turbo32)", "requires":()},
+      { "name": "tcpser",        "callback": "tcpser",        "label": "tcpser parameters", "requires":("acia",)},
+      { "name": "rs232",         "callback": "rs232",         "label": "rs232/ip232", "requires": ("tcpser", "acia",)},
+      { "name": "drivesound",    "callback": "drivesound",    "label": "drive sound"},
+      { "name": "displaysync",   "callback": "displaysync",   "label": "displaysync"},
+      { "name": "clock",         "callback": "clock",         "label": "rtc (real-time clock)"},
+      { "name": "storage",       "callback": "storage",       "label": "storage"},
+      { "name": "keyboard",      "callback": "keyboard",      "label": "keyboard settings"},
+      { "name": "ramlink",       "callback": "ramlink",       "label": "ramlink"},
+      { "name": "sound",         "callback": "sound",         "label": "sound"}
     ]
     done = False
     while not done:
@@ -1122,7 +1175,7 @@ def main():
         continue
       elif res is False:
         ttyio.echo("FAILED", level="error")
-        if ttyio.inputboolean("proceed anyway? [yN]: ", "YN", "N") is False:
+        if ttyio.inputboolean("proceed anyway? [yN]: ", "N", "YN") is False:
           done = True
       elif res is None:
         done = True
