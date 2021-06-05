@@ -12,6 +12,7 @@ vicecommandline = {}
 tcpsercommandline = {}
 localhost = "localhost"
 ioaddrs = {}
+setup = {}
 
 # @since 20210523
 # imported from bbsengine5
@@ -239,6 +240,7 @@ def area(buf):
   return
 
 def sound(args):
+  status = []
   if ttyio.inputboolean("enable sound? [Yn]: ", "Y", "YN") is False:
     vicecommandline["+sound"] = None
     if "-sound" in vicecommandline:
@@ -255,15 +257,19 @@ def sound(args):
   vicecommandline["-soundsync"] = ch
   if ch == "0":
     ttyio.echo("system")
+    status.append("sync: system")
   elif ch == "1":
     ttyio.echo("mono")
+    status.append("sync: mono")
   elif ch == "2":
     ttyio.echo("stereo")
+    status.append("sync: stereo")
   # -soundsuspend
   # -soundvolume
   d = vicecommandline["-soundvolume"] if "-soundvolume" in vicecommandline else "70"
   vol = ttyio.inputinteger("soundvolume (0-100): ", d)
   vicecommandline["-soundvolume"] = vol
+  status.append("vol: %s" % (vol))
   # -sounddev
   d = vicecommandline["-sounddev"] if "-sounddev" in vicecommandline else "P"
   opts = []
@@ -287,17 +293,21 @@ def sound(args):
   if dev == "P":
     ttyio.echo("Pulse")
     vicecommandline["-sounddev"] = "pulse"
+    status.append("dev: pulse")
   elif dev == "A":
     ttyio.echo("ALSA")
     vicecommandline["-sounddev"] = "alsa"
+    status.append("dev: alsa")
   elif dev == "S":
     ttyio.echo("SDL")
     vicecommandline["-sounddev"] = "sdl"
+    status.append("dev: sdl")
   elif dev == "D":
     ttyio.echo("Dummy")
     vicecommandline["-sounddev"] = "dummy"
+    status.append("dev: dummy")
 
-  return (True, (vicecommandline["-sounddev"]))
+  return (True, (ttyio.readablelist(status)))
 
 def truedrive(args):
   area("vice: truedrive")
@@ -361,7 +371,14 @@ def clock(args):
 
   if clock2 is True:
     cmd4000(args)
-  return True
+  status = []
+  if clock1 is True:
+    status.append("ds12c887rtc")
+  if clock2 is True:
+    status.append("cmd fd-4000rtc")
+  statusbuf = "(%s)" % (ttyio.readablelist(status))
+
+  return (True, statusbuf)
 
 def checklocalhostdns(args):
   area("system: check for 'localhost' in dns")
@@ -413,13 +430,13 @@ def keyboard(args):
   keyboards = ("0: Symbpolic", "1: Positional", "2: symbolic (user)", "3: positional (user)")
   ch = ttyio.inputchar("Specify index of keymap file ({bggray}{white}0:symbolic{/all}, 1:positional, 2:symbolic (user), 3:positional (user))? [0123]: ","0123", "0")
   if ch == "0":
-    resultbuf = "0: symbolic"
+    resultbuf = "symbolic"
   elif ch == "1":
-    resultbuf = "1: positional"
+    resultbuf = "positional"
   elif ch == "2":
-    resultbuf = "2: symbolic (user)"
+    resultbuf = "symbolic (user)"
   elif ch == "3":
-    resultbuf = "3: positional (user)"
+    resultbuf = "positional (user)"
   else:
     resultbuf = ""
 
@@ -553,25 +570,51 @@ def acia(args):
     vicecommandline["+acia1"] = None
     return True
 
-  ch = ttyio.inputchar("Set the ACIA mode [A] normal [B] swiftlink [C] turbo32: [ABC]? ", "ABC", "B")
-  if ch == "A":
-    ttyio.echo("A: Normal")
-  elif ch == "B":
-    ttyio.echo("B: Swiftlink")
-  elif ch == "C":
-    ttyio.echo("C: Turbo32")
+  d = vicecommandline["-acia1mode"] if "-acia1mode" in vicecommandline else "B"
+
+  options = {
+    "A": "normal",
+    "B": "swiftlink",
+    "C": "turbo32"
+  }
+
+  prompt = []
+  o = ""
+  for k, v in options.items():
+    if d == k:
+      prompt.append("{bggray}{white}[%s] %s{/all}" % (k, v))
+    else:
+      prompt.append("[%s] %s" % (k, v))
+    o += k
+
+  promptbuf = "set the ACIA mode %s: [ABC]? " % (" ".join(prompt))
+
+  ch = ttyio.inputchar(promptbuf, "ABC", d)
+  if ch in options:
+    ttyio.echo("%s: %s" % (ch, options[ch]))
+#  if ch == "A":
+#    ttyio.echo("A: Normal")
+#  elif ch == "B":
+#    ttyio.echo("B: Swiftlink")
+#  elif ch == "C":
+#    ttyio.echo("C: Turbo32")
+
+  status = []
 
   vicecommandline["-acia1mode"] = ord(ch) - ord("A")
 
+  # $de00 is not supported by ml30
   ch = ttyio.inputchar("Base address of the ACIA cartridge ({bggray}{white}A: 0xDE00{/all}, B: 0xDF00): ", "AB", "A")
   if ch == "A":
     ttyio.echo("A: 0xDE00")
     vicecommandline["-acia1base"] = "0xDE00"
     ioaddrs["0xDE00"] = "acia1"
+    status.append("io: 0xDE00")
   else:
     ttyio.echo("B: 0xDF00")
     vicecommandline["-acia1base"] = "0xDF00"
     ioaddrs["0xDF00"] = "acia1"
+    status.append("io: 0xDF00")
 
   if "-aciairq" in vicecommandline:
     default = vicecommandline["-aciairq"]
@@ -594,12 +637,15 @@ def acia(args):
   if ch == "A":
     vicecommandline["-acia1irq"] = 0
     ttyio.echo("A: None")
+    status.append("interrupts: None")
   elif ch == "B":
     vicecommandline["-acia1irq"] = 1
     ttyio.echo("B: NMI")
+    status.append("interrupts: NMI")
   elif ch == "C":
     ttyio.echo("C: IRQ")
     vicecommandline["-acia1irq"] = 2
+    status.append("interrupts: IRQ")
 
   default = "D"
 
@@ -608,10 +654,13 @@ def acia(args):
   ttyio.echo("[C] serial3")
   ttyio.echo("[D] serial4")
   ch = ttyio.inputchar("acia device [ABCD]: ", "ABCD", default)
-  vicecommandline["-myaciadev"] = ord(ch) - ord("A")
+  n = ord(ch) - ord("A")
+  vicecommandline["-myaciadev"] = n
+  ttyio.echo("serial%d" % (n+1))
+  status.append("serial%d" % (n+1))
   # vicecommandline["-myaciadev"] = 3 # serial4
   vicecommandline["-acia1"] = None
-  return True
+  return (True, "("+" ".join(status)+")")
 
 def checktcpser(args, filename="tcpser"): # filename="/home/jam/tmp/tcpser-1.1.4/tcpser"):
   area("tcpser")
@@ -732,9 +781,10 @@ def tcpser(args):
     tcpsercommandline["-I"] = None
 
   acia1mode = vicecommandline["-acia1mode"] if "-acia1mode" in vicecommandline else None
+  ttyio.echo("tcpser.120: acia1mode=%r" % (acia1mode), level="debug")
   if args.debug is True:
     ttyio.echo("tcpser.100: acia1mode=%r" % (acia1mode), level="debug")
-  if acia1mode == "1":
+  if acia1mode == 1:
     speed = 38400
   else:
     speed = 2400
@@ -863,36 +913,53 @@ def drivetype(args, devicenumber, oldvalue=None):
     ttyio.echo("None")
     return "0"
 
+def verifyLTKDevInRange(args, val):
+  val = int(val)
+  if val < 8 or val > 99:
+    ttyio.echo("ltk device number (%d) out of range." % (val))
+    return False
+  return True
+
 def storage(args):
-  area("vice: storage")
-  title("vice: storage")
-  storage = args.storage.upper() if args.storage is not None else None
-  if args.debug is True:
-    ttyio.echo("storage.100: args=%r, storage=%r" % (args, storage))
-  if storage is not None:
-    if storage == "LTK":
-      s = "L"
-    elif storage == "CMD":
-      s = "C"
+#  area("vice: storage")
+#  title("vice: storage")
+
+  useltk = setup["useltk"] if "useltk" in setup else True
+  usecmd = setup["usecmd"] if "usecmd" in setup else False
+
+  if useltk is True:
+    ltk = ttyio.inputboolean("use ltk? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
   else:
-    s = ttyio.inputchar("{bggray}{white}[L]t Kernel{/all}, [C]MD, or [N]either? ", "LCN", "L")
+    ltk = ttyio.inputboolean("use ltk? [y{bggray{white}N]: ", "N", "YN")
+  if usecmd is True:
+    cmd = ttyio.inputboolean("use cmd? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
+  else:
+    cmd = ttyio.inputboolean("use cmd? [y{bggray{white}N]: ", "N", "YN")
 
-  # x64sc.exe -cartcrt ltk.crt -ltkimage0 disk0.dlk -ltkimage1 disk1.dlk
-  # -ltkimage2 disk2.dlk -drive8type 1541 -drive9type 0 -8 dos72-s1.d64
-  # -kernal kernal
+  setup["useltk"] = ltk
+  setup["usecmd"] = cmd
 
-  if s == "L":
+  # handle hybrid!
+  if ltk is True:
       ttyio.echo("Lt. Kernel")
-      args.storage = "LTK"
+
+#      setup["useltk"] = True
+      ltkdevdefault = setup["ltkdev"] if "ltkdev" in setup else 8
+      ltkdev = ttyio.inputinteger("ltk device number, 8..99: ", ltkdevdefault, verify=verifyLTKDevInRange)
+      if ltkdev < 12 and ltkdev > 7:
+        vicecommandline["-drive%dtype" % (ltkdev)] = "1581"
+
+      setup["ltkdev"] = ltkdev
       vicecommandline["-cartcrt"] = inputfilename(args, "-cartcrt: ", "ltk.crt")
       vicecommandline["-ltkimage0"] = inputfilename(args, "-ltkimage0: ", "drive8-0.dlk")
       vicecommandline["-ltkimage1"] = inputfilename(args, "-ltkimage1: ", "drive8-1.dlk")
       vicecommandline["-ltkimage2"] = inputfilename(args, "-ltkimage2: ", "drive8-2.dlk")
       vicecommandline["-ltkport"] = ttyio.inputstring("Set LTK port number (0..15): ", "0", verify=verifyLTKPortInRange)
 
+      # handle existing value
       ch = vicecommandline["-ltkio"] = ttyio.inputchar("Set LTK IO page (0: $DE00, {bggray}{white}1: $DF00{/all}): ", "01", "1")
       if ch == "1":
-        ttyio.echo("1: $DF00 (default)")
+        ttyio.echo("1: $DF00")
         ioaddrs["0xDF00"] = "ltkio"
         if "0xDE00" in ioaddrs and ioaddrs["0xDE00"] == "ltkio":
           del ioaddrs["0xDE00"]
@@ -909,21 +976,23 @@ def storage(args):
         vicecommandline["-drive9type"] = "1541"
       elif ch == "N":
         ttyio.echo("No")
-  elif s == "C":
-      args.storage = "CMD"
-      ttyio.echo("CMD")
-      vicecommandline["-8"] =  "dos-part1.dhd" # what device type?
+  if cmd is True:
+#    setup["usecmd"] = True
+    ttyio.echo("CMD")
+    if "-ltkio" in vicecommandline and vicecommandline["-ltkio"] is not None and setup["ltkdev"] == 8:
+      ttyio.echo("ltk assigned to drive %s" % (ltkdev))
+      if ttyio.inputboolean("proceed? [yN]: ", "N", "YN") is True:
+        vicecommandline["-8"] =  "dos-part1.dhd" # what device type?
+        vicecommandline["-drive8type"] = "4844"
 
-      vicecommandline["-9"] =  "cmddrive9.d4m"
-      vicecommandline["-drive9type"] = "4000"
+    vicecommandline["-9"] =  "cmddrive9.d4m"
+    vicecommandline["-drive9type"] = "4000"
 
-      vicecommandline["-10"] = "cmddrive10.d4m"
-      vicecommandline["-drive10type"] = "4000"
+    vicecommandline["-10"] = "cmddrive10.d4m"
+    vicecommandline["-drive10type"] = "4000"
 
-      vicecommandline["-11"] = "cmddrive11.d4m"
-      vicecommandline["-drive11type"] = "4000"
-  elif s == "N":
-      ttyio.echo("Neither")
+    vicecommandline["-11"] = "cmddrive11.d4m"
+    vicecommandline["-drive11type"] = "4000"
 
   for drivenumber in range(8,11+1):
     default = None
@@ -936,11 +1005,16 @@ def storage(args):
     if dt is not None:
       vicecommandline[option] = dt
 
-    if dt == "4000" or dt == "2000":
+    dn = "drive%drtcsave" % (drivenumber)
+    if dt == "4000" or dt == "2000" or dt == "4844":
       if ttyio.inputboolean("Enable saving of RTC data to drive %d? [Yn]: " % (drivenumber), "Y", "YN") is True:
-        vicecommandline["-drive%drtcsave" % (drivenumber)] = None
+        vicecommandline["-%s" % (dn)] = None
+        if "+%s" % (dn) in vicecommandline:
+          del vicecommandline["+%s" % (dn)]
       else:
-        vicecommandline["+drive%drtcsave" % (drivenumber)] = None
+        vicecommandline["+%s" % (dn)] = None
+        if "-%s" % (dn) in vicecommandline:
+          del vicecommandline["-%s" % (dn)]
 
     default = None
 
@@ -955,7 +1029,19 @@ def storage(args):
       image = inputfilename(args, "drive %d image: " % (drivenumber), default, noneok=True, multiple=False)
       if image is not None:
         vicecommandline[option] = image
-  return True
+
+  result = []
+  for r in range(8, 11+1):
+    ttyio.echo("storage.120: r=%r" % (r))
+    dt = "-drive%dtype" % (r)
+    if dt in vicecommandline:
+      v = vicecommandline[dt]
+      if setup["useltk"] is True and "ltkdev" in setup and r == setup["ltkdev"]:
+        result.append("%d: LTK (fallback: %s)" % (r, v))
+      else:
+        result.append("%d: %s" % (r, v))
+  # ttyio.echo("storage.100: result=%r" % (result), interpret=False)
+  return (True, " ".join(result))
 
 def summary(args):
   area("setupimagebbs")
@@ -1039,6 +1125,7 @@ def savejson(args):
 
   data = {}
 
+  data["setup"] = {}
   data["vice"] = {}
   for k, v in vicecommandline.items():
     data["vice"][k] = v
@@ -1046,6 +1133,10 @@ def savejson(args):
   data["tcpser"] = {}
   for k, v in tcpsercommandline.items():
     data["tcpser"][k] = v
+
+  data["setup"] = {}
+  for k, v in setup.items():
+    data["setup"][k] = v
 
   if args.debug is True:
     ttyio.echo("data=%r" % (data), interpret=False)
@@ -1159,7 +1250,7 @@ def main():
 #      { "callback": "checktcpser", "label": "check tcpser" },
 #      { "callback": "checkvice", "label": "check vice"},
 #      { "callback": "gfd3",          "label": "use gfd3 config"},
-      { "name": "acia",          "callback": "acia",          "label": "acia setup (normal, swiftlink, turbo32)", "requires":()},
+      { "name": "acia",          "callback": "acia",          "label": "acia setup", "requires":()},
       { "name": "tcpser",        "callback": "tcpser",        "label": "tcpser parameters", "requires":("acia",)},
       { "name": "rs232",         "callback": "rs232",         "label": "rs232/ip232", "requires": ("tcpser", "acia",)},
       { "name": "drivesound",    "callback": "drivesound",    "label": "drive sound"},
@@ -1173,6 +1264,7 @@ def main():
     done = False
     while not done:
       res = handlemenu(args, menuitems, "setup: ")
+      ttyio.echo("main.100: res=%r" % (res,))
       if res is True:
         ttyio.echo("OK", level="success")
         continue
@@ -1182,10 +1274,10 @@ def main():
           done = True
       elif res is None:
         done = True
-      elif type(res) == ():
+      elif type(res) == type(()):
         ttyio.echo("tuple")
       else:
-        ttyio.echo("???")
+        ttyio.echo("??? res=%r" % (res,))
 #      "iocollisionhandler",
 #      "checkltkaciaconflict",
 #      "saveonviceexit",
