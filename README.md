@@ -28,6 +28,7 @@
   * fix should be to try up to 3 times for an "OK"/0 (both?)
   * should fix the need for a kludge in tcpser
   * may be limited to 2.0, since gfd3 works fine, tho I am using dtr hangup if that matters.
+- as of 20210603, use 1.1.4 of tcpser. other versions may have problems with serial bps and punter downloads. kludge version not required.
 
 ## todo
 - [x] if ltk is enabled and configured, make sure no disk images can be assigned to it's device (8 by default, cannot be changed within vice settings or command line)
@@ -63,7 +64,7 @@
   * storage - ltk/cmd, device assignments
   * clocks
 - [ ] x128 support (fast mode, 80 cols)
-- [ ] in rs232(), prompt for each item w defaults that set up ip232, etc. hard coded at the moment.
+- [x] in rs232(), prompt for each item w defaults that set up ip232, etc. hard coded at the moment.
 - [ ] options for e.data values (see links section for the PRG)
 - [x] make a "save settings on vice exit?" default to *YES* (larry)
 - [ ] add tcpser to systemd
@@ -95,11 +96,27 @@
 - [ ] figure a way so that inverting DCD in tcpser is not required. bbsserver? real hardware?
 - [ ] swiftlink baud rate defaults to 2400, should be 38400
 - [ ] if there is a syntax error in an AT command that is partially right, like "atfoo" (f is a command), tcpser returns an empty line.
-- [ ] if there is a syntax error for the entire command, like "atblah", a "4" is returned assuming an 'ate1' was accepted, otherwise "error"
+- [ ] if there is a syntax error for the entire command, like "atblah", a "4" should be returned assuming an 'ate1' was accepted, otherwise "error"
 - [ ] at times, tcpser returns an empty line for the "AT" command
 - [ ] tested the init string used by gfd3, and I get no errors. tested each command separate as well as all in one, no problems.
-- [ ] make a test to turn off audio-- solves some performance problems.
-- [ ] rs232(): prompt for things!
+- [x] make a test to turn off sound-- solves some performance problems. +sound disable, -sound enable, etc
+- [x] rs232(): prompt for things!
+- [x] sound()
+- [x] store return value and dependencies for menuitems.
+  * serial() must be run and return True before tcpser() is allowed for baud rate purposes.
+  * check for True for results in dependency list.
+  * multiple dependencies must be definable
+- [ ] handle hybrid ltk/cmd/cbm!
+- [x] if a device is unused, check for ltk
+- [x] do not show ltk for all unused devices (ltk is one device (8), not two (9)
+- [ ] change script to recalculate 'status' at each display of menu.
+- [ ] prompt for ltkdevicenumber and store it in 'setup' dict, default 8.
+- [ ] save 'setup' dict to json file
+- [ ] load config dicts 'setup', 'vicecommandline', 'tcpser' from json file at startup
+- [x] device type for .d4m (cmd) is "4844" ty larry. 4844 has an rtc.
+- [x] prompt for use of rtc on 4000, 4844, and 2000
+- [ ] when using ltk, show fallback device in status ("LTK (fallback: 1581)")
+- [ ] if usecmd is True, add relevant to device list
 
 ## dependencies
 - ttyio4 (on my github)
@@ -109,12 +126,12 @@
   * the 'im' has a menu for setting the rtc device (e.data #37)
   * in vice, configure a device to be a CMD-4000 (requires a non-free bin)
   * configure image to use that device for the 'rtc'
-  * if the wrong device number and/or type is used, image will show a corrupt time, and an error about an "illegal quantity"
+  * if the wrong device number and/or type is used, imagebbs will show a corrupt time, and an error about an "illegal quantity"
 - handle "filesystem" devices?
 
 ```
 larry: It would be easiest with a Lt.K new installation to put your d1 files
-on LU0 and all your d2 files on LU1.  During setup,, assign Image drive 5
+on LU0 and all your d2 files on LU1.  During setup, assign Image drive 5
 (programs drive) to LU 0 and all the other drives to LU1.  The error you are
 getting in line 3116 is because Image isn't finding nm.times which should be
 located on your email drive
@@ -138,7 +155,6 @@ For a new installation it creates and populates e.data. For conversions of 1.2 o
 x64sc -default +acia1 -ntsc -rsuser -rsdev1 localhost:25232 -rsdev1ip232 -rsdev1baud 2400 -rsdev2 rsdev2 +rsdev2ip232 -rsdev3 rsdev3 +rsdev3ip232 -rsdev4 rsdev4 +rsdev4ip232 +rsuser -dos4000 sandbox/cmd-fd-4000-dos-v1.40-fd-350022.bin -drive9type 4000 -8 dos-part1.dhd -9 cmddrive9.d4m -10 cmddrive10.d4m -11 cmddrive11.d4m
 tcpser -I -s 2400 -v 25232 -p 6400 -i e0v0s0=1s2=27 -t sI -l 7
 ```
-
 
 ```
 ate0v0x1b1
