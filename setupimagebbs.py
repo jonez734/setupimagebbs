@@ -357,24 +357,21 @@ def drivesound(args):
 def clock(args):
   area("vice: clock")
   title("clock")
-  # clock1 = ds12c887rtc(args)
-  clock1 =  ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
-  if clock1 is False:
-    clock2 = ttyio.inputboolean("use cmd fd-4000 RTC? [y{bggray}{white}N{/all}]: ", "N", "YN")
-  else:
-    clock2 = ttyio.inputboolean("use cmd fd-4000 RTC? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
+# clock1 = ds12c887rtc(args)
+#  clock1 =  ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
+#  if clock1 is False:
+  clock2 = ttyio.inputboolean("use cmd fd-4000 RTC? [y{bggray}{white}N{/all}]: ", "N", "YN")
+#  else:
+#    clock2 = ttyio.inputboolean("use cmd fd-4000 RTC? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
 
-  if clock1 is True and clock2 is True:
-    if ttyio.inputboolean("do you really want to use both the cmd rtc and ds12c887rtc? [yN]: ", "N", "YN") is False:
-      ttyio.echo("aborted", level="error")
-      return False
+#  if clock1 is True and clock2 is True:
+#    if ttyio.inputboolean("do you really want to use both the cmd rtc and ds12c887rtc? [yN]: ", "N", "YN") is False:
+#      ttyio.echo("aborted", level="error")
+#      return False
 
+  status = []
   if clock2 is True:
     cmd4000(args)
-  status = []
-  if clock1 is True:
-    status.append("ds12c887rtc")
-  if clock2 is True:
     status.append("cmd fd-4000rtc")
   statusbuf = "(%s)" % (ttyio.readablelist(status))
 
@@ -413,7 +410,8 @@ def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kw):
   return ttyio.inputstring(prompt, default, verify=verify, completerdelims="\t\n", args=args, **kw)
 
 def gfd3(args):
-  if ttyio.inputboolean("use storage settings for 'gfd3'? [Yn]: ", "Y", "YN") is True:
+  area("use gfd3 settings")
+  if ttyio.inputboolean("use settings for 'gfd3'? [Yn]: ", "Y", "YN") is True:
     vicecommandline["-10"] = os.path.join(args.basedir, "drive10.d81")
     vicecommandline["-11"] = os.path.join(args.basedir, "drive11.d81")
     vicecommandline["-drive10type"] = "1581"
@@ -603,7 +601,7 @@ def acia(args):
 
   vicecommandline["-acia1mode"] = ord(ch) - ord("A")
 
-  # $de00 is not supported by ml30
+  # $df00 is not supported by ml30
   ch = ttyio.inputchar("Base address of the ACIA cartridge ({bggray}{white}A: 0xDE00{/all}, B: 0xDF00): ", "AB", "A")
   if ch == "A":
     ttyio.echo("A: 0xDE00")
@@ -668,7 +666,7 @@ def checktcpser(args, filename="tcpser"): # filename="/home/jam/tmp/tcpser-1.1.4
 
   res = subprocess.run([filename, "-V"], capture_output=True, text=True)
 
-  TCPSERVERSTRING = "(TCPSER) 1.1.4_vicekludge"
+  TCPSERVERSTRING = "(TCPSER) 1.1.5_alpha"
 
   # look for "invalid option -- 'V'" -- (-V added in 1.1.4, older versions will complain of invalid option)
   # ttyio.echo("%r" % (res.stderr))
@@ -682,7 +680,7 @@ def checktcpser(args, filename="tcpser"): # filename="/home/jam/tmp/tcpser-1.1.4
     return True
 
 def checkvice(args, filename="x64sc"):
-  area("vice")
+  area("vice - checking features")
   title("vice: check")
 
   res = subprocess.run([filename, "--features"], capture_output=True, text=True)
@@ -694,12 +692,12 @@ def checkvice(args, filename="x64sc"):
     if define == "HAVE_RS232NET":
       ttyio.echo("{bold}%s: %s (%s){/all}" % (description, value, define))
       if value is False:
-        ttyio.echo("{bgred}{white}HAVE_RS232NET is not enabled.{/all}")
+        ttyio.echo("HAVE_RS232NET is not enabled.", level="error")
         return False
       else:
-        ttyio.echo("{bggreen}{lightgreen}HAVE_RS232NET is enabled{/all}")
+        ttyio.echo("HAVE_RS232NET is enabled", level="success")
         return True
-    return None
+  return None
 
 class completeVocab(object):
   def __init__(self, args, vocab):
@@ -827,29 +825,54 @@ def ramlink(args):
   area("vice")
   title("vice: ramlink")
 
-  if args.ramlink is True:
-    ttyio.echo("use ramlink? Yes (command line option)")
-  else:
-    if ttyio.inputboolean("use ramlink? ", "N", "YN") is False:
-          vicecommandline["-ramlink"] = None
-          return True
+  if ttyio.inputboolean("use ramlink? ", "N", "YN") is False:
+    vicecommandline["-ramlink"] = None
+    if "+ramlink" in vicecommadnline:
+      del vicecommandline["+ramlink"]
+    return (True, "disabled")
 
   vicecommandline["+ramlink"] = None
 
+  # handle default
   if ttyio.inputboolean("rtc save? ", "Y", "YN") is True:
       vicecommandline["-rtcsave"] = None
+      if "+rtcsave" in vicecommandline:
+        del vicecommandline["+rtcsave"]
   else:
       vicecommandline["+rtcsave"] = None
+      if "-rtcsave" in vicecommandline:
+        del vicecommandline["-rtcsave"]
 
+  # handle default!
   if ttyio.inputboolean("allow write to ramlink image? ", "Y", "YN") is True:
       vicecommandline["-ramlinkimagerw"] = None
+      if "+ramlinkimagerw" in vicecommandline:
+        del vicecommandline["+ramlinkimagerw"]
   else:
       vicecommandline["+ramlinkimagerw"] = None
+      if "-ramlinkimagerw" in vicecommandline:
+        del vicecommandline["-ramlinkimagerw"]
 
-  vicecommandline["-ramlinksize"] = ttyio.inputinteger("RAMLINK RAMCARD size in MiB (0=Disabled): ", "1")
+  vicecommandline["-ramlinksize"] = ttyio.inputinteger("ramlink size in MiB (0=Disabled): ", "1")
 
   vicecommandline["-cartramlink"] = inputfilename(args, "ramlink bin: ", "ramlink.bin")
 
+  # handle default value!
+  if ttyio.inputboolean("ramlink rtc save? [Yn]: ", "Y", "YN") is True:
+    vicecommandline["-ramlinkrtcsave"] = None
+    if "+ramlinkrtcsave" in vicecommandline:
+      del vicecommandline["+ramlinkrtcsave"]
+  else:
+    vicecommandline["+ramlinkrtcsave"] = None
+    if "-ramlinkcrtsave" in vicecommandline:
+      del vicecommandline["-ramlinkcrtsave"]
+
+  ch = ttyio.inputchar("ramlinkmode (1=Normal, 0=Direct", "01", "1")
+  if ch == "0":
+    ttyio.echo("Direct")
+  elif ch == "1":
+    ttyio.echo("Normal")
+  vicecommandline["-ramlinkmode"] = ch
   return True
 
 def displaysync(args):
@@ -915,7 +938,7 @@ def drivetype(args, devicenumber, oldvalue=None):
 
 def verifyLTKDevInRange(args, val):
   val = int(val)
-  if val < 8 or val > 99:
+  if val < 8 or val > 11:
     ttyio.echo("ltk device number (%d) out of range." % (val))
     return False
   return True
