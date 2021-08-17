@@ -13,6 +13,7 @@ tcpsercommandline = {}
 localhost = "localhost"
 ioaddrs = {}
 setup = {}
+rtcdevices = []
 
 # @since 20210523
 # imported from bbsengine5
@@ -76,6 +77,7 @@ def updatebottombar(buf:str) -> None:
 
 def displaymenu(menuitems:list, title:str=None, default=None):
   terminalwidth = ttyio.getterminalwidth()
+  ttyio.echo("menuitems=%r" % (menuitems), interpret=False)
   # ttyio.echo("terminalwidth=%r" % (terminalwidth), level="debug")
 
   maxlen = 0
@@ -83,6 +85,7 @@ def displaymenu(menuitems:list, title:str=None, default=None):
         l = len(m["label"])
         if l > maxlen:
             maxlen = l
+            ttyio.echo("maxlen=%d" % (maxlen), level="debug")
 
   firstline = False
   ttyio.echo(" {white}{bggray}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
@@ -95,7 +98,8 @@ def displaymenu(menuitems:list, title:str=None, default=None):
   ch = ord("A")
   options = ""
   for m in menuitems:
-      buf = "[%s] %s" % (chr(ch), m["label"])
+      ttyio.echo("maxlen=%d" % (maxlen), level="debug")
+      buf = "[%s] %s" % (chr(ch), m["label"].ljust(maxlen))
       if firstline is True:
           ttyio.echo(" {white}{bggray} {black}{black} %s {bggray}  {/all}" % (buf.ljust(terminalwidth-7)), wordwrap=False)
           firstline = False
@@ -153,7 +157,7 @@ def handlemenu(args:object, menuitems:list, prompt:str, title:str=None, default=
   terminalwidth = ttyio.getterminalwidth()
   maxlen = 0
   for m in menuitems:
-    l = len(m["label"])+4
+    l = len(m["label"])
     if l > maxlen:
       maxlen = l
 
@@ -168,30 +172,37 @@ def handlemenu(args:object, menuitems:list, prompt:str, title:str=None, default=
   ch = ord("A")
   options = ""
   for m in menuitems:
-    if "result" in m:
-      result = m["result"]
-      if type(result) == tuple:
-        resultbuf = ""
-        r, s = result
-        if r is True:
-          resultbuf = s
-        result = "%s" % (resultbuf)
-      else:
-        result = "(%r)" % (result)
-    else:
-      result = ""
-    requires = m["requires"] if "requires" in m else ()
+    result = m["result"] if "result" in m else None
+    resultbuf = ""
+    if type(result) == tuple:
+      r, s = result
+      if type(s) == str:
+        resultbuf = s
+      elif type(s) == tuple or type(s) == list and len(s) > 0:
+        resultbuf = " ".join(s)
+    elif type(result) == bool:
+      resultbuf = "%r" % (result)
 
-    if len(requires) == 0:
-      requiresbuf = ""
-    else:
-      requiresbuf = "(requires: %s)" % (ttyio.readablelist(requires))
+    requires = m["requires"] if "requires" in m else None
+    requiresbuf = ""
+    if requires is not None and len(requires) > 0:
+      requiresbuf = "requires: %s" % (ttyio.oxfordcomma(requires))
+      status.append(requiresbuf)
+
+    status = []
+    if len(resultbuf) > 0:
+      status.append(resultbuf)
+    if len(requiresbuf) > 0:
+      status.append(requiresbuf)
+    # status = (resultbuf, requiresbuf) # "result: %s" % (" ".join(result))) + ("requires: %s" % (ttyio.oxfordcomma(requires)))
+
     name = m["name"] if "name" in m else None
+    label = m["label"].ljust(maxlen)
     if resolverequires(args, menuitems, name) is True:
-      buf = "[%s] %s %s %s" % (chr(ch), m["label"], result, requiresbuf)
+      buf = "[%s] %s  %s" % (chr(ch), label, " ".join(status))
       ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan}{black} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-9)), wordwrap=False)
     else:
-      buf = "[%s] %s %s %s" % (chr(ch), m["label"], result, requiresbuf)
+      buf = "[%s] %s  %s" % (chr(ch), label, " ".join(status))
       ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan}{black} {bggray}{white}%s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-9)), wordwrap=False)
     bufstripped = ttyio.interpretmci(buf, strip=True)
     # ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan}{black} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-len(bufstripped))), wordwrap=False)
@@ -217,7 +228,7 @@ def handlemenu(args:object, menuitems:list, prompt:str, title:str=None, default=
   ttyio.echo("%s" % (label))
 #  ttyio.echo("handlemenu.100: %r" % (mi), level="debug", interpret=False)
   if resolverequires(args, menuitems, name) is False:
-    if ttyio.inputboolean("requirements not resolved. proceed? [y{bggray}N{/all}]: ", "N", "YN") is False:
+    if ttyio.inputboolean("requirements not resolved. proceed anyway? [y{bggray}N{/all}]: ", "N", "YN") is False:
       ttyio.echo("aborted.")
       return False
   res = runcallback(args, callback)
@@ -245,7 +256,7 @@ def sound(args):
     vicecommandline["+sound"] = None
     if "-sound" in vicecommandline:
       del vicecommandline["-sound"]
-    return True
+    return (True, ("disabled"))
   if "+sound" in vicecommandline:
     del vicecommandline["+sound"]
   # -soundrate
@@ -307,7 +318,7 @@ def sound(args):
     vicecommandline["-sounddev"] = "dummy"
     status.append("dev: dummy")
 
-  return (True, (ttyio.readablelist(status)))
+  return (True, (status),)
 
 def truedrive(args):
   area("vice: truedrive")
@@ -351,8 +362,8 @@ def drivesound(args):
     vicecommandline["+drivesound"] = None
   resultbuf = "(disabled)"
   if "-drivesound" in vicecommandline:
-    resultbuf = "(enabled, volume=%s)" % (vicecommandline["-drivesoundvolume"])
-  return (True, resultbuf)
+    return (True, ("enabled", "volume=%s" % (vicecommandline["-drivesoundvolume"])))
+  return (True, ("disabled",))
 
 def clock(args):
   area("vice: clock")
@@ -373,9 +384,12 @@ def clock(args):
   if clock2 is True:
     cmd4000(args)
     status.append("cmd fd-4000rtc")
-  statusbuf = "(%s)" % (ttyio.readablelist(status))
+  if len(status) > 0:
+    statusbuf = "(%s)" % (ttyio.readablelist(status))
+  else:
+    statusbuf = ""
 
-  return (True, statusbuf)
+  return (True, (status,)) # statusbuf)
 
 def checklocalhostdns(args):
   area("system: check for 'localhost' in dns")
@@ -557,8 +571,9 @@ def rs232(args):
   vicecommandline["-rsdev%dip232" % (dev)] = None
   vicecommandline["-rsdev%dbaud" % (dev)] = tcpsercommandline["-s"] # 38400
 
+  resultbuf = ""
   ttyio.echo("configured rsdev%d as ip232." % (dev))
-  return True
+  return (True, resultbuf)
 
 def acia(args):
   area("vice")
@@ -568,40 +583,32 @@ def acia(args):
     vicecommandline["+acia1"] = None
     return True
 
-  d = vicecommandline["-acia1mode"] if "-acia1mode" in vicecommandline else "B"
-
-  options = {
-    "A": "normal",
-    "B": "swiftlink",
-    "C": "turbo32"
-  }
-
-  prompt = []
-  o = ""
-  for k, v in options.items():
-    if d == k:
-      prompt.append("{bggray}{white}[%s] %s{/all}" % (k, v))
-    else:
-      prompt.append("[%s] %s" % (k, v))
-    o += k
-
-  promptbuf = "set the ACIA mode %s: [ABC]? " % (" ".join(prompt))
-
-  ch = ttyio.inputchar(promptbuf, "ABC", d)
-  if ch in options:
-    ttyio.echo("%s: %s" % (ch, options[ch]))
-#  if ch == "A":
-#    ttyio.echo("A: Normal")
-#  elif ch == "B":
-#    ttyio.echo("B: Swiftlink")
-#  elif ch == "C":
-#    ttyio.echo("C: Turbo32")
-
   status = []
 
-  vicecommandline["-acia1mode"] = ord(ch) - ord("A")
+  # if acia1mode has already been set, use it, else "B" (swiftlink)
+  d = vicecommandline["-acia1mode"] if "-acia1mode" in vicecommandline else 1
+  ttyio.echo("acia.100: d=%r" % (d), level="debug")
 
-  # $df00 is not supported by ml30
+  # normal=2400, swiftlink=38400, turbo32=230400
+  options = [ "normal", "swiftlink", "turbo32" ]
+  prompt = []
+  o = ""
+  for i in range(0, len(options)):
+    if d == i:
+      prompt.append("{bggray}{white}[%s] %s{/all}" % (chr(ord("A")+i), options[i]))
+    else:
+      prompt.append("[%s] %s" % (chr(ord("A")+i), options[i]))
+    o += chr(ord("A")+i)
+
+  promptbuf = "set the ACIA mode %s: [%s]? " % (" ".join(prompt), o)
+  ch = ttyio.inputchar(promptbuf, o, chr(ord("A")+d))
+  i = ord(ch) - ord("A")
+  ttyio.echo("%s" % (options[i]))
+  status.append("mode: %s" % (options[i]))
+
+  vicecommandline["-acia1mode"] = i
+
+  # $df00 is *not* supported by ml30 without a recompile
   ch = ttyio.inputchar("Base address of the ACIA cartridge ({bggray}{white}A: 0xDE00{/all}, B: 0xDF00): ", "AB", "A")
   if ch == "A":
     ttyio.echo("A: 0xDE00")
@@ -631,7 +638,7 @@ def acia(args):
     ttyio.echo("{bggray}{white}[C] IRQ{/all}")
   else:
     ttyio.echo("[C] IRQ")
-  ch = ttyio.inputchar("Set the ACIA interrupt (A: None, {bggray}{white}[B]: NMI{/all}, C: IRQ): ", "012", default)
+  ch = ttyio.inputchar("Set the ACIA interrupt (A: None, {bggray}{white}[B]: NMI{/all}, C: IRQ): ", "ABC", default)
   if ch == "A":
     vicecommandline["-acia1irq"] = 0
     ttyio.echo("A: None")
@@ -645,20 +652,18 @@ def acia(args):
     vicecommandline["-acia1irq"] = 2
     status.append("interrupts: IRQ")
 
-  default = "D"
-
   ttyio.echo("[A] serial1")
   ttyio.echo("[B] serial2")
   ttyio.echo("[C] serial3")
   ttyio.echo("[D] serial4")
-  ch = ttyio.inputchar("acia device [ABCD]: ", "ABCD", default)
+  ch = ttyio.inputchar("acia device [ABC{bggray}{white}D{/all}]: ", "ABCD", "D")
   n = ord(ch) - ord("A")
   vicecommandline["-myaciadev"] = n
   ttyio.echo("serial%d" % (n+1))
   status.append("serial%d" % (n+1))
   # vicecommandline["-myaciadev"] = 3 # serial4
   vicecommandline["-acia1"] = None
-  return (True, "("+" ".join(status)+")")
+  return (True, status) # "("+" ".join(status)+")")
 
 def checktcpser(args, filename="tcpser"): # filename="/home/jam/tmp/tcpser-1.1.4/tcpser"):
   area("tcpser")
@@ -780,9 +785,8 @@ def tcpser(args):
 
   acia1mode = vicecommandline["-acia1mode"] if "-acia1mode" in vicecommandline else None
   ttyio.echo("tcpser.120: acia1mode=%r" % (acia1mode), level="debug")
-  if args.debug is True:
-    ttyio.echo("tcpser.100: acia1mode=%r" % (acia1mode), level="debug")
-  if acia1mode == 1:
+
+  if acia1mode == 1 or acia1mode == 2:
     speed = 38400
   else:
     speed = 2400
@@ -797,14 +801,19 @@ def tcpser(args):
   title("tcpser: trace flags")
 
   traceflags = ""
+  trace = []
   if ttyio.inputboolean("modem input (s) [Yn]: ", "Y", "YN") is True:
     traceflags += "s"
+    trace += ["modem input"]
   if ttyio.inputboolean("modem output (S) [yN]: ", "N", "YN") is True:
     traceflags += "S"
+    trace += ["modem output"]
   if ttyio.inputboolean("IP input (i) [yN]: ", "N", "YN") is True:
     traceflags += "i"
+    trace += ["ip input"]
   if ttyio.inputboolean("IP output (I) [Yn]: ", "Y", "YN") is True:
     traceflags += "I"
+    trace += ["ip output"]
   if len(traceflags) > 0:
     tcpsercommandline["-t"] = traceflags
 
@@ -814,12 +823,14 @@ def tcpser(args):
   for i in range(0, len(vocab)):
     if vocab[i] == buf:
       level = i
+      levelname = buf
       break
 
   if args.debug is True:
-    ttyio.echo("level=%r" % (i))
-  tcpsercommandline["-l"] = i
-  return True
+    ttyio.echo("level=%r" % (level))
+
+  tcpsercommandline["-l"] = level
+  return (True, "logging: %s trace: %s speed: %s rs232net: %s port: %s" % (levelname, ttyio.oxfordcomma(trace), tcpsercommandline["-s"], tcpsercommandline["-v"], tcpsercommandline["-p"]))
 
 def ramlink(args):
   area("vice")
@@ -1278,7 +1289,7 @@ def main():
       { "name": "rs232",         "callback": "rs232",         "label": "rs232/ip232", "requires": ("tcpser", "acia",)},
       { "name": "drivesound",    "callback": "drivesound",    "label": "drive sound"},
       { "name": "displaysync",   "callback": "displaysync",   "label": "displaysync"},
-      { "name": "clock",         "callback": "clock",         "label": "rtc (real-time clock)"},
+      { "name": "clock",         "callback": "clock",         "label": "rtc (real-time clock)", "requires": ("storage",)},
       { "name": "storage",       "callback": "storage",       "label": "storage"},
       { "name": "keyboard",      "callback": "keyboard",      "label": "keyboard settings"},
       { "name": "ramlink",       "callback": "ramlink",       "label": "ramlink"},
@@ -1297,7 +1308,7 @@ def main():
           done = True
       elif res is None:
         done = True
-      elif type(res) == type(()):
+      elif type(res) == tuple:
         ttyio.echo("tuple")
       else:
         ttyio.echo("??? res=%r" % (res,))
