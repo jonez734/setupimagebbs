@@ -51,7 +51,7 @@
 - [x] in gfd3 params, set 9 to 4000, 10 and 11 to 1581 by default
 - [x] if device type is "0", do not prompt for an image name (current check is for None)
 - [x] check for an existing setting of device type and make that the default
-- [ ] add 'LTK' to drive types, move prompts for crt, images, etc during the storage loop.
+- [ ] add 'LTK' to drive types, move prompts for cart, images, etc during the storage loop.
 - [ ] check for listening prog on port -v, ask to proceed if so
 - [x] ds12c887 (rtc clock): https://sourceforge.net/p/vice-emu/code/HEAD/tree/testprogs/RTC/
 - [x] bottom bar instead of topbar for status, preserving scrollback for debugging
@@ -81,7 +81,7 @@
 - [x] move ds12c887rtc() and cmd4000() to new 'clock()' test.
 - [x] in clock(), check to see if more than 1 clock is being used and prompt.
 - [ ] --add ramlink rtc to clock()-- (only if imagebbs supports it)
-- [ ] prompt "Set the ACIA mode [A] normal [B] swiftlink [C] turbo32: [ABC]?" does not show default/existing value in separate color.
+- [x] prompt "Set the ACIA mode [A] normal [B] swiftlink [C] turbo32: [ABC]?" does not show default/existing value in separate color.
 - [ ] "acia device [ABCD]" does not have a default value, should be "D" (serial4)
 - [ ] "speed in bits per second (-s)" is set to 2400 by default.. problem w empty "ACIA device"?
 - [x] "do you really want to use both the cmd rtc and ds12c887rtc? [yN]: Yes" yields 'aborted'
@@ -102,11 +102,11 @@
   * [ ] serial() must be run and return True before tcpser() is allowed for baud rate purposes.
   * [x] check for True for results in dependency list.
   * [x] multiple dependencies must be definable
-- [ ] handle hybrid ltk/cmd/cbm!
+- [ ] !handle hybrid ltk/cmd/cbm
 - [x] --if a device is unused, check for ltk-- 
-- [ ] add a dict called 'setup', which stores which device is an ltk
+- [ ] add a dict called 'setup', which stores which device is an ltk, cmd, and etc
 - [x] do not show ltk for all unused devices (ltk is one device (8), not two (9)
-- [ ] change script to recalculate 'status' at each display of menu.
+- [x] change script to recalculate 'status' at each display of menu.
 - [x] prompt for ltkdevicenumber and store it in 'setup' dict, default 8.
 - [ ] save 'setup' dict to json file
 - [ ] load config dicts 'setup', 'vicecommandline', 'tcpser' from json file at startup
@@ -121,13 +121,12 @@
 - [x] clock() returns a result with ()
 - [x] make clock() require storage(). only rtc at the moment is from a CMD device.
 - [ ] make a function to enumerate all rtc devices available (ramlink, cmd, and etc)
-- [ ] if "requires" key of menu item is string, automagically convert to tuple
 - [ ] make a list of rtc-capable devices, and change clock() to use it, then remove/change requirement of "storage".
 - [ ] rework cmd4000() and clock() so that *any* configured cmd device can be used as rtc, instead of hardcoding 9
 - [x] in handlemenu(), make all labels the maxwidth (ryan)
 - [ ] when showing menu option, join list of results with list of requires, call " ".join()
 - [x] turbo32 is compatible with swiftlink thus is supported by 3.0
-- [ ] go through 'acia', then go back to it. crash when 'd' is an int (makes sense, vice option is an int)
+- [x] go through 'acia', then go back to it. crash when 'd' is an int (makes sense, vice option is an int)
 - [ ] in acia(), handle existing values for all prompts properly.
 - [ ] if a requirements have been met, use {strike}
 - [ ] when selecting serial port, show existing/default value.
