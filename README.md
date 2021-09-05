@@ -82,7 +82,7 @@
 - [x] in clock(), check to see if more than 1 clock is being used and prompt.
 - [ ] --add ramlink rtc to clock()-- (only if imagebbs supports it)
 - [x] prompt "Set the ACIA mode [A] normal [B] swiftlink [C] turbo32: [ABC]?" does not show default/existing value in separate color.
-- [ ] "acia device [ABCD]" does not have a default value, should be "D" (serial4)
+- [x] "acia device [ABCD]" does not have a default value, should be "D" (serial4)
 - [ ] "speed in bits per second (-s)" is set to 2400 by default.. problem w empty "ACIA device"?
 - [x] "do you really want to use both the cmd rtc and ds12c887rtc? [yN]: Yes" yields 'aborted'
 - [x] iocollisionhandler() should use ABC instead of 012
@@ -99,7 +99,7 @@
 - [x] rs232(): prompt for things!
 - [x] sound()
 - [x] store return value and dependencies for menuitems.
-  * [ ] serial() must be run and return True before tcpser() is allowed for baud rate purposes.
+  * [x] serial() must be run and return True before tcpser() is allowed for baud rate purposes.
   * [x] check for True for results in dependency list.
   * [x] multiple dependencies must be definable
 - [ ] !handle hybrid ltk/cmd/cbm
@@ -121,15 +121,24 @@
 - [x] clock() returns a result with ()
 - [x] make clock() require storage(). only rtc at the moment is from a CMD device.
 - [ ] make a function to enumerate all rtc devices available (ramlink, cmd, and etc)
-- [ ] make a list of rtc-capable devices, and change clock() to use it, then remove/change requirement of "storage".
+- [ ] make a list of rtc capable devices, and change clock() to use it, then remove/change requirement of "storage".
 - [ ] rework cmd4000() and clock() so that *any* configured cmd device can be used as rtc, instead of hardcoding 9
 - [x] in handlemenu(), make all labels the maxwidth (ryan)
 - [ ] when showing menu option, join list of results with list of requires, call " ".join()
 - [x] turbo32 is compatible with swiftlink thus is supported by 3.0
 - [x] go through 'acia', then go back to it. crash when 'd' is an int (makes sense, vice option is an int)
-- [ ] in acia(), handle existing values for all prompts properly.
-- [ ] if a requirements have been met, use {strike}
-- [ ] when selecting serial port, show existing/default value.
+- [x] in acia(), handle existing values for all prompts properly.
+- [ ] if a requirement have been met, use {strike}
+- [x] when selecting serial port, show existing/default value.
+- [x] if requires is empty, do not show "requires:" ("acia")
+- [ ] honor current value for "base address of acia cart"
+- [ ] honor current value for "set the acia interupt"
+- [x] honor current value for 'acia device'
+- [x] acia() does not show status
+- [x] completing acia() does not unlock tcpser()
+- [ ] in sound(), show current value.
+- [ ] in sound(), show available values
+- [ ] in ramlink(), change description as needed
 
 ## dependencies
 - ttyio4 (on my github)
