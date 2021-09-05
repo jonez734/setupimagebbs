@@ -689,6 +689,20 @@ def ramlink(args, **kwargs):
     vicecommandline["-ramlink"] = None
     if "+ramlink" in vicecommandline:
       del vicecommandline["+ramlink"]
+    if "+ramlinkrtcsave" in vicecommandline:
+      del vicecommandline["+rtcsave"]
+    if "-ramlinksize" in vicecommandline:
+      del vicecommandline["-ramlinksize":
+    if "+ramlinksize" in vicecommandline:
+      del vicecommandline["+ramlinksize"]
+    if "-ramlinksize" in vicecommandline:
+      del vicecommandline["-ramlinksize"]
+    if "+ramlinkimagerw" in vicecommandline:
+      del vicecommandline["+ramlinkimagerw"]
+    if "-ramlinkimagerw" in vicecommandline:
+      del vicecommandline["-ramlinkimagerw"]
+    if "-ramlinkimage" in vicecommandline:
+      del vicecommandline["-ramlinkimage"]
     return (True, "disabled")
 
   vicecommandline["+ramlink"] = None
@@ -741,11 +755,15 @@ def displaysync(args, **kwargs):
   if sync == "N":
     ttyio.echo("NTSC")
     vicecommandline["-ntsc"] = None
-    resultbuf = "(NTSC)"
+    if "-pal" in vicecommandline:
+      del vicecommandline["-pal"]
+    resultbuf = "NTSC"
   elif sync == "P":
     ttyio.echo("PAL")
     vicecommandline["-pal"] = None
-    resultbuf = "(PAL)"
+    if "-ntsc" in vicecommandline:
+      del vicecommandline["-ntsc"]
+    resultbuf = "PAL"
   return (True, resultbuf)
 
 def drivetype(args, devicenumber, oldvalue=None):
