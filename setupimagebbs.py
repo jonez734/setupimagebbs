@@ -690,9 +690,9 @@ def ramlink(args, **kwargs):
     if "+ramlink" in vicecommandline:
       del vicecommandline["+ramlink"]
     if "+ramlinkrtcsave" in vicecommandline:
-      del vicecommandline["+rtcsave"]
+      del vicecommandline["+ramlinkrtcsave"]
     if "-ramlinksize" in vicecommandline:
-      del vicecommandline["-ramlinksize":
+      del vicecommandline["-ramlinksize"]
     if "+ramlinksize" in vicecommandline:
       del vicecommandline["+ramlinksize"]
     if "-ramlinksize" in vicecommandline:
@@ -706,15 +706,6 @@ def ramlink(args, **kwargs):
     return (True, "disabled")
 
   vicecommandline["+ramlink"] = None
-
-  if ttyio.inputboolean("rtc save? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is True:
-      vicecommandline["-rtcsave"] = None
-      if "+rtcsave" in vicecommandline:
-        del vicecommandline["+rtcsave"]
-  else:
-      vicecommandline["+rtcsave"] = None
-      if "-rtcsave" in vicecommandline:
-        del vicecommandline["-rtcsave"]
 
   if ttyio.inputboolean("allow write to ramlink image? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is True:
       vicecommandline["-ramlinkimagerw"] = None
