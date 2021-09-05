@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2021 zoidtechnologies.com
+# Copyright (C) 2021 zoidtechnologies.com. All Rights Reserved.
 #
 
 import os
@@ -8,6 +8,7 @@ import json
 import locale
 import socket
 import argparse
+from argparse import Namespace
 import readline
 import subprocess
 import ttyio4 as ttyio
@@ -21,51 +22,6 @@ localhost = "localhost"
 ioaddrs = {}
 setup = {}
 rtcdevices = []
-
-# @since 20210523
-# imported from bbsengine5
-def runcallback(args:object, callback:str, **kwargs):
-  if callable(callback) is True:
-    ttyio.echo("runcallback.420: callable", level="debug")
-    return callback(args)
-
-  s = callback.split(".")
-  if len(s) > 1:
-    modulepath = ".".join(s[:-1])
-    functionname = s[len(s)-1:][0]
-  else:
-    modulepath = None
-    functionname = s[0]
-
-  ttyio.echo("runcallback.160: modulepath=%r functionname=%r" % (modulepath, functionname), level="debug", interpret=False)
-
-  if modulepath is not None:
-    try:
-        m = importlib.import_module(modulepath)
-    except ModuleNotFoundError:
-        ttyio.echo("runcallback.180: %s module not found" % (modulepath), level="error")
-    else:
-        ttyio.echo("runcallback.200: m=%r" % (m), level="debug")
-        func = getattr(m, functionname)
-        ttyio.echo("runcallback.220: func=%r" % (func), level="debug")
-        if callable(func) is True:
-            func(args, **kwargs)
-  else:
-    ttyio.echo("runcallback.240: functionname=%r" % (functionname), level="debug")
-    try:
-      func = eval(functionname)
-    except NameError:
-      ttyio.echo("runcallback.320: %r not found." % (functionname), level="error")
-      return False
-    if callable(func) is True:
-      ttyio.echo("runcallback.260: callable", level="debug")
-      rc = func(args, **kwargs)
-    else:
-      ttyio.echo("runcallback.280: not callable", level="debug")
-      rc = False
-
-  ttyio.echo("runcallback.300: callback completed", level="debug")
-  return rc
 
 def initscreen(topmargin=0, bottommargin=0):
   terminalheight = ttyio.getterminalheight()
@@ -81,166 +37,6 @@ def updatebottombar(buf:str) -> None:
   buf = buf.ljust(terminalwidth-2, " ")
   ttyio.echo("{decsc}{/all}{curpos:%d,0}%s{el}{decrc}" % (terminalheight, buf), wordwrap=False, end="")
   return
-
-def displaymenu(menuitems:list, title:str=None, default=None):
-  terminalwidth = ttyio.getterminalwidth()
-  ttyio.echo("menuitems=%r" % (menuitems), interpret=False)
-  # ttyio.echo("terminalwidth=%r" % (terminalwidth), level="debug")
-
-  maxlen = 0
-  for m in menuitems:
-        l = len(m["label"])
-        if l > maxlen:
-            maxlen = l
-            ttyio.echo("maxlen=%d" % (maxlen), level="debug")
-
-  firstline = False
-  ttyio.echo(" {white}{bggray}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
-  if title is None or title == "":
-    ttyio.echo(" {white}{bggray} {black}{acs:ulcorner}{acs:hline:%d}{black}{acs:urcorner}{bggray}  {/all}" % (terminalwidth - 7))
-  else:
-    ttyio.echo(" {white}{bggray} {lightblue}{acs:ulcorner}{acs:hline:%d}{acs:urcorner}{bggray}  {/all}" % (terminalwidth - 7))
-    ttyio.echo(" {white}{bggray} {lightblue}{acs:vline}{black}%s{black[C}{acs:vline}{bgblack} {bggray} {/all}" % (title.center(terminalwidth-7)))
-    ttyio.echo(" {white}{bggray} {lightblue}{acs:ltee}{acs:hline:%d}{acs:rtee}{bgblack} {bggray} {/all}" % (terminalwidth - 7))
-  ch = ord("A")
-  options = ""
-  for m in menuitems:
-      ttyio.echo("maxlen=%d" % (maxlen), level="debug")
-      buf = "[%s] %s" % (chr(ch), m["label"].ljust(maxlen))
-      if firstline is True:
-          ttyio.echo(" {white}{bggray} {black}{black} %s {bggray}  {/all}" % (buf.ljust(terminalwidth-7)), wordwrap=False)
-          firstline = False
-      else:
-          ttyio.echo(" {white}{bgblack} {black}{acs:vline}{cyan}%s {lightblue}{acs:vline}{bgblack} {bggray} {/all}" % (buf.ljust(terminalwidth-8)), wordwrap=False)
-      options += chr(ch)
-      ch += 1
-
-  ttyio.echo(" {white}{bggray} {black}{acs:vline}%s {black}{acs:vline}{bgblack} {bggray} {/all}" % (" "*(terminalwidth-8)), wordwrap=False)
-
-  ttyio.echo(" {bggray} {black}{acs:vline}{black}%s {black}{acs:vline}{bgblack} {bggray} {/all}" % ("[Q] quit".ljust(terminalwidth-8)), wordwrap=False)
-  options += "Q"
-
-  ttyio.echo(" {white}{bggray} {black}{acs:llcorner}{acs:hline:%d}{acs:lrcorner}{bgblack} {bggray} {/all}" % (terminalwidth-7))
-
-  ttyio.echo(" {white}{bggray}  {bgblack}%s {bggray} {/all}" % (" "*(terminalwidth-6)), wordwrap=False)
-  ttyio.echo(" {bggray}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
-  return
-
-def resolverequires(args, menuitems, name):
-  def find(name):
-    for m in menuitems:
-      if name == m["name"]:
-        return m
-    else:
-      return None
-
-#  ttyio.echo("resolverequires.140: name=%r" % (name), interpret=False)
-  menuitem = find(name)
-#  ttyio.echo("resolverequires.160: menuitem=%r" % (menuitem), interpret=False)
-  if menuitem is None:
-#    ttyio.echo("resolverequires.160: name=%r not found" % (name))
-    return None
-
-  res = None
-  requires = menuitem["requires"] if "requires" in menuitem else ()
-#  ttyio.echo("resolverequires.200: requires=%r" % (requires,), interpret=False)
-  if len(requires) == 0:
-    return True
-
-  res = None
-  for r in requires:
-    m = find(r)
-#    ttyio.echo("resolverequires.180: r=%r m=%r" % (r, m), interpret=False)
-    if m is None:
-      return False
-    if "result" in m:
-      if m["result"] is False:
-        return False
-    else:
-      return False
-  return True
-
-def handlemenu(args:object, menuitems:list, prompt:str, title:str=None, default=None):
-  terminalwidth = ttyio.getterminalwidth()
-  maxlen = 0
-  for m in menuitems:
-    l = len(m["label"])
-    if l > maxlen:
-      maxlen = l
-
-  ttyio.echo("handlemenu.100: maxlen=%r title=%r" % (maxlen, title), level="debug")
-  ttyio.echo(" {white}{bgblue}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
-  if title is None or title == "":
-    ttyio.echo(" {white}{bgblue} {lightblue}{acs:ulcorner}{acs:hline:%d}{acs:urcorner}{bgblue}  {/all}" % (terminalwidth - 7))
-  else:
-    ttyio.echo(" {white}{bgblue} {lightblue}{acs:ulcorner}{acs:hline:%d}{acs:urcorner}{bgblue}  {/all}" % (terminalwidth - 7))
-    ttyio.echo(" {white}{bgblue} {lightblue}{acs:vline}{bgcyan}{black}%s{bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (title.center(terminalwidth-7)))
-    ttyio.echo(" {white}{bgblue} {lightblue}{acs:ltee}{acs:hline:%d}{acs:rtee}{bgblack} {bgblue} {/all}" % (terminalwidth - 7))
-  ch = ord("A")
-  options = ""
-  for m in menuitems:
-    result = m["result"] if "result" in m else None
-    resultbuf = ""
-    if type(result) == tuple:
-      r, s = result
-      if type(s) == str:
-        resultbuf = s
-      elif type(s) == tuple or type(s) == list and len(s) > 0:
-        resultbuf = " ".join(s)
-    elif type(result) == bool:
-      resultbuf = "%r" % (result)
-
-    requires = m["requires"] if "requires" in m else None
-    requiresbuf = ""
-    if requires is not None and len(requires) > 0:
-      requiresbuf = "requires: %s" % (ttyio.oxfordcomma(requires))
-      status.append(requiresbuf)
-
-    status = []
-    if len(resultbuf) > 0:
-      status.append(resultbuf)
-    if len(requiresbuf) > 0:
-      status.append(requiresbuf)
-    # status = (resultbuf, requiresbuf) # "result: %s" % (" ".join(result))) + ("requires: %s" % (ttyio.oxfordcomma(requires)))
-
-    name = m["name"] if "name" in m else None
-    label = m["label"].ljust(maxlen)
-    if menu.resolverequires(args, menuitems, name) is True:
-      buf = "[%s] %s  %s" % (chr(ch), label, " ".join(status))
-      ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan}{black} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-9)), wordwrap=False)
-    else:
-      buf = "[%s] %s  %s" % (chr(ch), label, " ".join(status))
-      ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan}{black} {bggray}{white}%s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-9)), wordwrap=False)
-    bufstripped = ttyio.interpretmci(buf, strip=True)
-    # ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan}{black} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (buf.ljust(terminalwidth-len(bufstripped))), wordwrap=False)
-    options += chr(ch)
-    ch += 1
-  ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{bgcyan} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % (" "*(terminalwidth-9)), wordwrap=False)
-  ttyio.echo(" {black}{bgblue} {lightblue}{acs:vline}{black}{bgcyan} %s {bgblue}{lightblue}{acs:vline}{bgblack} {bgblue} {/all}" % ("[Q] Quit".ljust(terminalwidth-9)), wordwrap=False)
-  options += "Q"
-
-  ttyio.echo(" {bgblue} {lightblue}{acs:llcorner}{acs:hline:%s}{acs:lrcorner}{bgblack} {bgblue} {/all}" % (terminalwidth-7), wordwrap=False)
-  ttyio.echo(" {white}{bgblue}  {bgblack}%s{bgblue} {/all}" % (" "*(terminalwidth-5)), wordwrap=False)
-  ttyio.echo(" {white}{bgblue}%s{/all}" % (" "*(terminalwidth-2)), wordwrap=False)
-  ch = ttyio.inputchar(prompt, options, "Q")
-  if ch == "Q":
-    ttyio.echo("quit")
-    return None
-
-  i = ord(ch) - ord("A")
-  mi = menuitems[i]
-  callback = mi["callback"]
-  label = mi["label"]
-  name = mi["name"]
-  ttyio.echo("%s" % (label))
-#  ttyio.echo("handlemenu.100: %r" % (mi), level="debug", interpret=False)
-  if resolverequires(args, menuitems, name) is False:
-    if ttyio.inputboolean("requirements not resolved. proceed anyway? [y{var:setupimagebbs.currentoption}N{/all}]: ", "N", "YN") is False:
-      ttyio.echo("aborted.")
-      return False
-  res = runcallback(args, callback)
-  mi["result"] = res
-  return res
 
 def title(title:str, titlecolor:str="{bgray}{white}", hrcolor:str="{white}", hrchars:str="{acs:hline}", llcorner="{acs:llcorner}", lrcorner="{acs:lrcorner}", ulcorner="{acs:ulcorner}", urcorner="{acs:urcorner}", width=None):
   if width is None:
@@ -369,8 +165,8 @@ def drivesound(args, **kwargs):
     vicecommandline["+drivesound"] = None
   resultbuf = "(disabled)"
   if "-drivesound" in vicecommandline:
-    return (True, ("enabled", "volume=%s" % (vicecommandline["-drivesoundvolume"])))
-  return (True, ("disabled",))
+    return (True, "enabled: vol=%s" % (vicecommandline["-drivesoundvolume"]))
+  return (True, resultbuf)
 
 def clock(args, **kwargs):
   area("vice: clock")
@@ -412,23 +208,23 @@ def checklocalhostdns(args):
 def verifyFileExistsReadable(args, filename):
   filename = os.path.expanduser(filename)
   filename = os.path.expandvars(filename)
-  if args.debug is True:
+  if args is not None and args.debug is True:
     ttyio.echo("args=%r filename=%r" % (args, filename))
 
   if os.access(filename, os.R_OK) is True and os.path.isfile(filename) is True:
     return True
   return False
 
-def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kw):
+def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kwargs):
   ttyio.echo("inputfilename.120: args=%r" % (args))
   if default is not None:
     default = os.path.expanduser(default)
     default = os.path.expandvars(default)
   if args is not None and args.basedir is not None and default is not None:
     default = os.path.join(args.basedir, default)
-  if args.debug is True:
+  if args is not None and args.debug is True:
     ttyio.echo("inputfilename.100: delims=%r" % (readline.get_completer_delims()))
-  return ttyio.inputstring(prompt, default, verify=verify, completerdelims="\t\n", args=args, **kw)
+  return ttyio.inputstring(prompt, default, verify=verify, completerdelims="\t\n", args=args, **kwargs)
 
 def gfd3(args):
   area("use gfd3 settings")
@@ -586,17 +382,25 @@ def acia(args, **kwargs):
   area("vice")
   title("vice: acia")
 
-  if ttyio.inputboolean("Enable the ACIA RS232 interface emulation (Swiftlink)? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN") is False:
+  if ttyio.inputboolean("Enable the ACIA RS232 interface emulation (Swiftlink, Turbo32)? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is False:
     vicecommandline["+acia1"] = None
+    for x in ["-acia1mode", "-acia1base", "-acia1irq", "-myaciadev", "-acia1"]:
+      if x in vicecommandline:
+        del vicecommandline[x]
+
+    if "-acia1mode" in vicecommandline:
+      del vicecommandline["-acia1mode"]
+    if "-acia1base" in vicecommandline:
+      del vicecommandline["-acia1base"]
     return True
 
   status = []
 
-  # if acia1mode has already been set, use it, else "B" (swiftlink)
+  # if acia1mode has already been set, use it, else "1" (swiftlink)
   d = vicecommandline["-acia1mode"] if "-acia1mode" in vicecommandline else 1
   ttyio.echo("acia.100: d=%r" % (d), level="debug")
 
-  # normal=2400, swiftlink=38400, turbo32=230400
+  # normal=2400, swiftlink=38400, turbo32=230400. image can handle up to 38400
   options = [ "normal", "swiftlink", "turbo32" ]
   prompt = []
   o = ""
@@ -616,7 +420,7 @@ def acia(args, **kwargs):
   vicecommandline["-acia1mode"] = i
 
   # $df00 is *not* supported by ml30 without a recompile
-  ch = ttyio.inputchar("Base address of the ACIA cartridge ({var:setupimagebbs.currentoption}A: 0xDE00{/all}, B: 0xDF00): ", "AB", "A")
+  ch = ttyio.inputchar("Base address of the ACIA cartridge {var:setupimagebbs.currentoption}[A] 0xDE00{/all} [B] 0xDF00: [AB]? ", "AB", "A")
   if ch == "A":
     ttyio.echo("A: 0xDE00")
     vicecommandline["-acia1base"] = "0xDE00"
@@ -645,7 +449,7 @@ def acia(args, **kwargs):
     ttyio.echo("{var:setupimagebbs.currentoption}[C] IRQ{/all}")
   else:
     ttyio.echo("[C] IRQ")
-  ch = ttyio.inputchar("Set the ACIA interrupt (A: None, {var:setupimagebbs.currentoption}[B]: NMI{/all}, C: IRQ): ", "ABC", default)
+  ch = ttyio.inputchar("Set the ACIA interrupt ([A] None, {var:setupimagebbs.currentoption}[B] NMI{/all}, [C] IRQ): [ABC]? ", "ABC", default)
   if ch == "A":
     vicecommandline["-acia1irq"] = 0
     ttyio.echo("A: None")
@@ -659,18 +463,26 @@ def acia(args, **kwargs):
     vicecommandline["-acia1irq"] = 2
     status.append("interrupts: IRQ")
 
-  ttyio.echo("[A] serial1")
-  ttyio.echo("[B] serial2")
-  ttyio.echo("[C] serial3")
-  ttyio.echo("[D] serial4")
-  ch = ttyio.inputchar("acia device [ABC{var:setupimagebbs.currentoption}D{/all}]: ", "ABCD", "D")
-  n = ord(ch) - ord("A")
+  serialdev = int(vicecommandline["-myaciadev"]) if "-myaciadev" in vicecommandline else 4
+
+  for s in range(1,4+1):
+    if int(serialdev) == s:
+      ttyio.echo("{var:setupimagebbs.currentoption}[%d] serial%d{/all}" % (serialdev, serialdev))
+    else:
+      ttyio.echo("[%d] serial %d" % (s, s))
+
+  prompt = "acia device [1234]: "
+  ch = ttyio.inputchar(prompt, "1234", "4")
+  n = ord(ch) - ord("0")
+  ttyio.echo("acia.100: n=%d" % (n))
   vicecommandline["-myaciadev"] = n
-  ttyio.echo("serial%d" % (n+1))
-  status.append("serial%d" % (n+1))
+  ttyio.echo("serial%d" % (n))
+  status.append("serial%d" % (n))
   # vicecommandline["-myaciadev"] = 3 # serial4
   vicecommandline["-acia1"] = None
-  return (True, status) # "("+" ".join(status)+")")
+  ttyio.echo("acia.120: status=%r" % (status), interpret=False)
+
+  return (True, status) # (True, status) # "("+" ".join(status)+")")
 
 def checktcpser(args, filename="tcpser"): # filename="/home/jam/tmp/tcpser-1.1.4/tcpser"):
   area("tcpser")
@@ -691,25 +503,56 @@ def checktcpser(args, filename="tcpser"): # filename="/home/jam/tmp/tcpser-1.1.4
     ttyio.echo("The version of tcpser installed should be compatible with imagebbs")
     return True
 
-def checkvice(args, filename="x64sc"):
+def getvicefeatures(args:Namespace(), filename:str="x64sc"):
   area("vice - checking features")
   title("vice: check")
 
   res = subprocess.run([filename, "--features"], capture_output=True, text=True)
 
-  for match in re.finditer(r"^(\S+)\s+(yes|no)\s+(.*)", res.stdout, re.MULTILINE):
-    define = match.group(1)
-    value = True if match.group(2) ==  "yes" else False
-    description = match.group(3)
-    if define == "HAVE_RS232NET":
-      ttyio.echo("{bold}%s: %s (%s){/all}" % (description, value, define))
-      if value is False:
-        ttyio.echo("HAVE_RS232NET is not enabled.", level="error")
-        return False
-      else:
-        ttyio.echo("HAVE_RS232NET is enabled", level="success")
-        return True
+  features = {}
+  for match in re.finditer(r"^HAVE_(\S+)\s+(yes|no)\s+(.*)", res.stdout, re.MULTILINE):
+#    ttyio.echo("match.groups()=%r" % (match.groups(),))
+    feature = match.group(1)
+    value = True if match.group(2) == "yes" else False
+    # description = match.group(3)
+    features[feature] = value # (value, description)
+#    ttyio.echo("features[%s]=%r" % (feature, value))
+  return features
+
+  if define == "RS232NET":
+    ttyio.echo("{bold}%s: %s (%s){/all}" % (description, value, define))
+    if value is False:
+      ttyio.echo("RS232NET is not enabled.", level="error")
+      return False
+    else:
+      ttyio.echo("RS232NET is enabled", level="success")
+      return True
+  elif define == "IPV6":
+    ttyio.echo("{bold}%s: %s (%s){/all}" % (description, value, define))
+    if value is False:
+      ttyio.echo("IPV6 is not enabled.", level="error")
+      return False
+    else:
+      ttyio.echo("IPV6 is enabled", level="success")
+      return True
+
   return None
+
+def checkvice(args):
+  features = getvicefeatures(args)
+  for check in [ "RS232NET", "IPV6" ]:
+    if check in features and features[check] is True:
+      pass
+
+  if "RS232NET" in features and features["RS232NET"] is True:
+    ttyio.echo("RS232NET is enabled.")
+  else:
+    ttyio.echo("RS232NET is not enabled.")
+  if "IPV6" in features and features["IPV6"] is True:
+    ttyio.echo("IPV6 is enabled.")
+  else:
+    ttyio.echo("IPV6 is not enabled.")
+
 
 class completeVocab(object):
   def __init__(self, args, vocab):
@@ -832,7 +675,7 @@ def tcpser(args, **kwargs):
       levelname = buf
       break
 
-  if args.debug is True:
+  if args is not None and args.debug is True:
     ttyio.echo("level=%r" % (level))
 
   tcpsercommandline["-l"] = level
@@ -844,7 +687,7 @@ def ramlink(args, **kwargs):
 
   if ttyio.inputboolean("use ramlink? [y{var:setupimagebbs.currentoption}N{/all}]: ", "N") is False:
     vicecommandline["-ramlink"] = None
-    if "+ramlink" in vicecommadnline:
+    if "+ramlink" in vicecommandline:
       del vicecommandline["+ramlink"]
     return (True, "disabled")
 
@@ -1277,7 +1120,7 @@ def main():
     ttyio.setvariable("menu.titlecolor", "{black}{bglightgray}")
     ttyio.setvariable("menu.promptcolor", "{white}{bgblack}")
     ttyio.setvariable("menu.inputcolor", "{white}{bgblack}")
-    ttyio.setvariable("menu.disableditemcolor", "{black}{darkgray}")
+    ttyio.setvariable("menu.disableditemcolor", "{black}{bgdarkgray}")
 
     ttyio.setvariable("setupimagebbs.currentoption", "{bggray}{white}")
 
@@ -1303,54 +1146,20 @@ def main():
 #      { "callback": "checktcpser", "label": "check tcpser" },
 #      { "callback": "checkvice", "label": "check vice"},
 #      { "callback": "gfd3",          "label": "use gfd3 config"},
-      { "name": "acia",          "callback": "acia",          "label": "acia setup", "requires":()},
-      { "name": "tcpser",        "callback": "tcpser",        "label": "tcpser parameters", "requires":("acia",)},
-      { "name": "rs232",         "callback": "rs232",         "label": "rs232/ip232", "requires": ("tcpser", "acia",)},
-      { "name": "drivesound",    "callback": "drivesound",    "label": "drive sound"},
-      { "name": "displaysync",   "callback": "displaysync",   "label": "displaysync"},
-      { "name": "clock",         "callback": "clock",         "label": "rtc (real-time clock)", "requires": ("storage",)},
-      { "name": "storage",       "callback": "storage",       "label": "storage"},
-      { "name": "keyboard",      "callback": "keyboard",      "label": "keyboard settings"},
-      { "name": "ramlink",       "callback": "ramlink",       "label": "ramlink"},
-      { "name": "sound",         "callback": "sound",         "label": "sound"}
+      { "name": "acia",          "callback": acia,            "label": "acia setup", "requires":()},
+      { "name": "tcpser",        "callback": tcpser,          "label": "tcpser parameters", "requires":("acia",)},
+      { "name": "rs232",         "callback": rs232,         "label": "rs232/ip232", "requires": ("tcpser", "acia",)},
+      { "name": "drivesound",    "callback": drivesound,      "label": "drive sound"},
+      { "name": "displaysync",   "callback": displaysync,     "label": "display"},
+#      { "name": "clock",         "callback": "clock",         "label": "rtc (real-time clock)", "requires": ("storage",)},
+#      { "name": "storage",       "callback": "storage",       "label": "storage"},
+#      { "name": "keyboard",      "callback": "keyboard",      "label": "keyboard settings"},
+      { "name": "ramlink",       "callback": ramlink,       "label": "ramlink"},
+      { "name": "sound",         "callback": sound,         "label": "sound"}
     ]
 
-    menu = Menu("image bbs setup", menuitems)
-
-    done = False
-    while not done:
-      menu.display()
-      res = menu.handle("{var:menu.promptcolor}prompt: {var:menu.inputcolor}")
-      if res is None:
-        return
-      elif res == "KEY_FF":
-        ttyio.echo("{decrc}refresh")
-        continue
-      elif type(res) == tuple:
-        (op, i) = res
-      else:
-        ttyio.echo("invalid return type from handle menu %r!" % (type(res)), level="error")
-        break
-
-      if i < len(menu):
-        if op == "select":
-          ttyio.echo("{decrc}{var:menu.inputcolor}%s: %s{/all}" % (chr(ord('A')+i), menu[i]["label"]))
-  #        ttyio.echo("menu[i]=%r" % (menu[i]), interpret=False, level="debug", interpret=False)
-          runcallback(args, menu[i]["callback"], menuitem=menu[i])
-          continue
-        elif op == "help":
-          m = menu[i]
-          ttyio.echo("{decrc}display help for %s" % (m["label"]))
-          if "help" in m:
-            ttyio.echo(m["help"]+"{f6:2}")
-          else:
-            ttyio.echo("{f6}no help defined for this option{f6}")
-          continue
-      else:
-        ttyio.echo("{decrc}Q: Quit{/all}foo")
-        done = True
-        break
-    return
+    menu = Menu("image bbs v3 setup", menuitems)
+    menu.run()
 
 #      res = handlemenu(args, menuitems, "setup: ")
 #      ttyio.echo("main.100: res=%r" % (res,))
