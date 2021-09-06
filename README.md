@@ -210,3 +210,4 @@ ats0=1s2=27s7=25
 - [image bbs 3.0 e.data records](https://pinacolada64.github.io/ImageBBS3-docs.github.io/Image-BBS-3-PRG.html#truee-data)
 - [vicekb w image of positional keymap](https://vice-emu.pokefinder.org/index.php/VICEKB)
 - http://www.messagestick.net/modem/Hayes_Ch1-3.html
+- https://sourceforge.net/p/vice-emu/patches/253/ -- ramlink
