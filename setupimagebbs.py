@@ -14,7 +14,7 @@ import subprocess
 import ttyio4 as ttyio
 
 # import bbsengine5 as bbsengine # remove this in production!
-from bbsengine5 import Menu, runcallback
+from bbsengine5 import Menu, runcallback, pluralize
 
 vicecommandline = {}
 tcpsercommandline = {}
@@ -687,36 +687,33 @@ def ramlink(args, **kwargs):
 
   if ttyio.inputboolean("use ramlink? [y{var:setupimagebbs.currentoption}N{/all}]: ", "N") is False:
     vicecommandline["-ramlink"] = None
-    if "+ramlink" in vicecommandline:
-      del vicecommandline["+ramlink"]
-    if "+ramlinkrtcsave" in vicecommandline:
-      del vicecommandline["+ramlinkrtcsave"]
-    if "-ramlinksize" in vicecommandline:
-      del vicecommandline["-ramlinksize"]
-    if "+ramlinksize" in vicecommandline:
-      del vicecommandline["+ramlinksize"]
-    if "-ramlinksize" in vicecommandline:
-      del vicecommandline["-ramlinksize"]
-    if "+ramlinkimagerw" in vicecommandline:
-      del vicecommandline["+ramlinkimagerw"]
-    if "-ramlinkimagerw" in vicecommandline:
-      del vicecommandline["-ramlinkimagerw"]
-    if "-ramlinkimage" in vicecommandline:
-      del vicecommandline["-ramlinkimage"]
+    for x in ["+ramlink", "+ramlinkrtcsave", "-ramlinksize", "+ramlinksize", "-ramlinkimage", "-ramlinkimagerw", "+ramlinkimagerw"]:
+      if x in vicecommandline:
+        del vicecommandline[x]
     return (True, "disabled")
 
   vicecommandline["+ramlink"] = None
 
+  description = []
+
+  size = ttyio.inputinteger("ramlink size in MiB (0=Disabled): ", "1")
+  if size == 0:
+    return (True, "disabled")
+
+  vicecommandline["-ramlinksize"] = size
+  description.append("[size: %s]" % (pluralize(size, "megabyte", "megabytes")))
+
   if ttyio.inputboolean("allow write to ramlink image? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is True:
       vicecommandline["-ramlinkimagerw"] = None
+      description.append("[write image: Yes]")
       if "+ramlinkimagerw" in vicecommandline:
         del vicecommandline["+ramlinkimagerw"]
   else:
       vicecommandline["+ramlinkimagerw"] = None
       if "-ramlinkimagerw" in vicecommandline:
         del vicecommandline["-ramlinkimagerw"]
+      description.append("[write image: No]")
 
-  vicecommandline["-ramlinksize"] = ttyio.inputinteger("ramlink size in MiB (0=Disabled): ", "1")
 
   vicecommandline["-cartramlink"] = inputfilename(args, "ramlink bin: ", "ramlink.bin")
 
@@ -725,19 +722,24 @@ def ramlink(args, **kwargs):
     vicecommandline["-ramlinkrtcsave"] = None
     if "+ramlinkrtcsave" in vicecommandline:
       del vicecommandline["+ramlinkrtcsave"]
+    description.append("[rtc save: Yes]")
   else:
     vicecommandline["+ramlinkrtcsave"] = None
     if "-ramlinkcrtsave" in vicecommandline:
       del vicecommandline["-ramlinkcrtsave"]
+    description.append("[rtc save: No]")
 
   # handle pre-existing value!
   ch = ttyio.inputchar("ramlinkmode ({var:setupimagebbs.currentoption}1=Normal{/all}, 0=Direct): ", "01", "1")
   if ch == "0":
     ttyio.echo("Direct")
+    description.append("[mode: direct]")
   elif ch == "1":
     ttyio.echo("Normal")
+    description.append("[mode: normal]")
+
   vicecommandline["-ramlinkmode"] = ch
-  return True
+  return (True, description)
 
 def displaysync(args, **kwargs):
   area("vice")
