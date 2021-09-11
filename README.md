@@ -4,7 +4,7 @@
 - project start 20210320
 - the goal of this software is to make the job of NISSA easier by configuring vice and tcpser with a set of reasonable defaults that have been tested and are known to work
 - this script checks for tcpser-1.1.4_vicekludge
-- script is intended to run on linux/mac and has not been tested under windows. pull requests accepted.
+- script is intended to run on linux/mac and has not been tested under windows. pull requests and constructive criticism accepted.
 
 ## status
 
@@ -30,7 +30,8 @@
 - [x] on tcpser option, expand "sI" to proper text and use oxfordcomma.
 - [x] if ltk is enabled and configured, make sure no disk images can be assigned to it's device (8 by default, cannot be changed within vice settings or command line)
 - [x] remove dependency on bbsengine5 (bbsengine.title(), bbsengine.initscreen(), and bbsengine.updatetopbar())
-- [ ] test ramlink() and reu(). find RAMDos.
+- [ ] test ramlink()
+- [ ] test reu()
 - [ ] tab-complete in inputfilename() is broken.
 - [x] change the swiftlink/ip232 to serial4 (larry)
 - [x] make sure "save config on exit" is *enabled* by default
@@ -64,7 +65,7 @@
 - [x] in rs232(), prompt for each item w defaults that set up ip232, etc. hard coded at the moment.
 - [ ] options for e.data values (see links section for the PRG)
 - [x] make a "save settings on vice exit?" default to *YES* (larry)
-- [ ] add tcpser to systemd
+- [ ] add tcpser to systemd -- start at boot
 - [ ] iocollisions
   * [ ] if there is a collision, prompt to proceed anyway.
   * [ ] test 'iocollision'
@@ -77,52 +78,35 @@
 - [ ] if ltk is configured, prompt for each of the image devices, using LU, similar for CMD and CBM
 - [ ] build list of ioaddrs using x64sc --help
 - [ ] --using tech from empyre (player.status()), make multicolumn menus where needed. similar to 'im' in 3.0.--
-- [ ] if dsxxx chip is used, set default for FD-4000 to none, allow --storage override
-- [x] move ds12c887rtc() and cmd4000() to new 'clock()' test.
-- [x] in clock(), check to see if more than 1 clock is being used and prompt.
-- [ ] --add ramlink rtc to clock()-- (only if imagebbs supports it)
 - [x] prompt "Set the ACIA mode [A] normal [B] swiftlink [C] turbo32: [ABC]?" does not show default/existing value in separate color.
 - [x] "acia device [ABCD]" does not have a default value, should be "D" (serial4)
 - [ ] "speed in bits per second (-s)" is set to 2400 by default.. problem w empty "ACIA device"?
-- [x] "do you really want to use both the cmd rtc and ds12c887rtc? [yN]: Yes" yields 'aborted'
 - [x] iocollisionhandler() should use ABC instead of 012
 - [ ] "enable cmd fd-4000 on device 9?" does not have a default/existing value highlighted.
-- [ ] "do you really want to use both the cmd rtc and ds12c887rtc?" does not highlight default/existing value
-- [x] in clock(), do not prompt twice to enable ds12c887rtc
 - [ ] figure a way so that inverting DCD in tcpser is not required. bbsserver? real hardware?
 - [x] swiftlink baud rate defaults to 2400, should be 38400
 - [ ] if there is a syntax error in an AT command that is partially right, like "atfoo" (f is a command), tcpser returns an empty line.
 - [ ] if there is a syntax error for the entire command, like "atblah", a "4" should be returned assuming an 'ate1' was accepted, otherwise "error"
 - [ ] at times, tcpser returns an empty line for the "AT" command
 - [ ] tested the init string used by gfd3, and I get no errors. tested each command separate as well as all in one, no problems.
-- [x] make a test to turn off sound-- solves some performance problems. +sound disable, -sound enable, etc
+- [x] make a test to turn off sound-- solves some performance problems. +sound disable, -sound enable
 - [x] rs232(): prompt for things!
 - [x] sound()
 - [x] store return value and dependencies for menuitems.
-  * [x] serial() must be run and return True before tcpser() is allowed for baud rate purposes.
-  * [x] check for True for results in dependency list.
-  * [x] multiple dependencies must be definable
+    * [x] serial() must be run and return True before tcpser() is allowed for baud rate purposes.
+    * [x] check for True for results in dependency list.
+    * [x] multiple dependencies must be definable
 - [ ] !handle hybrid ltk/cmd/cbm
 - [x] --if a device is unused, check for ltk-- 
 - [ ] add a dict called 'setup', which stores which device is an ltk, cmd, and etc
 - [x] do not show ltk for all unused devices (ltk is one device (8), not two (9)
 - [x] change script to recalculate 'status' at each display of menu.
-- [x] prompt for ltkdevicenumber and store it in 'setup' dict, default 8.
 - [ ] save 'setup' dict to json file
 - [ ] load config dicts 'setup', 'vicecommandline', 'tcpser' from json file at startup
 - [x] device type for .d4m (cmd) is "4844" ty larry. 4844 has an rtc.
 - [x] prompt for use of rtc on 4000, 4844, and 2000
-- [ ] when using ltk, show fallback device in status ("LTK (fallback: 1581)")
 - [ ] if usecmd is True, add relevant to device list
-- [ ] !ml30 hard-codes the ioaddr for the acia (swiftlink) to $de00. other values will cause undefined results. change setup script to print a stern warning if $df00 is selected, ask for confirmation.
-- [ ] rework storage() so I can use ltk on 8, but still use cmd on 9 for the rtc, cbm drives on the rest, etc. right now, 'usecmd' configures 8-10, possibly stomping on the ltk config.
-- [x] comment out config of ds12c887rtc, since image does not support it yet.
-- [x] limit device numbers ltk can be assigned to 8-11, not 8-99 (verifyLTKDevInRange())
-- [x] clock() returns a result with ()
-- [x] make clock() require storage(). only rtc at the moment is from a CMD device.
-- [ ] make a function to enumerate all rtc devices available (ramlink, cmd, and etc)
-- [ ] make a list of rtc capable devices, and change clock() to use it, then remove/change requirement of "storage".
-- [ ] rework cmd4000() and clock() so that *any* configured cmd device can be used as rtc, instead of hardcoding 9
+- [ ] !ml30 hard-codes the ioaddr for the acia (swiftlink/turbo32) to $de00. other values will cause undefined results. change setup script to print a stern warning if $df00 is selected, ask for confirmation.
 - [x] in handlemenu(), make all labels the maxwidth (ryan)
 - [ ] when showing menu option, join list of results with list of requires, call " ".join()
 - [x] turbo32 is compatible with swiftlink thus is supported by 3.0
@@ -131,14 +115,37 @@
 - [ ] if a requirement have been met, use {strike}
 - [x] when selecting serial port, show existing/default value.
 - [x] if requires is empty, do not show "requires:" ("acia")
-- [ ] honor current value for "base address of acia cart"
-- [ ] honor current value for "set the acia interupt"
-- [x] honor current value for 'acia device'
 - [x] acia() does not show status
 - [x] completing acia() does not unlock tcpser()
 - [ ] in sound(), show current value.
 - [ ] in sound(), show available values
-- [ ] in ramlink(), change description as needed
+- [x] in ramlink(), change description as needed
+- [x] finish rs232()
+- [ ] handle alt cursor color w disabled items
+- storage
+    * [ ] rework storage() so I can use ltk on 8, but still use cmd on 9 for the rtc, cbm drives on the rest, etc. right now, 'usecmd' configures 8-10, possibly stomping on the ltk config.
+    - [x] prompt for ltkdevicenumber and store it in 'setup' dict, default 8.
+    - [ ] when using ltk, show fallback device in status ("LTK (fallback: 1581)")
+- rtc
+    - [ ] rework cmd4000() and clock() so that *any* configured cmd device can be used as rtc, instead of hardcoding 9
+    - [ ] make a list of rtc capable devices, and change clock() to use it, then remove/change requirement of "storage".
+    - [x] limit device numbers ltk can be assigned to 8-11, not 8-99 (verifyLTKDevInRange())
+    - [x] comment out config of ds12c887rtc, since image does not support it yet.
+    - [x] clock() returns a result with ()
+    - [x] make clock() require storage(). only rtc at the moment is from a CMD device.
+    - [ ] make a function to enumerate all rtc devices available (ramlink, cmd, and etc)
+    - [x] "do you really want to use both the cmd rtc and ds12c887rtc? [yN]: Yes" yields 'aborted'
+    - [ ] if dsxxx chip is used, set default for FD-4000 to none, allow --storage override
+    - [x] move ds12c887rtc() and cmd4000() to new 'clock()' test.
+    - [x] in clock(), check to see if more than 1 clock is being used and prompt.
+    - [ ] add ramlink rtc to clock()-- (only if imagebbs supports it)
+    - [ ] "do you really want to use both the cmd rtc and ds12c887rtc?" does not highlight default/existing value
+    - [x] in clock(), do not prompt twice to enable ds12c887rtc
+
+- current vs default value in prompts
+    - [ ] honor current value for "base address of acia cart"
+    - [ ] honor current value for "set the acia interupt"
+    - [ ] honor current value for 'acia device'
 
 ## dependencies
 - ttyio4 (on my github)
@@ -211,3 +218,19 @@ ats0=1s2=27s7=25
 - [vicekb w image of positional keymap](https://vice-emu.pokefinder.org/index.php/VICEKB)
 - http://www.messagestick.net/modem/Hayes_Ch1-3.html
 - https://sourceforge.net/p/vice-emu/patches/253/ -- ramlink
+
+Larry: I just create a simple .txt file with nothing in it and rename it to
+ramlink.img.  Once you get it recognized in vice, you have to use ram-tools
+to create your partitions.  
+
+start xscpu64 -8 testdisk.dhd -9 cmddrive9.d4m -10 cmddrive10.d4m -11 cmddrive11.d4m -cartramlink ramlink.bin -ramlinksize 16 -ramlink -config %cd%config 
+
+Above is the script I use for mounting the ramlink
+
+- https://www.google.com/search?q=dirmaster&oq=dirmaster&aqs=chrome..69i57.2191j0j7&sourceid=chrome&ie=UTF-8
+- http://www.jbrain.com/pub/cbm/manuals/JiffyDOS/JiffyDOS_V6_User_Manual_(searchable).pdf
+- [ ] python replacement for tcpser
+  * [pyserial](https://readthedocs.org/projects/pyserial/downloads/pdf/latest/)
+
+- TCPser ignores "atz". patch that.
+- (#253 CMD HD support)[https://sourceforge.net/p/vice-emu/patches/253/]
