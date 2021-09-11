@@ -1174,11 +1174,11 @@ def main():
 
     area("setup image bbs v3.0")
 
-    ttyio.setvariable("menu.boxcharcolor", "{blue}")
+    ttyio.setvariable("menu.boxcharcolor", "{bglightblue}{blue}")
     ttyio.setvariable("menu.backgroundcolor", "{bglightblue}")
     ttyio.setvariable("menu.shadowbackgroundcolor", "{bgblue}")
     ttyio.setvariable("menu.cursorcolor", "{bglightblue}{blue}")
-    ttyio.setvariable("menu.boxcolor", "{bgblack}{green}")
+#    ttyio.setvariable("menu.boxcolor", "{bgblack}{green}")
     ttyio.setvariable("menu.itemcolor", "{bglightblue}{blue}")
     ttyio.setvariable("menu.titlecolor", "{black}{bglightgray}")
     ttyio.setvariable("menu.promptcolor", "{white}{bgblack}")
