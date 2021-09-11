@@ -14,7 +14,7 @@ import subprocess
 import ttyio4 as ttyio
 
 # import bbsengine5 as bbsengine # remove this in production!
-from bbsengine5 import Menu, runcallback, pluralize
+from bbsengine5 import Menu, runcallback, pluralize, inputfilename
 
 vicecommandline = {}
 tcpsercommandline = {}
@@ -215,16 +215,16 @@ def verifyFileExistsReadable(args, filename):
     return True
   return False
 
-def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kwargs):
-  ttyio.echo("inputfilename.120: args=%r" % (args))
-  if default is not None:
-    default = os.path.expanduser(default)
-    default = os.path.expandvars(default)
-  if args is not None and args.basedir is not None and default is not None:
-    default = os.path.join(args.basedir, default)
-  if args is not None and args.debug is True:
-    ttyio.echo("inputfilename.100: delims=%r" % (readline.get_completer_delims()))
-  return ttyio.inputstring(prompt, default, verify=verify, completerdelims="\t\n", args=args, **kwargs)
+#def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kwargs):
+#  ttyio.echo("inputfilename.120: args=%r" % (args))
+#  if default is not None:
+#    default = os.path.expanduser(default)
+#    default = os.path.expandvars(default)
+#  if args is not None and args.basedir is not None and default is not None:
+#    default = os.path.join(args.basedir, default)
+#  if args is not None and args.debug is True:
+#    ttyio.echo("inputfilename.100: delims=%r" % (readline.get_completer_delims()))
+#  return ttyio.inputstring(prompt, default, verify=verify, completerdelims="\t\n", args=args, **kwargs)
 
 def gfd3(args):
   area("use gfd3 settings")
@@ -717,9 +717,9 @@ def ramlink(args, **kwargs):
         del vicecommandline["-ramlinkimagerw"]
       description.append("[write image: No]")
 
-  vicecommandline["-cartramlink"] = inputfilename(args, "cart ramlink bin: ", "ramlink.bin")
+  vicecommandline["-cartramlink"] = inputfilename(args, "cart ramlink bin: ", os.path.join(args.basedir, "ramlink.bin"))
 
-  vicecommandline["-ramlinkimage"] = inputfilename(args, "ramlink image: ", "ramlink.img")
+  vicecommandline["-ramlinkimage"] = inputfilename(args, "ramlink image: ", os.path.join(args.basedir, "ramlink.img"))
 
   # handle pre-existing value!
   if ttyio.inputboolean("ramlink rtc save? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is True:
@@ -862,7 +862,7 @@ def storage(args, **kwargs):
     { "name": "edit",   "callback": edit,    "label": "edit"},
   ]
 
-  menu = Menu("storage devices", menuitems)
+  menu = Menu("storage devices", menuitems, args=args)
   menu.run()
 
 def oldstorage(args, **kwargs):
@@ -1160,7 +1160,7 @@ def main():
     parser.add_argument("--debug", action="store_true", default=False, dest="debug")
 
 #    parser.add_argument("--storage", action="store", choices=["ltk", "cmd", "mix"], dest="storage")
-    parser.add_argument("--ramlink", action="store_true", dest="ramlink")
+#    parser.add_argument("--ramlink", action="store_true", dest="ramlink")
     parser.add_argument("--basedir", action="store", dest="basedir", default="~jam/projects/gfd3/")
     args = parser.parse_args()
     # ttyio.echo("args=%r" % (args), level="debug")
@@ -1220,7 +1220,7 @@ def main():
       { "name": "sound",         "callback": sound,       "label": "sound"}
     ]
 
-    menu = Menu("image bbs v3 setup", menuitems)
+    menu = Menu("image bbs v3 setup", menuitems, args=args)
     menu.run()
 
 #      res = handlemenu(args, menuitems, "setup: ")
