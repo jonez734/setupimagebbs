@@ -152,7 +152,7 @@ def drivesound(args, **kwargs):
   title("vice: drivesound")
 
   if ttyio.inputboolean("Enable sound emulation of disk drives? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN") is True:
-    volume = ttyio.inputinteger("drive sound volume? [0-4000]: ", 100)
+    volume = ttyio.inputinteger("drive sound volume? [0-100]: ", 70)
     if "+drivesound" in vicecommandline:
       del vicecommandline["+drivesound"]
     vicecommandline["-drivesound"] = None
@@ -368,14 +368,17 @@ def ds12c887rtc(args, **kwargs):
 def rs232(args, **kwargs):
   area("vice: rs232/ip232")
   title("vice: rs232/ip232")
-  dev = int(ttyio.inputchar("device [1-4]: ", "1234", "4"))
+  dev = ttyio.inputinteger("device [1-{var:setupimagebbs.currentoption}4{/all}]: ", 4)
   vicecommandline["+rsuser"] = None
   vicecommandline["-rsdev%d" % (dev)] = "%s:%s" % (localhost, tcpsercommandline["-v"])
-  vicecommandline["-rsdev%dip232" % (dev)] = None
-  vicecommandline["-rsdev%dbaud" % (dev)] = tcpsercommandline["-s"] # 38400
+  ip232 = ttyio.inputboolean("enable ip232? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y")
+  vicecommandline["-rsdev%dip232" % (dev)] = ip232
+  baud = ttyio.inputinteger("baud rate: ", tcpsercommandline["-s"]) # 38400
+  vicecommandline["-rsdev%dbaud" % (dev)] = baud
 
-  resultbuf = ""
-  ttyio.echo("configured rsdev%d as ip232." % (dev))
+  resultbuf = "[dev: %d] [ip232: %s] [baud: %d]" % (dev, ip232, baud)
+
+#  ttyio.echo("configured rsdev%d as ip232." % (dev))
   return (True, resultbuf)
 
 def acia(args, **kwargs):
@@ -696,7 +699,7 @@ def ramlink(args, **kwargs):
 
   description = []
 
-  size = ttyio.inputinteger("ramlink size in MiB (0=Disabled): ", "1")
+  size = ttyio.inputinteger("ramlink size in MiB (0=Disabled): ", "16")
   if size == 0:
     return (True, "disabled")
 
@@ -714,8 +717,9 @@ def ramlink(args, **kwargs):
         del vicecommandline["-ramlinkimagerw"]
       description.append("[write image: No]")
 
+  vicecommandline["-cartramlink"] = inputfilename(args, "cart ramlink bin: ", "ramlink.bin")
 
-  vicecommandline["-cartramlink"] = inputfilename(args, "ramlink bin: ", "ramlink.bin")
+  vicecommandline["-ramlinkimage"] = inputfilename(args, "ramlink image: ", "ramlink.img")
 
   # handle pre-existing value!
   if ttyio.inputboolean("ramlink rtc save? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is True:
@@ -726,7 +730,7 @@ def ramlink(args, **kwargs):
   else:
     vicecommandline["+ramlinkrtcsave"] = None
     if "-ramlinkcrtsave" in vicecommandline:
-      del vicecommandline["-ramlinkcrtsave"]
+      del vicecommandline["-ramlinkrtcsave"]
     description.append("[rtc save: No]")
 
   # handle pre-existing value!
@@ -766,12 +770,16 @@ def drivetype(args, devicenumber, oldvalue=None):
         "1541-II": "CBM 1541-II",
         "1570":    "CBM 1570",
         "1571":    "CBM 1571",
-        "1581":    "CBM 1581"
+        "1581":    "CBM 1581",
+        "LTK":     "Lt. Kernal",
+        "CMD4000": "CMD FD-4000",
+        "CMD4844": "CMD FD-4844",
+        "RAMLINK": "ramlink"
     }
 
-    if "-dos4000" in vicecommandline and vicecommandline["-dos4000"] is not None:
-      # types["2000"] = "CMD FD-2000"
-      types["4000"] = "CMD FD-4000"
+#    if "-dos4000" in vicecommandline and vicecommandline["-dos4000"] is not None:
+#      # types["2000"] = "CMD FD-2000"
+#      types["4000"] = "CMD FD-4000"
   
     if args.debug is True:
       ttyio.echo("drivetype.100: oldvalue=%r" % (oldvalue))
@@ -813,7 +821,51 @@ def verifyLTKDevInRange(args, val):
     return False
   return True
 
+class StorageDevice:
+  def __init__(args, **kwargs):
+    self.devicenumber = None
+    self.type = None
+    self.rtc = False
+    self.cart = None
+    self.savertc = False
+    self.fallbacktype = None
+    self.images = []
+
 def storage(args, **kwargs):
+  storagedevices = []
+
+  def summary(args, **kwargs):
+    if len(storagedevices) == 0:
+      ttyio.echo("no storage devices configured.")
+      return True
+    for sd in storagedevices:
+      ttyio.echo("#%d type: %s rtc: %s rtcsave: %s cart: %s fallbacktype: %s" % (sd.devicenumber, sd.type, sd.rtc, sd.savertc, sd.fallbacktype))
+
+    return True
+  def add(args, **kwargs):
+    sd = StorageDevice(args, kwargs)
+    sd.devicenumber = ttyio.inputinteger("device number: ")
+    sd.type = drivetype(args, sd.devicenumber)
+    sd.rtc = ttyio.inputboolean("use rtc? [Yn]: ", "Y")
+    return False
+  def remove(args, **kwargs):
+    ttyio.echo("remove")
+    return False
+  def edit(args, **kwargs):
+    ttyio.echo("edit")
+    return False
+
+  menuitems = [
+    { "name": "list",   "callback": summary, "label": "list"},
+    { "name": "add",    "callback": add,     "label": "add"},
+    { "name": "remove", "callback": remove,  "label": "remove"},
+    { "name": "edit",   "callback": edit,    "label": "edit"},
+  ]
+
+  menu = Menu("storage devices", menuitems)
+  menu.run()
+
+def oldstorage(args, **kwargs):
 #  area("vice: storage")
 #  title("vice: storage")
 
@@ -863,7 +915,7 @@ def storage(args, **kwargs):
           del ioaddrs["0xDF00"]
       vicecommandline["-ltkio"] = ch
 
-      ch = ttyio.inputboolean("use ltk dos72-s1 disk on device 9? [yN]: ", "N", "YN")
+      ch = ttyio.inputboolean("use ltk dos72-s1 disk on device 9? [yN]: ", "N")
       if ch == "Y":
         vicecommandline["-9"] = "dos72-s1.d64"
         vicecommandline["-drive9type"] = "1541"
@@ -875,7 +927,7 @@ def storage(args, **kwargs):
     if "-ltkio" in vicecommandline and vicecommandline["-ltkio"] is not None and setup["ltkdev"] == 8:
       ttyio.echo("ltk assigned to drive %s" % (ltkdev))
       if ttyio.inputboolean("proceed? [yN]: ", "N", "YN") is True:
-        vicecommandline["-8"] =  "dos-part1.dhd" # what device type?
+        vicecommandline["-8"] =  "dos-part1.dhd"
         vicecommandline["-drive8type"] = "4844"
 
     vicecommandline["-9"] =  "cmddrive9.d4m"
@@ -1107,7 +1159,7 @@ def main():
     # parser.add_option("--debug", default=False, action="store_true", help="run %prog in debug mode")
     parser.add_argument("--debug", action="store_true", default=False, dest="debug")
 
-    parser.add_argument("--storage", action="store", choices=["ltk", "cmd", "mix"], dest="storage")
+#    parser.add_argument("--storage", action="store", choices=["ltk", "cmd", "mix"], dest="storage")
     parser.add_argument("--ramlink", action="store_true", dest="ramlink")
     parser.add_argument("--basedir", action="store", dest="basedir", default="~jam/projects/gfd3/")
     args = parser.parse_args()
@@ -1125,7 +1177,7 @@ def main():
     ttyio.setvariable("menu.boxcharcolor", "{blue}")
     ttyio.setvariable("menu.backgroundcolor", "{bglightblue}")
     ttyio.setvariable("menu.shadowbackgroundcolor", "{bgblue}")
-    ttyio.setvariable("menu.cursorcolor", "{bglightgray}{blue}")
+    ttyio.setvariable("menu.cursorcolor", "{bglightblue}{blue}")
     ttyio.setvariable("menu.boxcolor", "{bgblack}{green}")
     ttyio.setvariable("menu.itemcolor", "{bglightblue}{blue}")
     ttyio.setvariable("menu.titlecolor", "{black}{bglightgray}")
@@ -1152,21 +1204,20 @@ def main():
     gfd3(args)
     defaultconfig(args)
 
-
     menuitems = [
 #      { "callback": "checktcpser", "label": "check tcpser" },
 #      { "callback": "checkvice", "label": "check vice"},
 #      { "callback": "gfd3",          "label": "use gfd3 config"},
-      { "name": "acia",          "callback": acia,            "label": "acia setup", "requires":()},
-      { "name": "tcpser",        "callback": tcpser,          "label": "tcpser parameters", "requires":("acia",)},
-      { "name": "rs232",         "callback": rs232,         "label": "rs232/ip232", "requires": ("tcpser", "acia",)},
-      { "name": "drivesound",    "callback": drivesound,      "label": "drive sound"},
-      { "name": "displaysync",   "callback": displaysync,     "label": "display"},
-#      { "name": "clock",         "callback": "clock",         "label": "rtc (real-time clock)", "requires": ("storage",)},
-#      { "name": "storage",       "callback": "storage",       "label": "storage"},
-#      { "name": "keyboard",      "callback": "keyboard",      "label": "keyboard settings"},
-      { "name": "ramlink",       "callback": ramlink,       "label": "ramlink"},
-      { "name": "sound",         "callback": sound,         "label": "sound"}
+      { "name": "acia",          "callback": acia,        "label": "acia setup", "requires":()},
+      { "name": "tcpser",        "callback": tcpser,      "label": "tcpser parameters", "requires":("acia",)},
+      { "name": "rs232",         "callback": rs232,       "label": "rs232/ip232", "requires": ("tcpser", "acia",)},
+      { "name": "drivesound",    "callback": drivesound,  "label": "drive sound"},
+      { "name": "displaysync",   "callback": displaysync, "label": "display"},
+#      { "name": "clock",         "callback": "clock",    "label": "rtc (real-time clock)", "requires": ("storage",)},
+      { "name": "storage",       "callback": storage,     "label": "storage"},
+#      { "name": "keyboard",      "callback": "keyboard", "label": "keyboard settings"},
+      { "name": "ramlink",       "callback": ramlink,     "label": "ramlink"},
+      { "name": "sound",         "callback": sound,       "label": "sound"}
     ]
 
     menu = Menu("image bbs v3 setup", menuitems)
