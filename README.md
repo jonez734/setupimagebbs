@@ -240,4 +240,4 @@ Above is the script I use for mounting the ramlink
 - (#253 CMD HD support)[https://sourceforge.net/p/vice-emu/patches/253/]
 
 - e.data records 52-57 -- storage records (larry)
- - field 1 is device number, field 2 is drive (lu)
+ - field 1 is device number, field 2 is drive (lu, cmd partition)
