@@ -108,6 +108,8 @@
 - [x] in ramlink(), change description as needed
 - [x] finish rs232()
 - [ ] handle alt cursor color w disabled items
+- [ ] in ramlink(), use args.basedir and os.path.join()
+
 - storage
     - [ ] rework storage() so I can use ltk on 8, but still use cmd on 9 for the rtc, cbm drives on the rest, etc. right now, 'usecmd' configures 8-10, possibly stomping on the ltk config.
     - [x] prompt for ltkdevicenumber and store it in 'setup' dict, default 8.
@@ -141,6 +143,7 @@
     - [ ] "do you really want to use both the cmd rtc and ds12c887rtc?" does not highlight default/existing value
     - [x] in clock(), do not prompt twice to enable ds12c887rtc
     - [x] ds12c887 (rtc clock): https://sourceforge.net/p/vice-emu/code/HEAD/tree/testprogs/RTC/
+    - [ ] check for ds12c887 support in image30 (ltk emulation) (al)
 
 - current vs default value in prompts
     - [ ] honor current value for "base address of acia cart"
@@ -235,3 +238,6 @@ Above is the script I use for mounting the ramlink
 
 - TCPser ignores "atz". patch that.
 - (#253 CMD HD support)[https://sourceforge.net/p/vice-emu/patches/253/]
+
+- e.data records 52-57 -- storage records (larry)
+ - field 1 is device number, field 2 is drive (lu)
