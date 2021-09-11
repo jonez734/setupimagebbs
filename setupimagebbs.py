@@ -385,7 +385,7 @@ def acia(args, **kwargs):
   area("vice")
   title("vice: acia")
 
-  if ttyio.inputboolean("Enable the ACIA RS232 interface emulation (Swiftlink, Turbo32)? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is False:
+  if ttyio.inputboolean("Enable the ACIA RS232 interface emulation (Swiftlink, Turbo232)? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is False:
     vicecommandline["+acia1"] = None
     for x in ["-acia1mode", "-acia1base", "-acia1irq", "-myaciadev", "-acia1"]:
       if x in vicecommandline:
@@ -404,7 +404,7 @@ def acia(args, **kwargs):
   ttyio.echo("acia.100: d=%r" % (d), level="debug")
 
   # normal=2400, swiftlink=38400, turbo32=230400. image can handle up to 38400
-  options = [ "normal", "swiftlink", "turbo32" ]
+  options = [ "normal", "swiftlink", "turbo232" ]
   prompt = []
   o = ""
   for i in range(0, len(options)):
