@@ -856,10 +856,10 @@ def storage(args, **kwargs):
     return False
 
   menuitems = [
-    { "name": "list",   "callback": summary, "label": "list"},
-    { "name": "add",    "callback": add,     "label": "add"},
-    { "name": "remove", "callback": remove,  "label": "remove"},
-    { "name": "edit",   "callback": edit,    "label": "edit"},
+    { "name": "list",   "callback": summary, "label": "list", "key":"L"},
+    { "name": "add",    "callback": add,     "label": "add",  "key":"A"},
+    { "name": "remove", "callback": remove,  "label": "kill", "key":"K"},
+    { "name": "edit",   "callback": edit,    "label": "edit", "key":"E"},
   ]
 
   menu = Menu("storage devices", menuitems, args=args)
