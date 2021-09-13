@@ -823,7 +823,7 @@ def verifyLTKDevInRange(args, val):
 
 class StorageDevice:
   def __init__(args, **kwargs):
-    self.devicenumber = None
+    self.number = None
     self.type = None
     self.rtc = False
     self.cart = None
@@ -834,32 +834,45 @@ class StorageDevice:
 def storage(args, **kwargs):
   storagedevices = []
 
+  def _edit(args, storagedevice):
+    storagedevice.device = ttyio.inputinteger("device number: ")
+    storagedevice.type = drivetype(args, sd.device)
+    if storagedevice.type in ("CMD4000", "CMD4844", "RAMLINK"):
+      storagedevice.rtc = ttyio.inputboolean("use rtc? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y")
+      storagedevice.savertc = ttyio.inputboolean("save rtc? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y")
+    return storagedevice
+
   def summary(args, **kwargs):
     if len(storagedevices) == 0:
       ttyio.echo("no storage devices configured.")
       return True
     for sd in storagedevices:
-      ttyio.echo("#%d type: %s rtc: %s rtcsave: %s cart: %s fallbacktype: %s" % (sd.devicenumber, sd.type, sd.rtc, sd.savertc, sd.fallbacktype))
+      ttyio.echo("#%d type: %s rtc: %s (%s) cart: %s fallbacktype: %s" % (sd.devicenumber, sd.type, sd.rtc, sd.savertc, sd.fallbacktype))
 
     return True
   def add(args, **kwargs):
-    sd = StorageDevice(args, kwargs)
-    sd.devicenumber = ttyio.inputinteger("device number: ")
-    sd.type = drivetype(args, sd.devicenumber)
-    sd.rtc = ttyio.inputboolean("use rtc? [Yn]: ", "Y")
+    storagedevice = {}
+    storagedevice = _edit(args, StorageDevice(args, storagedevice))
+
     return False
-  def remove(args, **kwargs):
-    ttyio.echo("remove")
+  def kill(args, **kwargs):
+    ttyio.echo("kill")
+    if len(storagedevices) == 0:
+      ttyio.echo("no storage devices defined.", level="error")
+      return False
     return False
   def edit(args, **kwargs):
     ttyio.echo("edit")
+    if len(storagedevices) == 0:
+      ttyio.echo("no storage devices defined.", level="error")
+      return False
     return False
 
   menuitems = [
-    { "name": "list",   "callback": summary, "label": "list", "key":"L"},
-    { "name": "add",    "callback": add,     "label": "add",  "key":"A"},
-    { "name": "remove", "callback": remove,  "label": "kill", "key":"K"},
-    { "name": "edit",   "callback": edit,    "label": "edit", "key":"E"},
+    { "name": "list", "callback": summary, "label": "list", "key":"L"},
+    { "name": "add",  "callback": add,     "label": "add",  "key":"A"},
+    { "name": "kill", "callback": kill,    "label": "kill", "key":"K"},
+    { "name": "edit", "callback": edit,    "label": "edit", "key":"E"},
   ]
 
   menu = Menu("storage devices", menuitems, args=args)
