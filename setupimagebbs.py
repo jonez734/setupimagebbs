@@ -850,17 +850,20 @@ def storage(args, **kwargs):
       ttyio.echo("#%d type: %s rtc: %s (%s) cart: %s fallbacktype: %s" % (sd.devicenumber, sd.type, sd.rtc, sd.savertc, sd.fallbacktype))
 
     return True
+
   def add(args, **kwargs):
     storagedevice = {}
     storagedevice = _edit(args, StorageDevice(args, storagedevice))
 
     return False
+
   def kill(args, **kwargs):
     ttyio.echo("kill")
     if len(storagedevices) == 0:
       ttyio.echo("no storage devices defined.", level="error")
       return False
     return False
+
   def edit(args, **kwargs):
     ttyio.echo("edit")
     if len(storagedevices) == 0:
@@ -868,15 +871,23 @@ def storage(args, **kwargs):
       return False
     return False
 
-  menuitems = [
-    { "name": "list", "callback": summary, "label": "list", "key":"L"},
-    { "name": "add",  "callback": add,     "label": "add",  "key":"A"},
-    { "name": "kill", "callback": kill,    "label": "kill", "key":"K"},
-    { "name": "edit", "callback": edit,    "label": "edit", "key":"E"},
-  ]
-
-  menu = Menu("storage devices", menuitems, args=args)
-  menu.run()
+  done = False
+  while not done:
+    ch = ttyio.inputchar("storage devices: [L]ist [A]dd [K]ill [E]dit [Q]uit? [LAKEQ]: ", "LAKEQ", "Q")
+    if ch == "L":
+      summary(args)
+    elif ch == "A":
+      ttyio.echo("Add")
+      res = add(args)
+    elif ch == "K":
+      ttyio.echo("kill")
+      res = kill(args)
+    elif ch == "E":
+      ttyio.echo("Edit")
+      res = edit(args)
+    elif ch == "Q":
+      done = True
+      break
 
 def oldstorage(args, **kwargs):
 #  area("vice: storage")
