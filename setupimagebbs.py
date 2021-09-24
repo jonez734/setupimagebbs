@@ -14,7 +14,7 @@ import subprocess
 import ttyio4 as ttyio
 
 # import bbsengine5 as bbsengine # remove this in production!
-from bbsengine5 import Menu, runcallback, pluralize, inputfilename
+from bbsengine5 import Menu, runcallback, pluralize, inputfilename, verifyFileExistsReadable, verifyFileExistsReadableWritable
 
 vicecommandline = {}
 tcpsercommandline = {}
@@ -50,7 +50,7 @@ def title(title:str, titlecolor:str="{bgray}{white}", hrcolor:str="{white}", hrc
 def area(buf):
   width = ttyio.getterminalwidth()
 
-  updatebottombar("{bggray}{white} %s {/all}" % (buf.ljust(width-2, " ")))
+  updatebottombar("{var:setupimagebbs.areacolor} %s {/all}" % (buf.ljust(width-2, " ")))
   return
 
 def sound(args, **kwargs):
@@ -205,15 +205,15 @@ def checklocalhostdns(args):
     ttyio.echo("dns check for 'localhost' passed", level="success")
     return "localhost"
 
-def verifyFileExistsReadable(args, filename):
-  filename = os.path.expanduser(filename)
-  filename = os.path.expandvars(filename)
-  if args is not None and args.debug is True:
-    ttyio.echo("args=%r filename=%r" % (args, filename))
-
-  if os.access(filename, os.R_OK) is True and os.path.isfile(filename) is True:
-    return True
-  return False
+#def verifyFileExistsReadable(args, filename):
+#  filename = os.path.expanduser(filename)
+#  filename = os.path.expandvars(filename)
+#  if args is not None and args.debug is True:
+#    ttyio.echo("args=%r filename=%r" % (args, filename))
+#
+#  if os.access(filename, os.R_OK) is True and os.path.isfile(filename) is True:
+#    return True
+#  return False
 
 #def inputfilename(args, prompt, default, verify=verifyFileExistsReadable, **kwargs):
 #  ttyio.echo("inputfilename.120: args=%r" % (args))
@@ -262,7 +262,7 @@ def cmd4000(args, **kwargs):
   area("vice: cmd4000")
   title("device 9 cmd 4000")
   if ttyio.inputboolean("enable cmd fd-4000 on device 9? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN") is True:
-    vicecommandline["-dos4000"] = inputfilename(args, "dos4000 filename: ", "cmd-fd-4000-dos-v1.40-fd-350022.bin")
+    vicecommandline["-dos4000"] = inputfilename(args, "dos4000 filename: ", os.path.join(args.basedir, "cmd-fd-4000-dos-v1.40-fd-350022.bin"), verify=verifyFileExistsReadable)
     vicecommandline["-drive9type"] = "4000"
     if ttyio.inputboolean("enable drive 9 rtc save? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN") is True:
       vicecommandline["-drive9rtcsave"] = None
@@ -717,9 +717,9 @@ def ramlink(args, **kwargs):
         del vicecommandline["-ramlinkimagerw"]
       description.append("[write image: No]")
 
-  vicecommandline["-cartramlink"] = inputfilename(args, "cart ramlink bin: ", os.path.join(args.basedir, "ramlink.bin"))
+  vicecommandline["-cartramlink"] = inputfilename(args, "cart ramlink bin: ", os.path.join(args.basedir, "ramlink.bin"), verify=verifyFileExistsReadable)
 
-  vicecommandline["-ramlinkimage"] = inputfilename(args, "ramlink image: ", os.path.join(args.basedir, "ramlink.img"))
+  vicecommandline["-ramlinkimage"] = inputfilename(args, "ramlink image: ", os.path.join(args.basedir, "ramlink.img"), verify=verifyFileExistsReadableWritable)
 
   # handle pre-existing value!
   if ttyio.inputboolean("ramlink rtc save? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is True:
@@ -764,23 +764,46 @@ def displaysync(args, **kwargs):
   return (True, resultbuf)
 
 def drivetype(args, devicenumber, oldvalue=None):
+
+# 1540: CBM 1540,
+# 1541: CBM 1541,
+# 1542: CBM 1541-II,
+# 1570: CBM 1570,
+# 1571: CBM 1571,
+# 1581: CBM 1581,
+# 2000: CMD FD-2000,
+# 4000: CMD FD-4000,
+# 4844: CMD HD,
+# 2031: CBM 2031,
+# 2040: CBM 2040,
+# 3040: CBM 3040,
+# 4040: CBM 4040,
+# 1001: CBM 1001,
+# 8050: CBM 8050,
+# 8250: CBM 8250
+
     types = {
+        "1001":    "CBM 1001",
         "1540":    "CBM 1540",
         "1541":    "CBM 1541",
-        "1541-II": "CBM 1541-II",
+        "1542":    "CBM 1541-II",
         "1570":    "CBM 1570",
         "1571":    "CBM 1571",
         "1581":    "CBM 1581",
+        "2031":    "CBM 2031",
+        "8050":    "CBM 8050",
+        "8250":    "CBM 8250",
         "LTK":     "Lt. Kernal",
-        "CMD4000": "CMD FD-4000",
-        "CMD4844": "CMD FD-4844",
+        "2000":    "CMD FD-2000",
+        "4000":    "CMD FD-4000",
+        "4844":    "CMD HD",
         "RAMLINK": "ramlink"
     }
 
 #    if "-dos4000" in vicecommandline and vicecommandline["-dos4000"] is not None:
 #      # types["2000"] = "CMD FD-2000"
 #      types["4000"] = "CMD FD-4000"
-  
+
     if args.debug is True:
       ttyio.echo("drivetype.100: oldvalue=%r" % (oldvalue))
 
@@ -821,39 +844,84 @@ def verifyLTKDevInRange(args, val):
     return False
   return True
 
-class StorageDevice:
-  def __init__(args, **kwargs):
+class StorageDevice(object):
+  def __init__(self, args, data={}, **kwargs):
     self.number = None
     self.type = None
     self.rtc = False
     self.cart = None
     self.savertc = False
     self.fallbacktype = None
-    self.images = []
+    self.images = [] # 0-6 for ltk
+  def __str__(self):
+    buf = "#%d type: %s rtc: %s (%s) cart: %s fallbacktype: %s" % (self.number, self.type, self.rtc, self.savertc, self.cart, self.fallbacktype)
+    return buf
+
+class StorageDevices(object):
+  def __init__(self):
+    self.devices = []
+  def append(self, storagedevice):
+    if isinstance(storagedevice, StorageDevice):
+      self.devices.append(storagedevice)
+  def __getitem__(self, index):
+    return self.devices[index]
+  def find(self, number):
+    ttyio.echo("StorageDevices.find.number=%r" % (number))
+    for d in self.devices:
+      if d.number == number:
+        return d
+    raise ValueError
+  def clear(self):
+    self.devices = []
+  def __len__(self):
+    return len(self.devices)
+
+storagedevices = StorageDevices()
 
 def storage(args, **kwargs):
-  storagedevices = []
+  global storagedevices
 
   def _edit(args, storagedevice):
-    storagedevice.device = ttyio.inputinteger("device number: ")
-    storagedevice.type = drivetype(args, sd.device)
-    if storagedevice.type in ("CMD4000", "CMD4844", "RAMLINK"):
-      storagedevice.rtc = ttyio.inputboolean("use rtc? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y")
-      storagedevice.savertc = ttyio.inputboolean("save rtc? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y")
+    storagedevice.number = ttyio.inputinteger("device number: ")
+    storagedevice.type = drivetype(args, storagedevice.number)
+    if storagedevice.type in ("4000", "4844", "RAMLINK", "2000"):
+      if storagedevice.rtc is True:
+        prompt = "use rtc? [{var:setupimagebbs.currentoption}Y{/all}n]: "
+        currentoption = "Y"
+      else:
+        prompt = "use rtc? [y{var:setupimagebbs.currentoption}N{/all}]: "
+        currentoption = "N"
+      storagedevice.rtc = ttyio.inputboolean(prompt, currentoption)
+
+      if storagedevice.savertc is True:
+        prompt = "save rtc? [{var:setupimagebbs.currentoption}Y{/all}n]: "
+        currentoption = "Y"
+      else:
+        prompt = "save rtc? [y{var:setupimagebbs.currentoption}N{/all}]: "
+        currentoption = "N"
+      storagedevice.savertc = ttyio.inputboolean(prompt, currentoption)
+      # add device to rtc list
+
     return storagedevice
 
   def summary(args, **kwargs):
     if len(storagedevices) == 0:
       ttyio.echo("no storage devices configured.")
       return True
+    ttyio.echo("storagedevices=%r" % (storagedevices), level="debug", interpret=False)
     for sd in storagedevices:
-      ttyio.echo("#%d type: %s rtc: %s (%s) cart: %s fallbacktype: %s" % (sd.devicenumber, sd.type, sd.rtc, sd.savertc, sd.fallbacktype))
+#      ttyio.echo("#%d type: %s rtc: %s (%s) cart: %s fallbacktype: %s" % (device, sd.type, sd.rtc, sd.savertc, sd.fallbacktype))
+      ttyio.echo(str(sd))
 
     return True
 
   def add(args, **kwargs):
-    storagedevice = {}
-    storagedevice = _edit(args, StorageDevice(args, storagedevice))
+    storagedevice = _edit(args, StorageDevice(args))
+    ttyio.echo(str(storagedevice))
+    if ttyio.inputboolean("add this device? [y{var:setupimagebbs.currentoption}N{/all}]: ") is True:
+      storagedevices.append(storagedevice) # [storagedevice.device] = storagedevice
+    else:
+      ttyio.echo("storage device not added.")
 
     return False
 
@@ -862,6 +930,11 @@ def storage(args, **kwargs):
     if len(storagedevices) == 0:
       ttyio.echo("no storage devices defined.", level="error")
       return False
+    device = ttyio.inputinteger(args, "kill which device?: ")
+    if device is None or device == 0:
+      ttyio.echo("no storage device number entered.")
+      return False
+
     return False
 
   def edit(args, **kwargs):
@@ -873,8 +946,9 @@ def storage(args, **kwargs):
 
   done = False
   while not done:
-    ch = ttyio.inputchar("storage devices: [L]ist [A]dd [K]ill [E]dit [Q]uit? [LAKEQ]: ", "LAKEQ", "Q")
+    ch = ttyio.inputchar("storage: [L]ist [A]dd [K]ill [E]dit [Q]uit? [LAKEQ]: ", "LAKEQ", "Q")
     if ch == "L":
+      ttyio.echo("List")
       summary(args)
     elif ch == "A":
       ttyio.echo("Add")
@@ -919,10 +993,10 @@ def oldstorage(args, **kwargs):
         vicecommandline["-drive%dtype" % (ltkdev)] = "1581"
 
       setup["ltkdev"] = ltkdev
-      vicecommandline["-cartcrt"] = inputfilename(args, "-cartcrt: ", "ltk.crt")
-      vicecommandline["-ltkimage0"] = inputfilename(args, "-ltkimage0: ", "drive8-0.dlk")
-      vicecommandline["-ltkimage1"] = inputfilename(args, "-ltkimage1: ", "drive8-1.dlk")
-      vicecommandline["-ltkimage2"] = inputfilename(args, "-ltkimage2: ", "drive8-2.dlk")
+      vicecommandline["-cartcrt"] = inputfilename(args, "-cartcrt: ", os.path.join(args.basedir, "ltk.crt"), verify=verifyFileExistsReadable)
+      vicecommandline["-ltkimage0"] = inputfilename(args, "-ltkimage0: ", os.path.join(args.basedir, "drive8-0.dlk"), verify=verifyFileExistsReadableWritable)
+      vicecommandline["-ltkimage1"] = inputfilename(args, "-ltkimage1: ", os.path.join(args.basedir, "drive8-1.dlk"), verify=verifyFileExistsReadableWritable)
+      vicecommandline["-ltkimage2"] = inputfilename(args, "-ltkimage2: ", os.path.join(args.basedir, "drive8-2.dlk"), verify=verifyFileExistsReadableWritable)
       vicecommandline["-ltkport"] = ttyio.inputstring("Set LTK port number (0..15): ", "0", verify=verifyLTKPortInRange)
 
       # handle existing value
@@ -941,7 +1015,7 @@ def oldstorage(args, **kwargs):
 
       ch = ttyio.inputboolean("use ltk dos72-s1 disk on device 9? [yN]: ", "N")
       if ch == "Y":
-        vicecommandline["-9"] = "dos72-s1.d64"
+        vicecommandline["-9"] = os.path.join(args.basedir, "dos72-s1.d64")
         vicecommandline["-drive9type"] = "1541"
       elif ch == "N":
         ttyio.echo("No")
@@ -1114,7 +1188,7 @@ def savejson(args):
   default = os.path.expandvars(default)
   default = os.path.expanduser(default)
 
-  filename = inputfilename(args, "save json: ", default, noneok=True, multiple=False, verify=None)
+  filename = inputfilename(args, "save json filename: ", default, noneok=True, multiple=False, verify=None)
   if filename is None:
     ttyio.echo("aborted.")
     return True
@@ -1204,11 +1278,12 @@ def main():
     ttyio.setvariable("menu.cursorcolor", "{bglightblue}{blue}")
     ttyio.setvariable("menu.itemcolor", "{bglightblue}{blue}")
     ttyio.setvariable("menu.titlecolor", "{black}{bglightgray}")
-    ttyio.setvariable("menu.promptcolor", "{white}{bgblack}")
+    ttyio.setvariable("menu.promptcolor", "{white}")
     ttyio.setvariable("menu.inputcolor", "{white}{bgblack}")
     ttyio.setvariable("menu.disableditemcolor", "{black}{bgdarkgray}")
 
     ttyio.setvariable("setupimagebbs.currentoption", "{bggray}{white}")
+    ttyio.setvariable("setupimagebbs.areacolor", "{bggray}{white}")
 
     if args.debug is True:
         ttyio.echo("setupbbs.main.100: args=%r" % (args))
