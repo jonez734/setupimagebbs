@@ -34,7 +34,7 @@
 - [ ] tab-complete in inputfilename() is broken.
 - [x] change the swiftlink/ip232 to serial4 (larry)
 - [x] make sure "save config on exit" is *enabled* by default
-- [x] fix title()
+- [x] fix title() call
 - [x] make sure updatetopbar() is correct (bggray/white)
 - [x] convert tests to a tuple and step through it, checking if return value is False (error)
 - [x] if --debug, do not call initscreen() (helps w debugging by allowing the scrollback buffer)
@@ -56,13 +56,11 @@
 - [x] in rs232(), prompt for each item w defaults that set up ip232, etc. hard coded at the moment.
 - [ ] options for e.data values (see links section for the PRG)
 - [x] make a "save settings on vice exit?" default to *YES* (larry)
-- [ ] add tcpser to systemd -- start at boot
 - [ ] iocollisions
   * [ ] if there is a collision, prompt to proceed anyway.
-  * [ ] test 'iocollision'
-  * [ ] check all ioaddrs, darkgray out used. does it break when the same test is called twice like I am doing with ds12c887rtc?
+  * [ ] check all ioaddrs, strikeout used. does it break when the same test is called twice like I am doing with ds12c887rtc?
   * [ ] gray out already used ioaddrs including which test allocated it
-- [ ] confirm baud rates are set properly
+- [x] confirm baud rates are set properly
 - [x] highlight default ioaddr value of -ds12c887rtcbase (larry, ryan, al) imagebbs jitsi 20210410
 - [ ] in code that handles an ioaddr, sort the list
 - [ ] fix all tests so they can handle being run twice (prep for groups)
@@ -72,15 +70,16 @@
 - [x] "acia device [ABCD]" does not have a default value, should be "D" (serial4)
 - [x] "speed in bits per second (-s)" is set to 2400 by default.. problem w empty "ACIA device"?
 - [x] iocollisionhandler() should use ABC instead of 012
-- [ ] figure a way so that inverting DCD in tcpser is not required. bbsserver? real hardware?
 - [x] swiftlink baud rate defaults to 2400, should be 38400
 - [ ] if there is a syntax error in an AT command that is partially right, like "atfoo" (f is a command), tcpser returns an empty line.
 - [ ] if there is a syntax error for the entire command, like "atblah", a "4" should be returned assuming an 'ate1' was accepted, otherwise "error"
-- [ ] at times, tcpser returns an empty line for the "AT" command
-- [ ] tested the init string used by gfd3, and I get no errors. tested each command separate as well as all in one, no problems.
+- [x] tested the init string used by gfd3, and I get no errors. tested each command separate as well as all in one, no problems.
 - [x] make a test to turn off sound-- solves some performance problems. +sound disable, -sound enable
 - [x] rs232(): prompt for things!
-- [x] sound()
+- [ ] sound()
+    - [ ] in sound(), show current value.
+    - [ ] in sound(), show available values
+
 - [x] store return value and dependencies for menuitems.
     * [x] serial() must be run and return True before tcpser() is allowed for baud rate purposes.
     * [x] check for True for results in dependency list.
@@ -100,15 +99,13 @@
 - [x] in acia(), handle existing values for all prompts properly.
 - [ ] if a requirement have been met, use {strike}
 - [x] when selecting serial port, show existing/default value.
-- [x] if requires is empty, do not show "requires:" ("acia")
+- [x] if requires is empty, do not show "requires:" (f.e. "acia" and "sound")
 - [x] acia() does not show status
 - [x] completing acia() does not unlock tcpser()
-- [ ] in sound(), show current value.
-- [ ] in sound(), show available values
 - [x] in ramlink(), change description as needed
 - [x] finish rs232()
 - [ ] handle alt cursor color w disabled items
-- [ ] in ramlink(), use args.basedir and os.path.join()
+- [x] in ramlink(), use args.basedir and os.path.join()
 
 - storage
     - [ ] rework storage() so I can use ltk on 8, but still use cmd on 9 for the rtc, cbm drives on the rest, etc. right now, 'usecmd' configures 8-10, possibly stomping on the ltk config.
@@ -127,6 +124,17 @@
     - [ ] "enable cmd fd-4000 on device 9?" does not have a default/existing value highlighted.
     - [x] set device 8 type to 0 w ltk (None) (e.data #38) (fallback device)
     - [x] if a device is unused, check for ltk
+    - [ ] device type: LTK
+      * [ ] prompt for fallback device
+    - [ ] add RTC enabled devices to special list
+    - [ ] check for duplicate device numbers
+    - [ ] images for CMD defined by -8, -9, etc
+    - [ ] images for LTK defined by -ltkimage<n> (0-6)
+    - [ ] handle -ltkio, -ltkport, -ltkserial
+- [ ] core dumps: -core is yes, +core is no
+- [ ] chdir: set cwd (-chdir)
+- [ ] -autostart
+- [ ] -autoload
 - rtc
     - [ ] rework cmd4000() and clock() so that *any* configured cmd device can be used as rtc, instead of hardcoding 9
     - [ ] make a list of rtc capable devices, and change clock() to use it, then remove/change requirement of "storage".
@@ -139,19 +147,26 @@
     - [ ] if dsxxx chip is used, set default for FD-4000 to none, allow --storage override
     - [x] move ds12c887rtc() and cmd4000() to new 'clock()' test.
     - [x] in clock(), check to see if more than 1 clock is being used and prompt.
-    - [ ] add ramlink rtc to clock()-- (only if imagebbs supports it)
+    - [ ] add ramlink rtc to clock()
     - [ ] "do you really want to use both the cmd rtc and ds12c887rtc?" does not highlight default/existing value
     - [x] in clock(), do not prompt twice to enable ds12c887rtc
     - [x] ds12c887 (rtc clock): https://sourceforge.net/p/vice-emu/code/HEAD/tree/testprogs/RTC/
     - [ ] check for ds12c887 support in image30 (ltk emulation) (al)
-
 - current vs default value in prompts
     - [ ] honor current value for "base address of acia cart"
     - [ ] honor current value for "set the acia interupt"
     - [ ] honor current value for 'acia device'
+- [ ] StorageDevices(list)
+    - [x] append()
+    - [x] __getitem__()
+    - [x] clear()
+    - [x] find()
+    - [x] __len__()
+- [x] rename StorageDevice.device to StorageDevice.number
 
 ## dependencies
 - ttyio4 (on my github)
+- bbsengine5 (not yet public)
 
 ## notes
 - using rtc
