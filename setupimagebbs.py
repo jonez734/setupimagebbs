@@ -11,7 +11,7 @@ import argparse
 from argparse import Namespace
 import readline
 import subprocess
-import ttyio4 as ttyio
+import ttyio5 as ttyio
 
 # import bbsengine5 as bbsengine # remove this in production!
 from bbsengine5 import Menu, runcallback, pluralize, inputfilename, verifyFileExistsReadable, verifyFileExistsReadableWritable
@@ -845,66 +845,83 @@ def verifyLTKDevInRange(args, val):
   return True
 
 class StorageDevice(object):
-  def __init__(self, args, data={}, **kwargs):
+  def __init__(self, args, data:dict={}, **kwargs):
+    self.args = args
+
     self.number = None
     self.type = None
     self.rtc = False
-    self.cart = None
     self.savertc = False
+    self.cart = None
     self.fallbacktype = None
-    self.images = [] # 0-6 for ltk
+    self.images = []
+
+    for a in [ "number", "type", "rtc", "savertc", "cart", "fallbacktype", "images" ]:
+      if a in data:
+        setattr(self, a, data[a])
+
   def __str__(self):
-    buf = "#%d type: %s rtc: %s (%s) cart: %s fallbacktype: %s" % (self.number, self.type, self.rtc, self.savertc, self.cart, self.fallbacktype)
+    buf = "#% d %s" % (self.number, self.type)
+    if self.rtc is True:
+      buf += " rtc"
+      if self.savertc is True:
+        buf += ": saved"
+    if self.cart is not None:
+      buf += " cart: %s" % (self.cart)
+    if self.fallbacktype is not None:
+      buf += " fallback: %s" % (self.fallbacktype)
+
     return buf
 
-class StorageDevices(object):
-  def __init__(self):
-    self.devices = []
-  def append(self, storagedevice):
-    if isinstance(storagedevice, StorageDevice):
-      self.devices.append(storagedevice)
-  def __getitem__(self, index):
-    return self.devices[index]
-  def find(self, number):
-    ttyio.echo("StorageDevices.find.number=%r" % (number))
-    for d in self.devices:
-      if d.number == number:
-        return d
-    raise ValueError
-  def clear(self):
-    self.devices = []
-  def __len__(self):
-    return len(self.devices)
+#    return "#%d type: %s rtc: %s (%s) cart: %s fallbacktype: %s" % (self.number, self.type, self.rtc, self.savertc, self.cart, self.fallbacktype)
 
-storagedevices = StorageDevices()
-
-def storage(args, **kwargs):
-  global storagedevices
-
-  def _edit(args, storagedevice):
-    storagedevice.number = ttyio.inputinteger("device number: ")
-    storagedevice.type = drivetype(args, storagedevice.number)
-    if storagedevice.type in ("4000", "4844", "RAMLINK", "2000"):
-      if storagedevice.rtc is True:
+  def edit(self):
+    self.type = drivetype(self.args, self.number)
+    if self.type in ("4000", "4844", "RAMLINK", "2000"):
+      if self.rtc is True:
         prompt = "use rtc? [{var:setupimagebbs.currentoption}Y{/all}n]: "
         currentoption = "Y"
       else:
         prompt = "use rtc? [y{var:setupimagebbs.currentoption}N{/all}]: "
         currentoption = "N"
-      storagedevice.rtc = ttyio.inputboolean(prompt, currentoption)
+      self.rtc = ttyio.inputboolean(prompt, currentoption)
 
-      if storagedevice.savertc is True:
+      if self.savertc is True:
         prompt = "save rtc? [{var:setupimagebbs.currentoption}Y{/all}n]: "
         currentoption = "Y"
       else:
         prompt = "save rtc? [y{var:setupimagebbs.currentoption}N{/all}]: "
         currentoption = "N"
-      storagedevice.savertc = ttyio.inputboolean(prompt, currentoption)
+      self.savertc = ttyio.inputboolean(prompt, currentoption)
       # add device to rtc list
 
-    return storagedevice
+    return
 
-  def summary(args, **kwargs):
+class StorageDevices(object):
+  def __init__(self):
+    self.devices = []
+
+  def append(self, storagedevice):
+    if isinstance(storagedevice, StorageDevice):
+      self.devices.append(storagedevice)
+
+  def __getitem__(self, index):
+    return self.devices[index]
+
+  def find(self, number):
+    ttyio.echo("StorageDevices.find.number=%r" % (number))
+    for d in self.devices:
+      if d.number == number:
+        return d
+    return None
+
+  def clear(self):
+    self.devices = []
+
+  def __len__(self):
+    return len(self.devices)
+
+  def summary(self, args, **kwargs):
     if len(storagedevices) == 0:
       ttyio.echo("no storage devices configured.")
       return True
@@ -915,8 +932,12 @@ def storage(args, **kwargs):
 
     return True
 
-  def add(args, **kwargs):
-    storagedevice = _edit(args, StorageDevice(args))
+  def add(self, args, **kwargs):
+    ttyio.echo("entering storagedevices.add()")
+    number = ttyio.inputinteger("device number: ")
+    ttyio.echo("number=%r" % (number))
+    storagedevice = StorageDevice(args, data={"number":number})
+    storagedevice.edit()
     ttyio.echo(str(storagedevice))
     if ttyio.inputboolean("add this device? [y{var:setupimagebbs.currentoption}N{/all}]: ") is True:
       storagedevices.append(storagedevice) # [storagedevice.device] = storagedevice
@@ -925,7 +946,20 @@ def storage(args, **kwargs):
 
     return False
 
-  def kill(args, **kwargs):
+  def edit(self, args, **kwargs):
+    ttyio.echo("edit")
+    if len(storagedevices) == 0:
+      ttyio.echo("no storage devices defined.", level="error")
+      return False
+    number = ttyio.inputinteger("device number: ")
+    d = self.find(number)
+    ttyio.echo("d=%r" % (d), interpret=False)
+    if d is not None:
+      d.edit()
+      return True
+    return False
+
+  def kill(self, args, **kwargs):
     ttyio.echo("kill")
     if len(storagedevices) == 0:
       ttyio.echo("no storage devices defined.", level="error")
@@ -937,28 +971,27 @@ def storage(args, **kwargs):
 
     return False
 
-  def edit(args, **kwargs):
-    ttyio.echo("edit")
-    if len(storagedevices) == 0:
-      ttyio.echo("no storage devices defined.", level="error")
-      return False
-    return False
+storagedevices = StorageDevices()
+
+def storage(args, **kwargs):
+  global storagedevices
 
   done = False
   while not done:
     ch = ttyio.inputchar("storage: [L]ist [A]dd [K]ill [E]dit [Q]uit? [LAKEQ]: ", "LAKEQ", "Q")
     if ch == "L":
       ttyio.echo("List")
-      summary(args)
+      storagedevices.summary(args)
     elif ch == "A":
-      ttyio.echo("Add")
-      res = add(args)
+      ttyio.echo("Add!")
+      res = storagedevices.add(args)
+      ttyio.echo("after prompt for device number")
     elif ch == "K":
       ttyio.echo("kill")
-      res = kill(args)
+      res = storagedevices.kill(args)
     elif ch == "E":
       ttyio.echo("Edit")
-      res = edit(args)
+      res = storagedevices.edit(args)
     elif ch == "Q":
       done = True
       break
@@ -1270,21 +1303,27 @@ def main():
     ttyio.echo("{f6:5}{curpos:%d,0}" % (ttyio.getterminalheight()-3))
     initscreen(bottommargin=1)
 
-    area("setup image bbs v3.0")
+    area("setup image bbs")
 
-    ttyio.setvariable("menu.boxcharcolor", "{bglightblue}{blue}")
-    ttyio.setvariable("menu.backgroundcolor", "{bglightblue}")
-    ttyio.setvariable("menu.shadowbackgroundcolor", "{bgblue}")
-    ttyio.setvariable("menu.cursorcolor", "{bglightblue}{blue}")
-    ttyio.setvariable("menu.itemcolor", "{bglightblue}{blue}")
+#    ttyio.echo("setting variables")
+    ttyio.setvariable("menu.boxcharcolor", "{bglightgray}{darkgreen}")
+    ttyio.setvariable("menu.color", "{bggray}")
+    ttyio.setvariable("menu.shadowcolor", "{bgdarkgray}")
+    ttyio.setvariable("menu.cursorcolor", "{bglightgray}{blue}")
+    ttyio.setvariable("menu.boxcolor", "{bgblue}{green}")
+    ttyio.setvariable("menu.itemcolor", "{blue}{bglightgray}")
     ttyio.setvariable("menu.titlecolor", "{black}{bglightgray}")
     ttyio.setvariable("menu.promptcolor", "{white}")
-    ttyio.setvariable("menu.inputcolor", "{white}{bgblack}")
-    ttyio.setvariable("menu.disableditemcolor", "{black}{bgdarkgray}")
+    ttyio.setvariable("menu.inputcolor", "{white}")
+    ttyio.setvariable("menu.disableditemcolor", "{darkgray}")
+
+#    print("menu.promptcolor=%r" % (ttyio.getvariable("menu.promptcolor")))
+#    return
 
     ttyio.setvariable("setupimagebbs.currentoption", "{bggray}{white}")
     ttyio.setvariable("setupimagebbs.areacolor", "{bggray}{white}")
 
+    ttyio.echo("menu.backgroundcolor=%r" % (ttyio.getvariable("menu.backgroundcolor")), interpret=False)
     if args.debug is True:
         ttyio.echo("setupbbs.main.100: args=%r" % (args))
 
