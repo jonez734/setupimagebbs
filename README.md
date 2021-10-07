@@ -171,9 +171,10 @@
 - [x] rename StorageDevice.device to StorageDevice.number
 - [ ] REU not workable (power supply issues)
 - [ ] IDE64
+- [ ] add 'group' key to menu items, 'main', 'peripherals', etc.
 
 ## dependencies
-- ttyio4 (on my github)
+- ttyio5 (not yet public)
 - bbsengine5 (not yet public)
 
 ## notes
