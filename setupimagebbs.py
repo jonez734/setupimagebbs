@@ -1342,17 +1342,12 @@ def main():
     defaultconfig(args)
 
     menuitems = [
-#      { "callback": "checktcpser", "label": "check tcpser" },
-#      { "callback": "checkvice", "label": "check vice"},
-#      { "callback": "gfd3",          "label": "use gfd3 config"},
       { "name": "acia",          "callback": acia,        "label": "acia setup", "requires":()},
       { "name": "tcpser",        "callback": tcpser,      "label": "tcpser parameters", "requires":("acia",)},
       { "name": "rs232",         "callback": rs232,       "label": "rs232/ip232", "requires": ("tcpser", "acia",)},
       { "name": "drivesound",    "callback": drivesound,  "label": "drive sound"},
       { "name": "displaysync",   "callback": displaysync, "label": "display"},
-#      { "name": "clock",         "callback": "clock",    "label": "rtc (real-time clock)", "requires": ("storage",)},
       { "name": "storage",       "callback": storage,     "label": "storage"},
-#      { "name": "keyboard",      "callback": "keyboard", "label": "keyboard settings"},
       { "name": "ramlink",       "callback": ramlink,     "label": "ramlink"},
       { "name": "sound",         "callback": sound,       "label": "sound"}
     ]
