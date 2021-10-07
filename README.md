@@ -4,7 +4,8 @@
 - project start 20210320
 - the goal of this software is to make the job of NISSA easier by configuring vice and tcpser with a set of reasonable defaults that have been tested and are known to work
 - this script checks for tcpser-1.1.4_vicekludge
-- script is intended to run on linux/mac and has not been tested under windows. pull requests and constructive criticism accepted.
+- script is intended to run on any POSIX operating system (linux) and has not been tested under windows. pull requests and constructive criticism accepted.
+- microsoft lacks 'termios'
 
 ## status
 
