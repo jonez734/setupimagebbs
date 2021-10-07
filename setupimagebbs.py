@@ -1323,7 +1323,7 @@ def main():
     ttyio.setvariable("setupimagebbs.currentoption", "{bggray}{white}")
     ttyio.setvariable("setupimagebbs.areacolor", "{bggray}{white}")
 
-    ttyio.echo("menu.backgroundcolor=%r" % (ttyio.getvariable("menu.backgroundcolor")), interpret=False)
+#    ttyio.echo("menu.color=%r" % (ttyio.getvariable("menu.color")), interpret=False)
     if args.debug is True:
         ttyio.echo("setupbbs.main.100: args=%r" % (args))
 
