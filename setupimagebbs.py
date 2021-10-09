@@ -933,12 +933,13 @@ class StorageDevices(object):
     return True
 
   def add(self, args, **kwargs):
-    ttyio.echo("entering storagedevices.add()")
-    number = ttyio.inputinteger("device number: ")
-    ttyio.echo("number=%r" % (number))
+#    ttyio.echo("entering storagedevices.add()")
+    number = ttyio.inputinteger("{var:menu.promptcolor}device number: {var:menu.inputcolor}")
+    ttyio.echo("{/all}")
+#    ttyio.echo("number=%r" % (number))
     storagedevice = StorageDevice(args, data={"number":number})
     storagedevice.edit()
-    ttyio.echo(str(storagedevice))
+    ttyio.echo(str(storagedevice), level="debug")
     if ttyio.inputboolean("add this device? [y{var:setupimagebbs.currentoption}N{/all}]: ") is True:
       storagedevices.append(storagedevice) # [storagedevice.device] = storagedevice
     else:
@@ -947,7 +948,7 @@ class StorageDevices(object):
     return False
 
   def edit(self, args, **kwargs):
-    ttyio.echo("edit")
+#    ttyio.echo("edit{/all}")
     if len(storagedevices) == 0:
       ttyio.echo("no storage devices defined.", level="error")
       return False
@@ -978,21 +979,24 @@ def storage(args, **kwargs):
 
   done = False
   while not done:
-    ch = ttyio.inputchar("storage: [L]ist [A]dd [K]ill [E]dit [Q]uit? [LAKEQ]: ", "LAKEQ", "Q")
+    title("storage")
+    ttyio.echo("[L]ist{f6}[A]dd{f6}[K]ill{f6}[E]dit{f6:2}[Q]uit{f6}")
+    ch = ttyio.inputchar("{var:menu.promptcolor}storage [LAKEQ]: {var:menu.inputcolor}", "LAKEQ", "Q")
     if ch == "L":
-      ttyio.echo("List")
+      ttyio.echo("List{/all}")
       storagedevices.summary(args)
     elif ch == "A":
-      ttyio.echo("Add!")
+      ttyio.echo("Add{/all}")
       res = storagedevices.add(args)
       ttyio.echo("after prompt for device number")
     elif ch == "K":
-      ttyio.echo("kill")
+      ttyio.echo("kill{/all}")
       res = storagedevices.kill(args)
     elif ch == "E":
-      ttyio.echo("Edit")
+      ttyio.echo("Edit{/all}")
       res = storagedevices.edit(args)
     elif ch == "Q":
+      ttyio.echo("Quit{/all}")
       done = True
       break
 
@@ -1313,7 +1317,7 @@ def main():
     ttyio.setvariable("menu.boxcolor", "{bgblue}{green}")
     ttyio.setvariable("menu.itemcolor", "{blue}{bglightgray}")
     ttyio.setvariable("menu.titlecolor", "{black}{bglightgray}")
-    ttyio.setvariable("menu.promptcolor", "{white}")
+    ttyio.setvariable("menu.promptcolor", "{lightgray}")
     ttyio.setvariable("menu.inputcolor", "{white}")
     ttyio.setvariable("menu.disableditemcolor", "{darkgray}")
 
@@ -1324,8 +1328,8 @@ def main():
     ttyio.setvariable("setupimagebbs.areacolor", "{bggray}{white}")
 
 #    ttyio.echo("menu.color=%r" % (ttyio.getvariable("menu.color")), interpret=False)
-    if args.debug is True:
-        ttyio.echo("setupbbs.main.100: args=%r" % (args))
+#    if args.debug is True:
+#        ttyio.echo("setupbbs.main.100: args=%r" % (args))
 
     if args.basedir and args.debug is True:
       ttyio.echo("setupbbs.main.120: basedir=%r" % (args.basedir))
