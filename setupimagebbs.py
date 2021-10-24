@@ -1402,6 +1402,10 @@ def main():
 if __name__ == "__main__":
   try:
     main()
+  except EOFError:
+    ttyio.echo("{/all}{bold}EOF{/bold}")
+  except KeyboardInterrupt:
+    ttyio.echo("{/all}{bold}INTR{/bold}")
   finally:
     terminalheight = ttyio.getterminalheight()
     ttyio.echo("{curpos:%d,0}{el}{reset}{/all}" % (terminalheight))
