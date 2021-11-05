@@ -38,14 +38,14 @@ def updatebottombar(buf:str) -> None:
   ttyio.echo("{decsc}{/all}{curpos:%d,0}%s{el}{decrc}" % (terminalheight, buf), wordwrap=False, end="")
   return
 
-def title(title:str, titlecolor:str="{bgray}{white}", hrcolor:str="{white}", hrchars:str="{acs:hline}", llcorner="{acs:llcorner}", lrcorner="{acs:lrcorner}", ulcorner="{acs:ulcorner}", urcorner="{acs:urcorner}", width=None):
-  if width is None:
-    width = ttyio.getterminalwidth()-2
-
-  ttyio.echo("{/all}%s%s{acs:hline:%s}%s" % (hrcolor, ulcorner, width, urcorner), end="")
-  ttyio.echo("{f6}{white}{acs:vline}{bggray}{white}%s{/all}{white}{acs:vline}{/all}" % (title.center(width)), end="")
-  ttyio.echo("{f6}{white}%s{acs:hline:%s}%s{/all}" % (llcorner, width, lrcorner))
-  return
+#def title(title:str, titlecolor:str="{bgray}{white}", hrcolor:str="{white}", hrchars:str="{acs:hline}", llcorner="{acs:llcorner}", lrcorner="{acs:lrcorner}", ulcorner="{acs:ulcorner}", urcorner="{acs:urcorner}", width=None):
+#  if width is None:
+#    width = ttyio.getterminalwidth()-2
+#
+#  ttyio.echo("{/all}%s%s{acs:hline:%s}%s" % (hrcolor, ulcorner, width, urcorner), end="")
+#  ttyio.echo("{f6}{white}{acs:vline}{bggray}{white}%s{/all}{white}{acs:vline}{/all}" % (title.center(width)), end="")
+#  ttyio.echo("{f6}{white}%s{acs:hline:%s}%s{/all}" % (llcorner, width, lrcorner))
+#  return
 
 def area(buf):
   width = ttyio.getterminalwidth()
@@ -55,7 +55,7 @@ def area(buf):
 
 def sound(args, **kwargs):
   status = []
-  if ttyio.inputboolean("enable sound? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN") is False:
+  if ttyio.inputboolean("enable sound? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is False:
     vicecommandline["+sound"] = None
     if "-sound" in vicecommandline:
       del vicecommandline["-sound"]
@@ -88,19 +88,19 @@ def sound(args, **kwargs):
   d = vicecommandline["-sounddev"] if "-sounddev" in vicecommandline else "P"
   opts = []
   if d == "P":
-    opts.append("{var:setupimagebbs.currentoption}[P]ulse{/all}")
+    opts.append("{var:engine.currentoptioncolor}[P]ulse{/all}")
   else:
     opts.append("[P]ulse")
   if d == "A":
-    opts.append("{var:setupimagebbs.currentoption}{A]LSA{/all}")
+    opts.append("{var:engine.currentoptioncolor}{A]LSA{/all}")
   else:
     opts.append("[A]LSA")
   if d == "S":
-    opts.append("{var:setupimagebbs.currentoption}[S]DL{/all}")
+    opts.append("{var:engine.currentoptioncolor}[S]DL{/all}")
   else:
     opts.append("[S]DL")
   if d == "D":
-    opts.append("{var:setupimagebbs.currentoption}[D]ummy{/all}")
+    opts.append("{var:engine.currentoptioncolor}[D]ummy{/all}")
   else:
     opts.append("[D]ummy")
   dev = ttyio.inputchar("%s: " % (" ".join(opts)), "PASD", d)
@@ -134,9 +134,9 @@ def truedrive(args, **kwargs):
     defaultvalue = "Y"
 
   if defaultvalue == "Y":
-    ch = ttyio.inputboolean("truedrive? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN")
+    ch = ttyio.inputboolean("truedrive? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN")
   else:
-    ch = ttyio.inputboolean("truedrive? [y{var:setupimagebbs.currentoptionN{/all}]: ", "N", "YN")
+    ch = ttyio.inputboolean("truedrive? [y{var:engine.currentoptioncolorN{/all}]: ", "N", "YN")
 
   if ch is True:
     if "+truedrive" in vicecommandline:
@@ -151,7 +151,7 @@ def drivesound(args, **kwargs):
   area("vice: drivesound")
   title("vice: drivesound")
 
-  if ttyio.inputboolean("Enable sound emulation of disk drives? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN") is True:
+  if ttyio.inputboolean("Enable sound emulation of disk drives? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
     volume = ttyio.inputinteger("drive sound volume? [0-100]: ", 70)
     if "+drivesound" in vicecommandline:
       del vicecommandline["+drivesound"]
@@ -174,7 +174,7 @@ def clock(args, **kwargs):
 # clock1 = ds12c887rtc(args)
 #  clock1 =  ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
 #  if clock1 is False:
-  clock2 = ttyio.inputboolean("use cmd fd-4000 RTC? [y{var:setupimagebbs.currentoption}N{/all}]: ", "N", "YN")
+  clock2 = ttyio.inputboolean("use cmd fd-4000 RTC? [y{var:engine.currentoptioncolor}N{/all}]: ", "N", "YN")
 #  else:
 #    clock2 = ttyio.inputboolean("use cmd fd-4000 RTC? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
 
@@ -228,7 +228,7 @@ def checklocalhostdns(args):
 
 def gfd3(args):
   area("use gfd3 settings")
-  if ttyio.inputboolean("use settings for 'gfd3'? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN") is True:
+  if ttyio.inputboolean("use settings for 'gfd3'? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
     vicecommandline["-10"] = os.path.join(args.basedir, "drive10.d81")
     vicecommandline["-11"] = os.path.join(args.basedir, "drive11.d81")
     vicecommandline["-drive10type"] = "1581"
@@ -243,7 +243,7 @@ def keyboard(args, **kwargs):
   title("keyboard")
 
   keyboards = ("0: Symbpolic", "1: Positional", "2: symbolic (user)", "3: positional (user)")
-  ch = ttyio.inputchar("Specify index of keymap file ({var:setupimagebbs.currentoption}0:symbolic{/all}, 1:positional, 2:symbolic (user), 3:positional (user))? [0123]: ","0123", "0")
+  ch = ttyio.inputchar("Specify index of keymap file ({var:engine.currentoptioncolor}0:symbolic{/all}, 1:positional, 2:symbolic (user), 3:positional (user))? [0123]: ","0123", "0")
   if ch == "0":
     resultbuf = "symbolic"
   elif ch == "1":
@@ -261,10 +261,10 @@ def keyboard(args, **kwargs):
 def cmd4000(args, **kwargs):
   area("vice: cmd4000")
   title("device 9 cmd 4000")
-  if ttyio.inputboolean("enable cmd fd-4000 on device 9? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN") is True:
+  if ttyio.inputboolean("enable cmd fd-4000 on device 9? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
     vicecommandline["-dos4000"] = inputfilename(args, "dos4000 filename: ", os.path.join(args.basedir, "cmd-fd-4000-dos-v1.40-fd-350022.bin"), verify=verifyFileExistsReadable)
     vicecommandline["-drive9type"] = "4000"
-    if ttyio.inputboolean("enable drive 9 rtc save? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN") is True:
+    if ttyio.inputboolean("enable drive 9 rtc save? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
       vicecommandline["-drive9rtcsave"] = None
     else:
       vicecommandline["+drive9rtcsave"] = None
@@ -276,11 +276,11 @@ def ds12c887rtc(args, **kwargs):
   area("vice: ds12c887rtc")
   title("ds12c887rtc")
   if "-ds12c887rtc" in vicecommandline:
-    ch = ttyio.inputboolean("Enable DS12C887RTC? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN")
+    ch = ttyio.inputboolean("Enable DS12C887RTC? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN")
   elif "+ds12c887rtc" in vicecommandline:
-    ch = ttyio.inputboolean("Enable DS12C887RTC? [y{var:setupimagebbs.currentoption}N{/all}]: ", "N", "YN")
+    ch = ttyio.inputboolean("Enable DS12C887RTC? [y{var:engine.currentoptioncolor}N{/all}]: ", "N", "YN")
   else:
-    ch = ttyio.inputboolean("Enable DS12C887RTC? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN")
+    ch = ttyio.inputboolean("Enable DS12C887RTC? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN")
 
   if ch is False:
     vicecommandline["+ds12c887rtc"] = None
@@ -293,11 +293,11 @@ def ds12c887rtc(args, **kwargs):
       del vicecommandline["+ds12c887rtc"]
 
   if "-ds12c887rtcsave" in vicecommandline:
-    ch = ttyio.inputboolean("Enable saving of the DS12C887RTC data when changed? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN")
+    ch = ttyio.inputboolean("Enable saving of the DS12C887RTC data when changed? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN")
   elif "+ds12c887rtcsave" in vicecommandline:
-    ch = ttyio.inputboolean("Enable saving of the DS12C887RTC data when changed? [y{var:setupimagebbs.currentoption}N{/all}]: ", "N", "YN")
+    ch = ttyio.inputboolean("Enable saving of the DS12C887RTC data when changed? [y{var:engine.currentoptioncolor}N{/all}]: ", "N", "YN")
   else:
-    ch = ttyio.inputboolean("Enable saving of the DS12C887RTC data when changed? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN")
+    ch = ttyio.inputboolean("Enable saving of the DS12C887RTC data when changed? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN")
 
   if ch is False:
     vicecommandline["+ds12c887rtcsave"] = None
@@ -316,7 +316,7 @@ def ds12c887rtc(args, **kwargs):
   for c in addresschoices:
     i = ch - ord("A")
     if currentaddr == addresschoices[i] or defaultvalue == addresschoices[i]:
-      menu.append("{var:setupimagebbs.currentoption}[%s] %s{/all}" % (chr(ch), addresschoices[i]))
+      menu.append("{var:engine.currentoptioncolor}[%s] %s{/all}" % (chr(ch), addresschoices[i]))
       defaultvalue = chr(ch)
     elif currentaddr in ioaddrs:
       menu.append("{darkgray}[%s] %s{/all}" % (chr(ch), addresschoices[i]))
@@ -329,18 +329,18 @@ def ds12c887rtc(args, **kwargs):
   addr = addresschoices[ord(ch) - ord("A")]
   ttyio.echo(addr)
   if addr in ioaddrs:
-    if ttyio.inputboolean("that address is already used for %s. proceed? [y{var:setupimagebbs.currentoption}N{/all}]: " % (ioaddrs[addr]), "N", "YN") is True:
+    if ttyio.inputboolean("that address is already used for %s. proceed? [y{var:engine.currentoptioncolor}N{/all}]: " % (ioaddrs[addr]), "N", "YN") is True:
       vicecommandline["-ds12c887rtcbase"] = addr
       ioaddrs[addr] = "ds12c887rtc"
 
   # -ds12c887rtchalted -> Set the RTC oscillator to 'halted'
   # -ds12c887rtcrunning -> Set the RTC oscillator to 'running'
   if "-ds12c887rtcrunning" in vicecommandline:
-    ch = ttyio.inputchar("Set the RTC oscillator to {var:setupimagebbs.currentoption}[R]unning{/all} or [H]alted: ", "RH", "R")
+    ch = ttyio.inputchar("Set the RTC oscillator to {var:engine.currentoptioncolor}[R]unning{/all} or [H]alted: ", "RH", "R")
   elif "-ds12c887rtchalted" in vicecommandline:
-    ch = ttyio.inputchar("Set the RTC oscillator to [R]unning or {var:setupimagebbs.currentoption}[H]alted{/all}: ", "RH", "H")
+    ch = ttyio.inputchar("Set the RTC oscillator to [R]unning or {var:engine.currentoptioncolor}[H]alted{/all}: ", "RH", "H")
   else:
-    ch = ttyio.inputchar("Set the RTC oscillator to {var:setupimagebbs.currentoption}[R]unning{/all} or [H]alted: ", "RH", "R")
+    ch = ttyio.inputchar("Set the RTC oscillator to {var:engine.currentoptioncolor}[R]unning{/all} or [H]alted: ", "RH", "R")
 
   if ch == "R":
     ttyio.echo("Running")
@@ -368,10 +368,10 @@ def ds12c887rtc(args, **kwargs):
 def rs232(args, **kwargs):
   area("vice: rs232/ip232")
   title("vice: rs232/ip232")
-  dev = ttyio.inputinteger("device [1-{var:setupimagebbs.currentoption}4{/all}]: ", 4)
+  dev = ttyio.inputinteger("device [1-{var:engine.currentoptioncolor}4{/all}]: ", 4)
   vicecommandline["+rsuser"] = None
   vicecommandline["-rsdev%d" % (dev)] = "%s:%s" % (localhost, tcpsercommandline["-v"])
-  ip232 = ttyio.inputboolean("enable ip232? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y")
+  ip232 = ttyio.inputboolean("enable ip232? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y")
   vicecommandline["-rsdev%dip232" % (dev)] = ip232
   baud = ttyio.inputinteger("baud rate: ", tcpsercommandline["-s"]) # 38400
   vicecommandline["-rsdev%dbaud" % (dev)] = baud
@@ -385,7 +385,7 @@ def acia(args, **kwargs):
   area("vice")
   title("vice: acia")
 
-  if ttyio.inputboolean("Enable the ACIA RS232 interface emulation (Swiftlink, Turbo232)? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is False:
+  if ttyio.inputboolean("Enable the ACIA RS232 interface emulation (Swiftlink, Turbo232)? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y") is False:
     vicecommandline["+acia1"] = None
     for x in ["-acia1mode", "-acia1base", "-acia1irq", "-myaciadev", "-acia1"]:
       if x in vicecommandline:
@@ -409,7 +409,7 @@ def acia(args, **kwargs):
   o = ""
   for i in range(0, len(options)):
     if d == i:
-      prompt.append("{var:setupimagebbs.currentoption}[%s] %s{/all}" % (chr(ord("A")+i), options[i]))
+      prompt.append("{var:engine.currentoptioncolor}[%s] %s{/all}" % (chr(ord("A")+i), options[i]))
     else:
       prompt.append("[%s] %s" % (chr(ord("A")+i), options[i]))
     o += chr(ord("A")+i)
@@ -423,7 +423,7 @@ def acia(args, **kwargs):
   vicecommandline["-acia1mode"] = i
 
   # $df00 is *not* supported by ml30 without a recompile
-  ch = ttyio.inputchar("Base address of the ACIA cartridge {var:setupimagebbs.currentoption}[A] 0xDE00{/all} [B] 0xDF00: [AB]? ", "AB", "A")
+  ch = ttyio.inputchar("Base address of the ACIA cartridge {var:engine.currentoptioncolor}[A] 0xDE00{/all} [B] 0xDF00: [AB]? ", "AB", "A")
   if ch == "A":
     ttyio.echo("A: 0xDE00")
     vicecommandline["-acia1base"] = "0xDE00"
@@ -441,18 +441,18 @@ def acia(args, **kwargs):
     default = "B"
 
   if default == "A":
-    ttyio.echo("{var:setupimagebbs.currentoption}[A] None{/all}")
+    ttyio.echo("{var:engine.currentoptioncolor}[A] None{/all}")
   else:
     ttyio.echo("[A] None")
   if default == "B":
-    ttyio.echo("{var:setupimagebbs.currentoption}[B] NMI{/all}")
+    ttyio.echo("{var:engine.currentoptioncolor}[B] NMI{/all}")
   else:
     ttyio.echo("[B] NMI")
   if default == "C":
-    ttyio.echo("{var:setupimagebbs.currentoption}[C] IRQ{/all}")
+    ttyio.echo("{var:engine.currentoptioncolor}[C] IRQ{/all}")
   else:
     ttyio.echo("[C] IRQ")
-  ch = ttyio.inputchar("Set the ACIA interrupt ([A] None, {var:setupimagebbs.currentoption}[B] NMI{/all}, [C] IRQ): [ABC]? ", "ABC", default)
+  ch = ttyio.inputchar("Set the ACIA interrupt ([A] None, {var:engine.currentoptioncolor}[B] NMI{/all}, [C] IRQ): [ABC]? ", "ABC", default)
   if ch == "A":
     vicecommandline["-acia1irq"] = 0
     ttyio.echo("A: None")
@@ -470,7 +470,7 @@ def acia(args, **kwargs):
 
   for s in range(1,4+1):
     if int(serialdev) == s:
-      ttyio.echo("{var:setupimagebbs.currentoption}[%d] serial%d{/all}" % (serialdev, serialdev))
+      ttyio.echo("{var:engine.currentoptioncolor}[%d] serial%d{/all}" % (serialdev, serialdev))
     else:
       ttyio.echo("[%d] serial %d" % (s, s))
 
@@ -632,7 +632,7 @@ def tcpser(args, **kwargs):
   title("tcpser")
 
   # ttyio.echo("tcpser.120: vicecommandline=%r" % (vicecommandline), interpret=False)
-  if ttyio.inputboolean("invert DCD pin? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN") is True:
+  if ttyio.inputboolean("invert DCD pin? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
     tcpsercommandline["-I"] = None
 
   acia1mode = vicecommandline["-acia1mode"] if "-acia1mode" in vicecommandline else None
@@ -654,16 +654,16 @@ def tcpser(args, **kwargs):
 
   traceflags = ""
   trace = []
-  if ttyio.inputboolean("modem input (s) [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN") is True:
+  if ttyio.inputboolean("modem input (s) [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
     traceflags += "s"
     trace += ["modem input"]
-  if ttyio.inputboolean("modem output (S) [y{var:setupimagebbs.currentoption}N{/all}]: ", "N", "YN") is True:
+  if ttyio.inputboolean("modem output (S) [y{var:engine.currentoptioncolor}N{/all}]: ", "N", "YN") is True:
     traceflags += "S"
     trace += ["modem output"]
-  if ttyio.inputboolean("IP input (i) [y{var:setupimagebbs.currentoption}N{/all}]: ", "N", "YN") is True:
+  if ttyio.inputboolean("IP input (i) [y{var:engine.currentoptioncolor}N{/all}]: ", "N", "YN") is True:
     traceflags += "i"
     trace += ["ip input"]
-  if ttyio.inputboolean("IP output (I) [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN") is True:
+  if ttyio.inputboolean("IP output (I) [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
     traceflags += "I"
     trace += ["ip output"]
   if len(traceflags) > 0:
@@ -688,7 +688,7 @@ def ramlink(args, **kwargs):
   area("vice")
   title("vice: ramlink")
 
-  if ttyio.inputboolean("use ramlink? [y{var:setupimagebbs.currentoption}N{/all}]: ", "N") is False:
+  if ttyio.inputboolean("use ramlink? [y{var:engine.currentoptioncolor}N{/all}]: ", "N") is False:
     vicecommandline["-ramlink"] = None
     for x in ["+ramlink", "+ramlinkrtcsave", "-ramlinksize", "+ramlinksize", "-ramlinkimage", "-ramlinkimagerw", "+ramlinkimagerw"]:
       if x in vicecommandline:
@@ -706,7 +706,7 @@ def ramlink(args, **kwargs):
   vicecommandline["-ramlinksize"] = size
   description.append("[size: %s]" % (pluralize(size, "megabyte", "megabytes")))
 
-  if ttyio.inputboolean("allow write to ramlink image? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is True:
+  if ttyio.inputboolean("allow write to ramlink image? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y") is True:
       vicecommandline["-ramlinkimagerw"] = None
       description.append("[write image: Yes]")
       if "+ramlinkimagerw" in vicecommandline:
@@ -722,7 +722,7 @@ def ramlink(args, **kwargs):
   vicecommandline["-ramlinkimage"] = inputfilename(args, "ramlink image: ", os.path.join(args.basedir, "ramlink.img"), verify=verifyFileExistsReadableWritable)
 
   # handle pre-existing value!
-  if ttyio.inputboolean("ramlink rtc save? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is True:
+  if ttyio.inputboolean("ramlink rtc save? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y") is True:
     vicecommandline["-ramlinkrtcsave"] = None
     if "+ramlinkrtcsave" in vicecommandline:
       del vicecommandline["+ramlinkrtcsave"]
@@ -734,7 +734,7 @@ def ramlink(args, **kwargs):
     description.append("[rtc save: No]")
 
   # handle pre-existing value!
-  ch = ttyio.inputchar("ramlinkmode ({var:setupimagebbs.currentoption}1=Normal{/all}, 0=Direct): ", "01", "1")
+  ch = ttyio.inputchar("ramlinkmode ({var:engine.currentoptioncolor}1=Normal{/all}, 0=Direct): ", "01", "1")
   if ch == "0":
     ttyio.echo("Direct")
     description.append("[mode: direct]")
@@ -747,8 +747,8 @@ def ramlink(args, **kwargs):
 
 def displaysync(args, **kwargs):
   area("vice")
-  title("vice: display sync")
-  sync = ttyio.inputchar("{var:setupimagebbs.currentoption}[N]TSC{/all} or [P]AL? ", "NP", "N")
+  title("vice: display")
+  sync = ttyio.inputchar("{var:engine.currentoptioncolor}[N]TSC{/all} or [P]AL? ", "NP", "N")
   if sync == "N":
     ttyio.echo("NTSC")
     vicecommandline["-ntsc"] = None
@@ -813,7 +813,7 @@ def drivetype(args, devicenumber, oldvalue=None):
     char = ord("A")
     for k, v in types.items():
       if k == oldvalue:
-        ttyio.echo("{var:setupimagebbs.currentoption}[%s] %s{/all}" % (chr(char), v))
+        ttyio.echo("{var:engine.currentoptioncolor}[%s] %s{/all}" % (chr(char), v))
         default = chr(char)
       else:
         ttyio.echo("[%s] %s" % (chr(char), v))
@@ -825,7 +825,7 @@ def drivetype(args, devicenumber, oldvalue=None):
       char += 1
 
     if default == "N":
-      ttyio.echo("{var:setupimagebbs.currentoption}[N] None{/all}")
+      ttyio.echo("{var:engine.currentoptioncolor}[N] None{/all}")
     else:
       ttyio.echo("[N] None")
 
@@ -850,7 +850,7 @@ class StorageDevice(object):
 
     self.number = None
     self.type = None
-    self.rtc = False
+    self.hasrtc = False
     self.savertc = False
     self.cart = None
     self.fallbacktype = None
@@ -879,23 +879,49 @@ class StorageDevice(object):
     self.type = drivetype(self.args, self.number)
     if self.type in ("4000", "4844", "RAMLINK", "2000"):
       if self.rtc is True:
-        prompt = "use rtc? [{var:setupimagebbs.currentoption}Y{/all}n]: "
+        prompt = "use rtc? [{var:engine.currentoptioncolor}Y{/all}n]: "
         currentoption = "Y"
       else:
-        prompt = "use rtc? [y{var:setupimagebbs.currentoption}N{/all}]: "
+        prompt = "use rtc? [y{var:engine.currentoptioncolor}N{/all}]: "
         currentoption = "N"
       self.rtc = ttyio.inputboolean(prompt, currentoption)
 
       if self.savertc is True:
-        prompt = "save rtc? [{var:setupimagebbs.currentoption}Y{/all}n]: "
+        prompt = "save rtc? [{var:engine.currentoptioncolor}Y{/all}n]: "
         currentoption = "Y"
       else:
-        prompt = "save rtc? [y{var:setupimagebbs.currentoption}N{/all}]: "
+        prompt = "save rtc? [y{var:engine.currentoptioncolor}N{/all}]: "
         currentoption = "N"
       self.savertc = ttyio.inputboolean(prompt, currentoption)
       # add device to rtc list
 
     return
+
+class StorageDeviceLTK(StorageDevice):
+  def __init__(self):
+    super().__init__(self, args) # , data:dict={}, **kwargs)
+    self.type = "LTK"
+    self.hasrtc = False
+    self.fallback = None
+
+class StorageDeviceCBM(StorageDevice):
+  def __init__(self):
+    super().__init__(self, args) # , data:dict={}, **kwargs)
+    self.type = "cbm"
+    self.rtc = True
+
+class StorageDeviceCMD(StorageDevice):
+  def __init__(self):
+    super().__init__(self, args) # , data:dict={}, **kwargs)
+    self.rtc = True
+
+class StorageDeviceREU(StorageDevice):
+  def __init__(self):
+    super().__init__(self, args) # , data:dict={}, **kwargs)
+
+class StorageDeviceRAMLink(StorageDevice):
+  def __init__(self):
+    self.hasrtc = True
 
 class StorageDevices(object):
   def __init__(self):
@@ -940,7 +966,7 @@ class StorageDevices(object):
     storagedevice = StorageDevice(args, data={"number":number})
     storagedevice.edit()
     ttyio.echo(str(storagedevice), level="debug")
-    if ttyio.inputboolean("add this device? [y{var:setupimagebbs.currentoption}N{/all}]: ") is True:
+    if ttyio.inputboolean("add this device? [y{var:engine.currentoptioncolor}N{/all}]: ") is True:
       storagedevices.append(storagedevice) # [storagedevice.device] = storagedevice
     else:
       ttyio.echo("storage device not added.")
@@ -1008,16 +1034,16 @@ def oldstorage(args, **kwargs):
   usecmd = setup["usecmd"] if "usecmd" in setup else False
 
   if useltk is True:
-    ltk = ttyio.inputboolean("use ltk? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN")
+    ltk = ttyio.inputboolean("use ltk? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN")
   else:
     ltk = ttyio.inputboolean("use ltk? [y{bggray{white}N]: ", "N", "YN")
   if usecmd is True:
-    cmd = ttyio.inputboolean("use cmd? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN")
+    cmd = ttyio.inputboolean("use cmd? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN")
   else:
     cmd = ttyio.inputboolean("use cmd? [y{bggray{white}N]: ", "N", "YN")
 
-  setup["useltk"] = ltk
-  setup["usecmd"] = cmd
+#  setup["useltk"] = ltk
+#  setup["usecmd"] = cmd
 
   # handle hybrid!
   if ltk is True:
@@ -1034,10 +1060,14 @@ def oldstorage(args, **kwargs):
       vicecommandline["-ltkimage0"] = inputfilename(args, "-ltkimage0: ", os.path.join(args.basedir, "drive8-0.dlk"), verify=verifyFileExistsReadableWritable)
       vicecommandline["-ltkimage1"] = inputfilename(args, "-ltkimage1: ", os.path.join(args.basedir, "drive8-1.dlk"), verify=verifyFileExistsReadableWritable)
       vicecommandline["-ltkimage2"] = inputfilename(args, "-ltkimage2: ", os.path.join(args.basedir, "drive8-2.dlk"), verify=verifyFileExistsReadableWritable)
-      vicecommandline["-ltkport"] = ttyio.inputstring("Set LTK port number (0..15): ", "0", verify=verifyLTKPortInRange)
+#      vicecommandline["-ltkimage3"] = inputfilename(args, "-ltkimage3: ", os.path.join(args.basedir, "drive8-3.dlk"), verify=verifyFileExistsReadableWritable)
+#      vicecommandline["-ltkimage4"] = inputfilename(args, "-ltkimage4: ", os.path.join(args.basedir, "drive8-4.dlk"), verify=verifyFileExistsReadableWritable)
+#      vicecommandline["-ltkimage5"] = inputfilename(args, "-ltkimage5: ", os.path.join(args.basedir, "drive8-5.dlk"), verify=verifyFileExistsReadableWritable)
+#      vicecommandline["-ltkimage6"] = inputfilename(args, "-ltkimage6: ", os.path.join(args.basedir, "drive8-6.dlk"), verify=verifyFileExistsReadableWritable)
+      vicecommandline["-ltkport"] = ttyio.inputinteger("Set LTK port number (0..15): ", 0, verify=verifyLTKPortInRange)
 
       # handle existing value
-      ch = vicecommandline["-ltkio"] = ttyio.inputchar("Set LTK IO page (0: $DE00, {var:setupimagebbs.currentoption}1: $DF00{/all}): ", "01", "1")
+      ch = vicecommandline["-ltkio"] = ttyio.inputchar("Set LTK IO page (0: $DE00, {var:engine.currentoptioncolor}1: $DF00{/all}): ", "01", "1")
       if ch == "1":
         ttyio.echo("1: $DF00")
         ioaddrs["0xDF00"] = "ltkio"
@@ -1087,7 +1117,7 @@ def oldstorage(args, **kwargs):
 
     dn = "drive%drtcsave" % (drivenumber)
     if dt == "4000" or dt == "2000" or dt == "4844":
-      if ttyio.inputboolean("Enable saving of RTC data to drive %d? [{var:setupimagebbs.currentoption}Y{/all}n]: " % (drivenumber), "Y", "YN") is True:
+      if ttyio.inputboolean("Enable saving of RTC data to drive %d? [{var:engine.currentoptioncolor}Y{/all}n]: " % (drivenumber), "Y", "YN") is True:
         vicecommandline["-%s" % (dn)] = None
         if "+%s" % (dn) in vicecommandline:
           del vicecommandline["+%s" % (dn)]
@@ -1167,7 +1197,7 @@ def summary(args):
 def defaultconfig(args):
   area("vice")
 
-  if ttyio.inputboolean("restore default config before processing options? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y", "YN") is True:
+  if ttyio.inputboolean("restore default config before processing options? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
     vicecommandline["-default"] = None
   return True
 
@@ -1175,7 +1205,7 @@ def saveonviceexit(args):
   area("vice")
   title("vice: save settings on vice exit")
 
-  if ttyio.inputboolean("save vice settings on exit from vice? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is True:
+  if ttyio.inputboolean("save vice settings on exit from vice? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y") is True:
     vicecommandline["-saveres"] = None
   else:
     vicecommandline["+saveres"] = None
@@ -1199,7 +1229,7 @@ def savejson(args):
   area("setupimagebbs")
   title("save json file of setup data")
   
-  if ttyio.inputboolean("save setup data? [{var:setupimagebbs.currentoption}Y{/all}n]: ", "Y") is False:
+  if ttyio.inputboolean("save setup data? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y") is False:
     ttyio.echo("setup data {bold}not{/bold} saved.{f6}")
     return True
 
@@ -1258,17 +1288,17 @@ def iocollisionhandler(args):
     default = "B"
 
   if default == "A":
-    ttyio.echo("{var:setupimagebbs.currentoption}[A] error message, detatch all involved carts{/all}")
+    ttyio.echo("{var:engine.currentoptioncolor}[A] error message, detatch all involved carts{/all}")
   else:
     ttyio.echo("[A] error message, detatch all involved carts")
 
   if default == "B":
-    ttyio.echo("{var:setupimagebbs.currentoption}[B] error message, detach most recent involved cart{/all}")
+    ttyio.echo("{var:engine.currentoptioncolor}[B] error message, detach most recent involved cart{/all}")
   else:
     ttyio.echo("[B] error message, detach most recent involved cart")
   
   if default == "C":
-    ttyio.echo("{var:setupimagebbs.currentoption}[C] warning in log, bitwise-and valid return values{/all}")
+    ttyio.echo("{var:engine.currentoptioncolor}[C] warning in log, bitwise-and valid return values{/all}")
   else:
     ttyio.echo("[C] warning in log, bitwise-and valid return values")
 
@@ -1310,21 +1340,21 @@ def main():
     area("setup image bbs")
 
 #    ttyio.echo("setting variables")
-    ttyio.setvariable("menu.boxcharcolor", "{bglightgray}{darkgreen}")
-    ttyio.setvariable("menu.color", "{bggray}")
-    ttyio.setvariable("menu.shadowcolor", "{bgdarkgray}")
-    ttyio.setvariable("menu.cursorcolor", "{bglightgray}{blue}")
-    ttyio.setvariable("menu.boxcolor", "{bgblue}{green}")
-    ttyio.setvariable("menu.itemcolor", "{blue}{bglightgray}")
-    ttyio.setvariable("menu.titlecolor", "{black}{bglightgray}")
-    ttyio.setvariable("menu.promptcolor", "{lightgray}")
-    ttyio.setvariable("menu.inputcolor", "{white}")
-    ttyio.setvariable("menu.disableditemcolor", "{darkgray}")
+    ttyio.setvariable("engine.menu.boxcharcolor", "{bglightgray}{darkgreen}")
+    ttyio.setvariable("engine.menu.color", "{bggray}")
+    ttyio.setvariable("engine.menu.shadowcolor", "{bgdarkgray}")
+    ttyio.setvariable("engine.menu.cursorcolor", "{bglightgray}{blue}")
+    ttyio.setvariable("engine.menu.boxcolor", "{bgblue}{green}")
+    ttyio.setvariable("engine.menu.itemcolor", "{blue}{bglightgray}")
+    ttyio.setvariable("engine.menu.titlecolor", "{black}{bglightgray}")
+    ttyio.setvariable("engine.menu.promptcolor", "{lightgray}")
+    ttyio.setvariable("engine.menu.inputcolor", "{white}")
+    ttyio.setvariable("engine.menu.disableditemcolor", "{darkgray}")
+    ttyio.setvariable("engine.currentoptioncolor", "{bggray}{white}")
 
 #    print("menu.promptcolor=%r" % (ttyio.getvariable("menu.promptcolor")))
 #    return
 
-    ttyio.setvariable("setupimagebbs.currentoption", "{bggray}{white}")
     ttyio.setvariable("setupimagebbs.areacolor", "{bggray}{white}")
 
 #    ttyio.echo("menu.color=%r" % (ttyio.getvariable("menu.color")), interpret=False)
@@ -1356,7 +1386,7 @@ def main():
       { "name": "sound",         "callback": sound,       "label": "sound"}
     ]
 
-    menu = Menu("image bbs v3 setup", menuitems, args=args)
+    menu = Menu("image bbs setup", menuitems, args=args)
     menu.run()
 
 #      res = handlemenu(args, menuitems, "setup: ")
@@ -1403,9 +1433,9 @@ if __name__ == "__main__":
   try:
     main()
   except EOFError:
-    ttyio.echo("{/all}{bold}EOF{/bold}")
+    ttyio.echo("{decrc}{/all}{bold}EOF{/bold}")
   except KeyboardInterrupt:
-    ttyio.echo("{/all}{bold}INTR{/bold}")
+    ttyio.echo("{decrc}{/all}{bold}INTR{/bold}")
   finally:
     terminalheight = ttyio.getterminalheight()
     ttyio.echo("{curpos:%d,0}{el}{reset}{/all}" % (terminalheight))
