@@ -136,7 +136,7 @@ def truedrive(args, **kwargs):
   if defaultvalue == "Y":
     ch = ttyio.inputboolean("truedrive? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN")
   else:
-    ch = ttyio.inputboolean("truedrive? [y{var:engine.currentoptioncolorN{/all}]: ", "N", "YN")
+    ch = ttyio.inputboolean("truedrive? [y{var:engine.currentoptioncolor}N{/all}]: ", "N", "YN")
 
   if ch is True:
     if "+truedrive" in vicecommandline:
