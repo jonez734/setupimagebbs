@@ -14,7 +14,7 @@ import subprocess
 import ttyio5 as ttyio
 
 # import bbsengine5 as bbsengine # remove this in production!
-from bbsengine5 import Menu, runcallback, pluralize, inputfilename, verifyFileExistsReadable, verifyFileExistsReadableWritable
+from bbsengine5 import Menu, runcallback, pluralize, inputfilename, verifyFileExistsReadable, verifyFileExistsReadableWritable, title
 
 vicecommandline = {}
 tcpsercommandline = {}
@@ -764,7 +764,6 @@ def displaysync(args, **kwargs):
   return (True, resultbuf)
 
 def drivetype(args, devicenumber, oldvalue=None):
-
 # 1540: CBM 1540,
 # 1541: CBM 1541,
 # 1542: CBM 1541-II,
@@ -782,7 +781,25 @@ def drivetype(args, devicenumber, oldvalue=None):
 # 8050: CBM 8050,
 # 8250: CBM 8250
 
-    types = {
+#    types = {
+#        "1001":    ("CBM 1001", StorageDeviceCBM),
+#        "1540":    ("CBM 1540", StorageDeviceCBM),
+#        "1541":    ("CBM 1541", StorageDeviceCBM),
+#        "1542":    ("CBM 1541-II", StorageDeviceCBM),
+#        "1570":    ("CBM 1570", StorageDeviceCBM),
+#        "1571":    ("CBM 1571", StorageDeviceCBM),
+#        "1581":    ("CBM 1581", StorageDeviceCBM),
+#        "2031":    ("CBM 2031", StorageDeviceCBM),
+#        "8050":    ("CBM 8050", StorageDeviceCBM),
+#        "8250":    ("CBM 8250", StorageDeviceCBM),
+#        "LTK":     ("Lt. Kernal", StorageDeviceLTK),
+#        "2000":    ("CMD FD-2000", StorageDeviceCMD),
+#        "4000":    ("CMD FD-4000", StorageDeviceCMD),
+#        "4844":    ("CMD HD", StorageDeviceCMD)
+#        "RAMLINK": ("ramlink", StorageDeviceRamlink)
+#    }
+
+    labels = {
         "1001":    "CBM 1001",
         "1540":    "CBM 1540",
         "1541":    "CBM 1541",
@@ -797,7 +814,7 @@ def drivetype(args, devicenumber, oldvalue=None):
         "2000":    "CMD FD-2000",
         "4000":    "CMD FD-4000",
         "4844":    "CMD HD",
-        "RAMLINK": "ramlink"
+#        "RAMLINK": ("ramlink", StorageDeviceRamlink)
     }
 
 #    if "-dos4000" in vicecommandline and vicecommandline["-dos4000"] is not None:
@@ -811,12 +828,13 @@ def drivetype(args, devicenumber, oldvalue=None):
     options = "N"
     menu = {}
     char = ord("A")
-    for k, v in types.items():
+    for k, v in labels.items():
+      label = v
       if k == oldvalue:
-        ttyio.echo("{var:engine.currentoptioncolor}[%s] %s{/all}" % (chr(char), v))
+        ttyio.echo("{var:engine.currentoptioncolor}[%s] %s{/all}" % (chr(char), label))
         default = chr(char)
       else:
-        ttyio.echo("[%s] %s" % (chr(char), v))
+        ttyio.echo("[%s] %s" % (chr(char), label))
 
       options += chr(char)
 
@@ -845,24 +863,27 @@ def verifyLTKDevInRange(args, val):
   return True
 
 class StorageDevice(object):
-  def __init__(self, args, data:dict={}, **kwargs):
+  def __init__(self, args, number, **kwargs):
     self.args = args
 
-    self.number = None
+    self.number = number
     self.type = None
     self.hasrtc = False
     self.savertc = False
+    self.usertc = False
     self.cart = None
     self.fallbacktype = None
     self.images = []
 
-    for a in [ "number", "type", "rtc", "savertc", "cart", "fallbacktype", "images" ]:
-      if a in data:
-        setattr(self, a, data[a])
+    if "data" in kwargs:
+      d = kwargs["data"]
+      for a in [ "number", "type", "rtc", "savertc", "cart", "fallbacktype", "images" ]:
+        if a in d:
+          setattr(self, a, d[a])
 
   def __str__(self):
     buf = "#% d %s" % (self.number, self.type)
-    if self.rtc is True:
+    if self.usertc is True:
       buf += " rtc"
       if self.savertc is True:
         buf += ": saved"
@@ -878,13 +899,13 @@ class StorageDevice(object):
   def edit(self):
     self.type = drivetype(self.args, self.number)
     if self.type in ("4000", "4844", "RAMLINK", "2000"):
-      if self.rtc is True:
+      if self.hasrtc is True:
         prompt = "use rtc? [{var:engine.currentoptioncolor}Y{/all}n]: "
         currentoption = "Y"
       else:
         prompt = "use rtc? [y{var:engine.currentoptioncolor}N{/all}]: "
         currentoption = "N"
-      self.rtc = ttyio.inputboolean(prompt, currentoption)
+      self.usertc = ttyio.inputboolean(prompt, currentoption)
 
       if self.savertc is True:
         prompt = "save rtc? [{var:engine.currentoptioncolor}Y{/all}n]: "
@@ -898,44 +919,115 @@ class StorageDevice(object):
     return
 
 class StorageDeviceLTK(StorageDevice):
-  def __init__(self):
-    super().__init__(self, args) # , data:dict={}, **kwargs)
+  def __init__(self, args, number, **kwargs):
+    super().__init__(args, number, **kwargs) # , data:dict={}, **kwargs)
     self.type = "LTK"
     self.hasrtc = False
-    self.fallback = None
+    self.fallbacktype = None
+    self.args = args
+#    print("self.args=%r" % (self.args))
+  def build(self):
+    vicecommandline["-cartcrt"] = self.cartcrt
+    vicecommandline["-ltkimage0"] = self.ltkimage0
+    vicecommandline["-ltkimage1"] = self.ltkimage1
+    vicecommandline["-ltkimage2"] = self.ltkimage2
+    vicecommandline["-ltkport"] = self.ltkport
+    return
+  def edit(self):
+      self.cartcrt = inputfilename(self.args, "-cartcrt: ", os.path.join(self.args.basedir, "ltk.crt"), verify=verifyFileExistsReadable)
 
+      self.ltkimage0 = inputfilename(self.args, "-ltkimage0: ", os.path.join(self.args.basedir, "drive8-0.dlk"), verify=verifyFileExistsReadableWritable)
+      self.ltkimage1 = inputfilename(self.args, "-ltkimage1: ", os.path.join(self.args.basedir, "drive8-1.dlk"), verify=verifyFileExistsReadableWritable)
+      self.ltkimage2 = inputfilename(self.args, "-ltkimage2: ", os.path.join(self.args.basedir, "drive8-2.dlk"), verify=verifyFileExistsReadableWritable)
+
+      self.ltkport = ttyio.inputinteger("Set LTK port number (0..15): ", 0, verify=verifyLTKPortInRange)
+      vicecommandline["-ltkport"] = self.ltkport
+
+      ch = vicecommandline["-ltkio"] = ttyio.inputchar("Set LTK IO page (0: $DE00, {var:engine.currentoptioncolor}1: $DF00{/all}): ", "01", "1")
+      if ch == "1":
+        ttyio.echo("1: $DF00")
+        ioaddrs["0xDF00"] = "ltkio"
+        if "0xDE00" in ioaddrs and ioaddrs["0xDE00"] == "ltkio":
+          del ioaddrs["0xDE00"]
+      elif ch == "0":
+        ttyio.echo("0: 0xDE00")
+        ioaddrs["0xDE00"] = "ltkio"
+        if "0xDF00" in ioaddrs and ioaddrs["0xDF00"] == "ltkio":
+          del ioaddrs["0xDF00"]
+      vicecommandline["-ltkio"] = ch
+  def __str__(self):
+    buf = "#% d %s" % (self.number, self.type)
+    if self.cartcrt is not None:
+      buf += " cart: %s" % (self.cartcrt)
+    if self.fallbacktype is not None:
+      buf += " fallback: %s" % (self.fallbacktype)
+    if "-ltkio" in vicecommandline:
+      ltkio = vicecommandline["-ltkio"]
+      buf += " ltkio: "
+      if ltkio == "0":
+        buf += " ltkio: 0xDE00"
+      elif ltkio == "1":
+        buf += " ltkio: 0xDF00"
+      else:
+        buf += " ltkio: ERROR"
+
+    return buf
+
+  
 class StorageDeviceCBM(StorageDevice):
-  def __init__(self):
+  def __init__(self, args, number):
     super().__init__(self, args) # , data:dict={}, **kwargs)
-    self.type = "cbm"
-    self.rtc = True
+    self.type = "CBM"
+    self.hasrtc = False
 
 class StorageDeviceCMD(StorageDevice):
-  def __init__(self):
+  def __init__(self, args):
     super().__init__(self, args) # , data:dict={}, **kwargs)
-    self.rtc = True
+    self.hasrtc = True
 
 class StorageDeviceREU(StorageDevice):
-  def __init__(self):
+  def __init__(self, args):
     super().__init__(self, args) # , data:dict={}, **kwargs)
 
 class StorageDeviceRAMLink(StorageDevice):
   def __init__(self):
+    super().__init__(self, args)
     self.hasrtc = True
 
 class StorageDevices(object):
   def __init__(self):
     self.devices = []
+    self.subclasses = {
+        "1001":    StorageDeviceCBM,
+        "1540":    StorageDeviceCBM,
+        "1541":    StorageDeviceCBM,
+        "1542":    StorageDeviceCBM,
+        "1570":    StorageDeviceCBM,
+        "1571":    StorageDeviceCBM,
+        "1581":    StorageDeviceCBM,
+        "2031":    StorageDeviceCBM,
+        "8050":    StorageDeviceCBM,
+        "8250":    StorageDeviceCBM,
+        "LTK":     StorageDeviceLTK,
+        "2000":    StorageDeviceCMD,
+        "4000":    StorageDeviceCMD,
+        "4844":    StorageDeviceCMD
+#        "RAMLINK": StorageDeviceRamlink
+    }
 
   def append(self, storagedevice):
-    if isinstance(storagedevice, StorageDevice):
+    if issubclass(type(storagedevice), StorageDevice) is True:
       self.devices.append(storagedevice)
+      return
+
+    ttyio.echo("StorageDevices.append() not passed a subclass of StorageDevice")
+    return
 
   def __getitem__(self, index):
     return self.devices[index]
 
   def find(self, number):
-    ttyio.echo("StorageDevices.find.number=%r" % (number))
+    ttyio.echo("StorageDevices.find.number=%r" % (number), level="debug")
     for d in self.devices:
       if d.number == number:
         return d
@@ -953,21 +1045,22 @@ class StorageDevices(object):
       return True
     ttyio.echo("storagedevices=%r" % (storagedevices), level="debug", interpret=False)
     for sd in storagedevices:
-#      ttyio.echo("#%d type: %s rtc: %s (%s) cart: %s fallbacktype: %s" % (device, sd.type, sd.rtc, sd.savertc, sd.fallbacktype))
       ttyio.echo(str(sd))
 
     return True
 
   def add(self, args, **kwargs):
 #    ttyio.echo("entering storagedevices.add()")
-    number = ttyio.inputinteger("{var:menu.promptcolor}device number: {var:menu.inputcolor}")
+    number = ttyio.inputinteger("{var:engine.menu.promptcolor}device number: {var:engine.menu.inputcolor}")
     ttyio.echo("{/all}")
-#    ttyio.echo("number=%r" % (number))
-    storagedevice = StorageDevice(args, data={"number":number})
-    storagedevice.edit()
-    ttyio.echo(str(storagedevice), level="debug")
-    if ttyio.inputboolean("add this device? [y{var:engine.currentoptioncolor}N{/all}]: ") is True:
-      storagedevices.append(storagedevice) # [storagedevice.device] = storagedevice
+    dt = drivetype(args, number)
+
+    subclass = self.subclasses[dt]
+    sd = subclass(args, number)
+    sd.edit()
+    ttyio.echo(str(sd), level="debug")
+    if ttyio.inputboolean("add this device? [y{var:engine.currentoptioncolor}N{/all}]: ", "N") is True:
+      storagedevices.append(sd) # [storagedevice.device] = storagedevice
     else:
       ttyio.echo("storage device not added.")
 
@@ -980,7 +1073,7 @@ class StorageDevices(object):
       return False
     number = ttyio.inputinteger("device number: ")
     d = self.find(number)
-    ttyio.echo("d=%r" % (d), interpret=False)
+    ttyio.echo("d=%s" % (d), interpret=False, level="debug")
     if d is not None:
       d.edit()
       return True
@@ -1007,14 +1100,13 @@ def storage(args, **kwargs):
   while not done:
     title("storage")
     ttyio.echo("[L]ist{f6}[A]dd{f6}[K]ill{f6}[E]dit{f6:2}[Q]uit{f6}")
-    ch = ttyio.inputchar("{var:menu.promptcolor}storage [LAKEQ]: {var:menu.inputcolor}", "LAKEQ", "Q")
+    ch = ttyio.inputchar("{var:engine.menu.promptcolor}storage [LAKEQ]: {var:engine.menu.inputcolor}", "LAKEQ", "")
     if ch == "L":
       ttyio.echo("List{/all}")
       storagedevices.summary(args)
     elif ch == "A":
       ttyio.echo("Add{/all}")
       res = storagedevices.add(args)
-      ttyio.echo("after prompt for device number")
     elif ch == "K":
       ttyio.echo("kill{/all}")
       res = storagedevices.kill(args)
@@ -1382,7 +1474,7 @@ def main():
       { "name": "drivesound",    "callback": drivesound,  "label": "drive sound"},
       { "name": "displaysync",   "callback": displaysync, "label": "display"},
       { "name": "storage",       "callback": storage,     "label": "storage"},
-      { "name": "ramlink",       "callback": ramlink,     "label": "ramlink"},
+#      { "name": "ramlink",       "callback": ramlink,     "label": "ramlink"},
       { "name": "sound",         "callback": sound,       "label": "sound"}
     ]
 
