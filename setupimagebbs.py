@@ -9,13 +9,10 @@ import locale
 import socket
 import argparse
 from argparse import Namespace
-import readline
 import subprocess
-import ttyio5 as ttyio
 
-# import bbsengine5 as bbsengine # remove this in production!
+import ttyio5 as ttyio
 import bbsengine5 as bbsengine
-from bbsengine5 import Menu, runcallback, pluralize, inputfilename, verifyFileExistsReadable, verifyFileExistsReadableWritable, title
 
 vicecommandline = {}
 tcpsercommandline = {}
@@ -146,7 +143,7 @@ def sound(args, **kwargs):
 
 def truedrive(args, **kwargs):
   bbsengine.setarea("vice: truedrive")
-  title("vice: truedrive")
+  bbsengine.title("vice: truedrive")
   if "-truedrive" in vicecommandline:
     defaultvalue = "Y"
   elif "+truedrive" in vicecommandline:
@@ -170,7 +167,7 @@ def truedrive(args, **kwargs):
 
 def drivesound(args, **kwargs):
   bbsengine.setarea("vice: drivesound")
-  title("vice: drivesound")
+  bbsengine.title("vice: drivesound")
 
   if ttyio.inputboolean("Enable sound emulation of disk drives? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
     volume = ttyio.inputinteger("drive sound volume? [0-100]: ", 70)
@@ -191,7 +188,7 @@ def drivesound(args, **kwargs):
 
 def clock(args, **kwargs):
   bbsengine.setarea("vice: clock")
-  title("clock")
+  bbsengine.title("clock")
 # clock1 = ds12c887rtc(args)
 #  clock1 =  ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
 #  if clock1 is False:
@@ -262,7 +259,7 @@ def gfd3(args):
 
 def keyboard(args, **kwargs):
   bbsengine.setarea("vice: keyboard")
-  title("keyboard")
+  bbsengine.title("keyboard")
 
   keyboards = ("0: Symbpolic", "1: Positional", "2: symbolic (user)", "3: positional (user)")
   ch = ttyio.inputchar("Specify index of keymap file ({var:engine.currentoptioncolor}0:symbolic{/all}, 1:positional, 2:symbolic (user), 3:positional (user))? [0123]: ","0123", "0")
@@ -282,9 +279,9 @@ def keyboard(args, **kwargs):
 
 def cmd4000(args, **kwargs):
   bbsengine.setarea("vice: cmd4000")
-  title("device 9 cmd 4000")
+  bbsengine.title("device 9 cmd 4000")
   if ttyio.inputboolean("enable cmd fd-4000 on device 9? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
-    vicecommandline["-dos4000"] = inputfilename(args, "dos4000 filename: ", os.path.join(args.basedir, "cmd-fd-4000-dos-v1.40-fd-350022.bin"), verify=verifyFileExistsReadable)
+    vicecommandline["-dos4000"] = bbsengine.inputfilename(args, "dos4000 filename: ", os.path.join(args.basedir, "cmd-fd-4000-dos-v1.40-fd-350022.bin"), verify=bbsengine.verifyFileExistsReadable)
     vicecommandline["-drive9type"] = "4000"
     if ttyio.inputboolean("enable drive 9 rtc save? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
       vicecommandline["-drive9rtcsave"] = None
@@ -296,7 +293,7 @@ def inputioaddr(args, optionslist:list, currentvalue:str, defaultvalue:str):
 
 def ds12c887rtc(args, **kwargs):
   bbsengine.setarea("vice: ds12c887rtc")
-  title("ds12c887rtc")
+  bbsengine.title("ds12c887rtc")
   if "-ds12c887rtc" in vicecommandline:
     ch = ttyio.inputboolean("Enable DS12C887RTC? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN")
   elif "+ds12c887rtc" in vicecommandline:
@@ -389,7 +386,7 @@ def ds12c887rtc(args, **kwargs):
 
 def rs232(args, **kwargs):
   bbsengine.setarea("vice: rs232/ip232")
-  title("vice: rs232/ip232")
+  bbsengine.title("vice: rs232/ip232")
   dev = ttyio.inputinteger("device [1-{var:engine.currentoptioncolor}4{/all}]: ", 4)
   vicecommandline["+rsuser"] = None
   vicecommandline["-rsdev%d" % (dev)] = "%s:%s" % (localhost, tcpsercommandline["-v"])
@@ -407,7 +404,7 @@ def acia(args, **kwargs):
   global ioaddrs
 
   bbsengine.setarea("vice: acia")
-  title("vice: acia")
+  bbsengine.title("vice: acia")
 
   if ttyio.inputboolean("Enable the ACIA RS232 interface emulation (Swiftlink, Turbo232)? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y") is False:
     vicecommandline["+acia1"] = None
@@ -532,7 +529,7 @@ def acia(args, **kwargs):
 
 def checktcpser(args, filename="tcpser"): # filename="/home/jam/tmp/tcpser-1.1.4/tcpser"):
   bbsengine.setarea("tcpser")
-  title("tcpser: check")
+  bbsengine.title("tcpser: check")
 
   res = subprocess.run([filename, "-V"], capture_output=True, text=True)
 
@@ -677,7 +674,7 @@ def tcpserphonebook(args):
 
 def tcpser(args, **kwargs):
   bbsengine.setarea("tcpser")
-  title("tcpser")
+  bbsengine.title("tcpser")
 
   # ttyio.echo("tcpser.120: vicecommandline=%r" % (vicecommandline), interpret=False)
   if ttyio.inputboolean("invert DCD pin? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
@@ -698,7 +695,7 @@ def tcpser(args, **kwargs):
 
   tcpsercommandline["-i"] = ttyio.inputstring("modem init string (-i): at", "e0v0s0=1s2=27")
 
-  title("tcpser: trace flags")
+  bbsengine.title("tcpser: trace flags")
 
   traceflags = ""
   trace = []
@@ -734,7 +731,7 @@ def tcpser(args, **kwargs):
 
 def ramlink(args, **kwargs):
   bbsengine.setarea("vice: ramlink")
-  title("vice: ramlink")
+  bbsengine.title("vice: ramlink")
 
   if "+ramlink" in vicecommandline:
     useramlink = True
@@ -764,7 +761,7 @@ def ramlink(args, **kwargs):
     return (True, "disabled")
 
   vicecommandline["-ramlinksize"] = size
-  description.append("[size: %s]" % (pluralize(size, "megabyte", "megabytes")))
+  description.append("[size: %s]" % (bbsengine.pluralize(size, "megabyte", "megabytes")))
 
   if ttyio.inputboolean("allow write to ramlink image? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y") is True:
       vicecommandline["-ramlinkimagerw"] = None
@@ -777,9 +774,9 @@ def ramlink(args, **kwargs):
         del vicecommandline["-ramlinkimagerw"]
       description.append("[write image: No]")
 
-  vicecommandline["-cartramlink"] = inputfilename(args, "cart ramlink bin: ", os.path.join(args.basedir, "ramlink.bin"), verify=verifyFileExistsReadable)
+  vicecommandline["-cartramlink"] = bbsengine.inputfilename(args, "cart ramlink bin: ", os.path.join(args.basedir, "ramlink.bin"), verify=bbsengine.verifyFileExistsReadable)
 
-  vicecommandline["-ramlinkimage"] = inputfilename(args, "ramlink image: ", os.path.join(args.basedir, "ramlink.img"), verify=verifyFileExistsReadableWritable)
+  vicecommandline["-ramlinkimage"] = bbsengine.inputfilename(args, "ramlink image: ", os.path.join(args.basedir, "ramlink.img"), verify=bbsengine.verifyFileExistsReadableWritable)
 
   # handle pre-existing value!
   if ttyio.inputboolean("ramlink rtc save? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y") is True:
@@ -814,7 +811,7 @@ def ramlink(args, **kwargs):
 
 def displaysync(args, **kwargs):
   bbsengine.setarea("vice: display")
-  title("vice: display")
+  bbsengine.title("vice: display")
   sync = ttyio.inputchar("{var:engine.currentoptioncolor}[N]TSC{/all} or [P]AL? ", "NP", "N")
   if sync == "N":
     ttyio.echo("NTSC")
@@ -1007,14 +1004,14 @@ class StorageDeviceLTK(StorageDevice):
 
   def edit(self):
       cartcrt = vicecommandline["-cartcrt"] if "-cartcrt" in vicecommandline else os.path.join(self.args.basedir, "ltk.crt")
-      self.cartcrt = inputfilename(self.args, "-cartcrt: ", cartcrt, verify=verifyFileExistsReadable)
+      self.cartcrt = bbsengine.inputfilename(self.args, "-cartcrt: ", cartcrt, verify=bbsengine.verifyFileExistsReadable)
 
       ltkimage0 = vicecommandline["-ltkimage0"] if "-ltkimage0" in vicecommandline else os.path.join(self.args.basedir, "drive8-0.dlk")
       ltkimage1 = vicecommandline["-ltkimage1"] if "-ltkimage1" in vicecommandline else os.path.join(self.args.basedir, "drive8-1.dlk")
       ltkimage2 = vicecommandline["-ltkimage2"] if "-ltkimage2" in vicecommandline else os.path.join(self.args.basedir, "drive8-2.dlk")
-      self.ltkimage0 = inputfilename(self.args, "-ltkimage0: ", ltkimage0, verify=verifyFileExistsReadableWritable)
-      self.ltkimage1 = inputfilename(self.args, "-ltkimage1: ", ltkimage1, verify=verifyFileExistsReadableWritable)
-      self.ltkimage2 = inputfilename(self.args, "-ltkimage2: ", ltkimage2, verify=verifyFileExistsReadableWritable)
+      self.ltkimage0 = bbsengine.inputfilename(self.args, "-ltkimage0: ", ltkimage0, verify=bbsengine.verifyFileExistsReadableWritable)
+      self.ltkimage1 = bbsengine.inputfilename(self.args, "-ltkimage1: ", ltkimage1, verify=bbsengine.verifyFileExistsReadableWritable)
+      self.ltkimage2 = bbsengine.inputfilename(self.args, "-ltkimage2: ", ltkimage2, verify=bbsengine.verifyFileExistsReadableWritable)
 
       ltkport = vicecommandline["-ltkport"] if "-ltkport" in vicecommandline else 0
       self.ltkport = ttyio.inputinteger("Set LTK port number (0..15): ", ltkport, verify=verifyLTKPortInRange)
@@ -1052,7 +1049,7 @@ class StorageDeviceLTK(StorageDevice):
         self.fallbacktype = ttyio.inputstring("fallback device (cbm only): ", "1581")
         vicecommandline["-drive%dtype" % (self.number)] = self.fallbacktype
         d = vicecommandline["-%d" % (self.number)] if "-%d" % (self.number) in vicecommandline else ""
-        image = inputfilename(self.args, "fallback image name: ", d)
+        image = bbsengine.inputfilename(self.args, "fallback image name: ", d)
         if image is not None:
           vicecommandline["-%d" % (self.number)] = image
 #          ttyio.echo("-%d set" % (self.number))
@@ -1253,7 +1250,7 @@ def storage(args, **kwargs):
 
   done = False
   while not done:
-    title("storage")
+    bbsengine.title("storage")
     ttyio.echo("[L]ist{f6}[A]dd{f6}[K]ill{f6}[E]dit{f6:2}[Q]uit{f6}")
     ch = ttyio.inputchar("{var:engine.menu.promptcolor}storage [LAKEQ]: {var:engine.menu.inputcolor}", "LAKEQ", "")
     if ch == "L":
@@ -1308,10 +1305,10 @@ def oldstorage(args, **kwargs):
         vicecommandline["-drive%dtype" % (ltkdev)] = "1581"
 
       setup["ltkdev"] = ltkdev
-      vicecommandline["-cartcrt"] = inputfilename(args, "-cartcrt: ", os.path.join(args.basedir, "ltk.crt"), verify=verifyFileExistsReadable)
-      vicecommandline["-ltkimage0"] = inputfilename(args, "-ltkimage0: ", os.path.join(args.basedir, "drive8-0.dlk"), verify=verifyFileExistsReadableWritable)
-      vicecommandline["-ltkimage1"] = inputfilename(args, "-ltkimage1: ", os.path.join(args.basedir, "drive8-1.dlk"), verify=verifyFileExistsReadableWritable)
-      vicecommandline["-ltkimage2"] = inputfilename(args, "-ltkimage2: ", os.path.join(args.basedir, "drive8-2.dlk"), verify=verifyFileExistsReadableWritable)
+      vicecommandline["-cartcrt"] = bbsengine.inputfilename(args, "-cartcrt: ", os.path.join(args.basedir, "ltk.crt"), verify=bbsengine.verifyFileExistsReadable)
+      vicecommandline["-ltkimage0"] = bbsengine.inputfilename(args, "-ltkimage0: ", os.path.join(args.basedir, "drive8-0.dlk"), verify=bbsengine.verifyFileExistsReadableWritable)
+      vicecommandline["-ltkimage1"] = bbsengine.inputfilename(args, "-ltkimage1: ", os.path.join(args.basedir, "drive8-1.dlk"), verify=bbsengine.verifyFileExistsReadableWritable)
+      vicecommandline["-ltkimage2"] = bbsengine.inputfilename(args, "-ltkimage2: ", os.path.join(args.basedir, "drive8-2.dlk"), verify=bbsengine.verifyFileExistsReadableWritable)
 #      vicecommandline["-ltkimage3"] = inputfilename(args, "-ltkimage3: ", os.path.join(args.basedir, "drive8-3.dlk"), verify=verifyFileExistsReadableWritable)
 #      vicecommandline["-ltkimage4"] = inputfilename(args, "-ltkimage4: ", os.path.join(args.basedir, "drive8-4.dlk"), verify=verifyFileExistsReadableWritable)
 #      vicecommandline["-ltkimage5"] = inputfilename(args, "-ltkimage5: ", os.path.join(args.basedir, "drive8-5.dlk"), verify=verifyFileExistsReadableWritable)
@@ -1388,7 +1385,7 @@ def oldstorage(args, **kwargs):
     if dt != "0":
       if args.debug is True:
         ttyio.echo("storage.160: default=%r" % (default), level="debug")
-      image = inputfilename(args, "drive %d image: " % (drivenumber), default, noneok=True, multiple=False)
+      image = bbsengine.inputfilename(args, "drive %d image: " % (drivenumber), default, noneok=True, multiple=False)
       if image is not None:
         vicecommandline[option] = image
 
@@ -1407,7 +1404,7 @@ def oldstorage(args, **kwargs):
 
 def summary(args):
   bbsengine.setarea("summary")
-  title("summary")
+  bbsengine.title("summary")
   if "-default" in vicecommandline:
     resetdefaults = True
     del vicecommandline["-default"]
@@ -1455,7 +1452,7 @@ def defaultconfig(args):
 
 def saveonviceexit(args):
   bbsengine.setarea("vice: save settings on exit")
-  title("vice: save settings on vice exit")
+  bbsengine.title("vice: save settings on vice exit")
 
   if ttyio.inputboolean("save vice settings on exit from vice? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y") is True:
     vicecommandline["-saveres"] = None
@@ -1466,7 +1463,7 @@ def saveonviceexit(args):
 
 def checkltkaciaconflict(args):
   bbsengine.setarea("vice: checkltkaciaconflict")
-  title("vice: check for ltk / acia1 conflicts")
+  bbsengine.title("vice: check for ltk / acia1 conflicts")
 
   ttyio.echo("check ltk and acia1 conflicts: ",end="")
   if "-aciabase" not in vicecommandline or "-ltkio" not in vicecommandlist:
@@ -1480,7 +1477,7 @@ def checkltkaciaconflict(args):
 
 def savejson(args):
   bbsengine.setarea("savejson")
-  title("save json file of setup data")
+  bbsengine.title("save json file of setup data")
   
   if ttyio.inputboolean("save setup data? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y") is False:
     ttyio.echo("setup data {bold}not{/bold} saved.{f6}")
@@ -1508,7 +1505,7 @@ def savejson(args):
   default = os.path.expandvars(default)
   default = os.path.expanduser(default)
 
-  filename = inputfilename(args, "save json filename: ", default, noneok=True, multiple=False, verify=None)
+  filename = bbsengine.inputfilename(args, "save json filename: ", default, noneok=True, multiple=False, verify=None)
   if filename is None:
     ttyio.echo("aborted.")
     return True
@@ -1534,7 +1531,7 @@ def edata(args):
   data.append({"record": 58, "type": "inputnewusercredits", "prompt": "Credits for new user", "default": "100"})
 
 def iocollisionhandler(args):
-  title("iocollision handling")
+  bbsengine.title("iocollision handling")
   if "-iocollision" in vicecommandline:
     default = ord("A") + int(vicecommandline["-iocollision"])
   else:
@@ -1653,7 +1650,7 @@ def main():
     ]
 
     bbsengine.setarea("main menu")
-    menu = Menu("image bbs setup", menuitems, area="main menu", args=args)
+    menu = bbsengine.Menu("image bbs setup", menuitems, area="main menu", args=args)
     menu.run("setup main menu: ", preprompthook)
 #    summary()
 #    savejson()
