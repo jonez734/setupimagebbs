@@ -92,7 +92,7 @@
 - [x] device type for .d4m (cmd) is "4844" ty larry. 4844 has an rtc.
 - [x] prompt for use of rtc on 4000, 4844, and 2000
 - [ ] if usecmd is True, add relevant to device list
-- [ ] !ml30 hard-codes the ioaddr for the acia (swiftlink/turbo32) to $de00. other values will cause undefined results. change setup script to print a stern warning if $df00 is selected, ask for confirmation.
+- [ ] !ml30 hard-codes the ioaddr for the acia (swiftlink/turbo32) to 0xde00. other values will cause undefined results. change setup script to print a stern warning if 0xdf00 is selected, ask for confirmation.
 - [x] in handlemenu(), make all labels the maxwidth (ryan)
 - [ ] when showing menu option, join list of results with list of requires, call " ".join()
 - [x] turbo32 is compatible with swiftlink thus is supported by 3.0
@@ -112,20 +112,20 @@
     * set ioaddr that does not conflict w swiftlink or ltk
     * 0xD500 as default
 - storage
-    - [ ] rework storage() so I can use ltk on 8, but still use cmd on 9 for the rtc, cbm drives on the rest, etc. right now, 'usecmd' configures 8-10, possibly stomping on the ltk config.
+    - [x] rework storage() so I can use ltk on 8, but still use cmd on 9 for the rtc, cbm drives on the rest, etc. right now, 'usecmd' configures 8-10, possibly stomping on the ltk config.
     - [x] prompt for ltkdevicenumber and store it in 'setup' dict, default 8.
-    - [ ] when using ltk, show fallback device in status ("LTK (fallback: 1581)")
+    - [x] when using ltk, show fallback device in status ("LTK (fallback: 1581)") (@done 20211120)
     - [x] in drivetype(), when type is None, return 0 instead of None
     - [x] in storage(), do not hard code ltk image filenames
     - [ ] if ltk is configured, prompt for each of the image devices, using LU, similar for CMD and CBM
     - [x] do not show ltk for all unused devices (ltk is one device (8), not two (9)
-    - [ ] add 'LTK' to drive types, move prompts for cart, images, etc during the storage loop.
+    - [-] add 'LTK' to drive types, move prompts for cart, images, etc during the storage loop.
     - [x] in drivetype(), highlight and set default when the type is None
     - [ ] !handle hybrid ltk/cmd/cbm
     - [x] if ltk is enabled and configured, make sure no disk images can be assigned to it's device (8 by default, cannot be changed within vice settings or command line)
     - [x] if device type is "0", do not prompt for an image name (current check is for None)
     - [x] check for an existing setting of device type and make that the default
-    - [ ] "enable cmd fd-4000 on device 9?" does not have a default/existing value highlighted.
+    - [-] "enable cmd fd-4000 on device 9?" does not have a default/existing value highlighted.
     - [x] set device 8 type to 0 w ltk (None) (e.data #38) (fallback device)
     - [x] if a device is unused, check for ltk
     - [ ] device type: LTK
@@ -134,9 +134,11 @@
     - [ ] check for duplicate device numbers
     - [ ] images for CMD defined by -8, -9, etc
     - [ ] images for LTK defined by -ltkimage<n> (0-6)
-    - [ ] handle -ltkio, -ltkport, -ltkserial
+    - [ ] handle -ltkio (0=0xDExx, 1=0xDF00-default)
+    - [ ] ltkport (0-15)
     - [ ] move 'types' dict into StorageDevice?
     - [ ] in storagedevices.add(), make 'None' a unique option (dup w 4844)
+    - [ ] fallbackdevice (ltk feature)-- will work with all CBM drives (not CMD/RamLink)
 - [ ] core dumps: -core is yes, +core is no
 - [ ] chdir: set cwd (-chdir)
 - [ ] -autostart
@@ -158,10 +160,13 @@
     - [x] in clock(), do not prompt twice to enable ds12c887rtc
     - [x] ds12c887 (rtc clock): https://sourceforge.net/p/vice-emu/code/HEAD/tree/testprogs/RTC/
     - [x] check for ds12c887 support in image30 (ltk emulation) (al)
+    - [ ] ltk author lloyd made a software clock
 - current vs default value in prompts
-    - [ ] honor current value for "base address of acia cart"
-    - [ ] honor current value for "set the acia interupt"
-    - [ ] honor current value for 'acia device'
+    - [x] honor current value for "base address of acia cart" (@done 20211120)
+    - [x] honor current value for "set the acia interupt" (@done 20211120)
+    - [x] honor current value for 'acia device' (@done 20211120)
+    - [x] in ramlink(), show current value for ramlinkmode (@since 20211120) (@done 20211120)
+
 - [ ] StorageDevices(list)
     - [x] append()
     - [x] __getitem__()
@@ -169,13 +174,50 @@
     - [x] find()
     - [x] __len__()
 - [x] rename StorageDevice.device to StorageDevice.number
-- [ ] REU not workable (power supply issues)
+- [ ] REU not workable (power supply issues) (al). keep it when in emulation
 - [ ] IDE64
-- [ ] add 'group' key to menu items, 'main', 'peripherals', etc.
+- [ ] add 'group' key to menu items, 'main', 'peripherals', etc. w same names as vice settings (larry, ryan)
+- [ ] given release of vice 3.5 (~20211024), change the default for the 'invert dcd' prompt. check vice version and decide.
+- [ ] use inputfilename() from 'repotools'
+- [x] renamed {var:setupimage.currentoption} to {var:engine.currentoptioncolor} (@done 20211117)
+- [x] ltk fallback is set by setting the normal '-drive8type' and '-8' command line options.
+- [x] add warning when 0xDE00 is selected as ltkio address. ml could be recompiled to make it work. (@since 20211108) (@done 20211120)
+- [ ] ltk fallback image needs tab-complete and a verify function
+- [x] if ltk device > 11, do not ask about fallback (@since 20211108) (@done 20211117)
+- [x] call bbsengine.setarea() during storage
+- [x] storage() should return result (@done 20211117)
+- [x] if a device is not found in storagedevices(), show a proper message (@since 20211117) (@done 20211120)
+- [x] show current value in prompt for ltk io addr (@since 20211117) (@done 20211120)
+- [x] show ltk port number in '__str__()' of StorageDeviceLTK (@since 20211117) (@done 20211119)
+- [x] get "fallback device" working for StorageDeviceLTK (cbm drive, image filename) (@since 20211117) (@done 20211118)
+- [ ] verify ltk fallbackdevicetype input against cbmdevices (@since 20211117)
+- [x] StorageDeviceCBM must prompt for an image (@since 20211117) (@done 20211118)
+- [-] StorageDeviceCBM must store "subtype" (1541, 1581, etc) or store "CBM 1581" to StorageDevice.type (@since 20211117)
+- [ ] iocollissionhandler() should use numbers for options, since that is what vice does (@since 20211118)
+- [x] during scan of vice features, show "loading..." or similar (@since 20211118) (@done 20211119)
+- [ ] always set acia (swiftlink/turbo32) to 0xDExx. ltk defaults to 0xDFxx (@since 20211119)
+- [x] show ltk io addr in status on main menu (@since 20211120) (@done 20211120)
+- [x] renumber acia1irq options to use numbers (like vice does) instead of letters (@since 20211120) (@done 20211120)
+- [ ] if aciaioaddr is set to 0xDF00 (invalid under image 3.0), highlight on main menu (@since 20211121)
+- [ ] if ltkioaddr is set to 0xDE00, highlight address on main menu status as incorrect (@since 20211121)
+- [ ] Menu() does not properly handle commands inside the status list (length, right border is off) (bbsengine5) (@since 20211121)
+- [x] "sound sync" does not show current value (@done 20211122)
+- [x] "sound dev" does not work right (highlighting is wrong) (@done 20211122)
+- [x] replace $DE00 with 0xDE00, since that is what vice uses to represent hex.
+- [-] stash cursor position when start of menu, stash cursor position when printing prompt, subtract, use that number for number of {cursorup}s. handles output of preprompthook()
+- [x] if acia1 is disabled, remove acia1 options from vicecommandline (@since 20211123) (@done 20211123)
+- [ ] MenuItem: hotkey, label, description, result (@since 20211123)
+- [ ] acia1mode is a string in someplaces and an int in others. (@bug @since 20211122)
+- [ ] highlight "result: True" in green, "result: False" in red (@since 20211122)
+- [x] in 'storage' status, make it as terse as possible, then use 'list' function in storage() for details (bucko) (@since 20211123) (@done 20211125)
+- [ ] ramlink is a storage device, can have a device number > 11. has rtc. defaults to device 16 (@since 20211123)
+- [ ] highlight invalid values on main menu (fix Menu) (@since 20211123) (bucko)
+- [ ] if there are invalid values (conflicts, etc), show the MenuItem in a diff color (bucko) (@since 20211123)
+- [x] separate storage status by spaces (@since 20211125) (@done 20211125)
 
 ## dependencies
-- ttyio5 (not yet public)
-- bbsengine5 (not yet public)
+- ttyio5 (not yet public) (GPLV3+)
+- bbsengine5 (not yet public) (GPLV3+)
 
 ## notes
 - using rtc
@@ -184,6 +226,8 @@
   * configure image to use that device for the 'rtc'
   * if the wrong device number and/or type is used, imagebbs will show a corrupt time, and an error about an "illegal quantity"
 - handle "filesystem" devices?
+- https://www.google.com/search?q=how+do+I+find+the+class+name+of+an+instance+in+python&oq=how+do+I+find+the+class+name+of+an+instance+in+python&aqs=chrome..69i57.11686j0j7&sourceid=chrome&ie=UTF-8
+- https://www.geeksforgeeks.org/python-issubclass/#:~:text=Python%20issubclass()%20is%20built,class%20else%20it%20returns%20False%20.&text=Return%20Type%3A%20True%20if%20object,of%20the%20tuple%2C%20otherwise%20False.
 
 ```
 larry: It would be easiest with a Lt.K new installation to put your d1 files
@@ -204,7 +248,7 @@ For a new installation it creates and populates e.data. For conversions of 1.2 o
 
 - set model to ntsc (64C)
 - pfiles lu0, everything else on lu1, except for mail on lu2
-- always set acia (swiftlink/turbo32) to $DExx. ltk defaults to $DFxx
+- always set acia (swiftlink/turbo32) to 0xDExx. ltk defaults to 0xDFxx
 - CMDFD4000 is compat w d64, d81, etc. the glitch is you need to load the dir so the disk is "recognized" (vice bug?)
 - from 2021-03-28 meeting w larry and al:
 ```
@@ -218,8 +262,8 @@ ats0=1s2=27s7=25
 ```
 
 - vice does not support device numbers > 11, which limits the dev the ltk can be assigned
-- [ ] make handlemenu() wrap to bottom / wrap to top instead of stopping
-- [ ] when using ltk, pass -kernal "kernal" to VICE to set it to default (ryan)
+- [x] make handlemenu() wrap to bottom / wrap to top instead of stopping (@since 20211121) (@done 20211121)
+- [x] when using ltk, pass -kernal "kernal" to VICE to set it to default (ryan) (@since 20211121) (@done 20211121)
 - vice allows ramlink at device > 11
 
 ## links
@@ -265,3 +309,22 @@ Above is the script I use for mounting the ramlink
 
 - e.data records 52-57 -- storage records (larry)
  - field 1 is device number, field 2 is drive (lu or cmd partition)
+
+-ramlink
+        Enable the RAMLINK Unit
++ramlink
+        Disable the RAMLINK Unit
+-ramlinkmode
+        RAMPort Mode (1=Normal, 0=Direct)
+-ramlinkrtcsave
+        Enable saving of the RTC data when changed.
++ramlinkrtcsave
+        Disable saving of the RTC data when changed.
+-ramlinksize <value>
+        RAMLINK RAMCARD size in MiB (0=Disabled)
+-ramlinkimage <Name>
+        Specify name of RAMLINK image
+-ramlinkimagerw
+        Allow writing to REU image
++ramlinkimagerw
+        Do not write to REU image
