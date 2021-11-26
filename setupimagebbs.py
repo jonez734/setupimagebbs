@@ -946,11 +946,11 @@ class StorageDevice(object):
     self.usertc = False
     self.images = []
 
-    if "data" in kwargs:
-      d = kwargs["data"]
-      for a in [ "number", "type", "rtc", "savertc", "cart", "fallbacktype", "images" ]:
-        if a in d:
-          setattr(self, a, d[a])
+ #   if "data" in kwargs:
+ #     d = kwargs["data"]
+ #     for a in [ "number", "type", "rtc", "savertc", "cart", "fallbacktype", "images" ]:
+ #       if a in d:
+ #         setattr(self, a, d[a])
 
   def __str__(self):
     buf = "#% d %s" % (self.number, self.type)
@@ -1042,7 +1042,7 @@ class StorageDeviceLTK(StorageDevice):
       vicecommandline["-ltkio"] = ch
 
       if self.number > 11:
-        ttyio.echo("fallback device disabled, #% d is outside standard range." % (self.number))
+        ttyio.echo("fallback device disabled, #% d is greater than 11." % (self.number))
         return
 
       if ttyio.inputboolean("use fallback device? [yN]: ", "N") is True:
@@ -1062,16 +1062,16 @@ class StorageDeviceLTK(StorageDevice):
 
   def __str__(self):
     buf = "#% d %s" % (self.number, self.type)
-    if self.cartcrt is not None:
-      buf += " cart: %s" % (self.cartcrt)
+#    if self.cartcrt is not None:
+#      buf += " cart: %s" % (self.cartcrt)
     if self.fallbacktype is not None:
       buf += " fallback: %s" % (self.fallbacktype)
     if "-ltkio" in vicecommandline:
       ltkio = vicecommandline["-ltkio"]
       if ltkio == "0":
-        buf += " %r: ltkio: 0xDE00" % (ltkio)
+        buf += " ltkio: 0xDE00"
       elif ltkio == "1":
-        buf += " %r: ltkio: 0xDF00" % (ltkio)
+        buf += " ltkio: 0xDF00"
       else:
         buf += " ltkio: ERROR"
     if self.ltkport is not None:
@@ -1271,7 +1271,7 @@ def storage(args, **kwargs):
       break
   x = ""
   for sd in storagedevices:
-    x += str(sd) # "% 2d: %s " % (sd.number, sd.type)
+    x += "%s " % (sd) # "% 2d: %s " % (sd.number, sd.type)
   bbsengine.poparea()
   return (True, x)
 
@@ -1448,6 +1448,7 @@ def defaultconfig(args):
 
   if ttyio.inputboolean("restore default config before processing options? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
     vicecommandline["-default"] = None
+  bbsengine.poparea()
   return True
 
 def saveonviceexit(args):
@@ -1588,8 +1589,8 @@ def preprompthook(args):
     result.append("ACIA1BASE conflict")
 #  ttyio.echo("acia1base f=%r" % (f), level="debug")
 #  ttyio.echo("result=%r" % (result), level="debug")
-  area = bbsengine.oxfordcomma(result)
-  bbsengine.setarea(area)
+#  area = bbsengine.oxfordcomma(result)
+#  bbsengine.setarea(area)
   return
 
 def main():
@@ -1649,8 +1650,8 @@ def main():
       { "name": "sound",         "callback": sound,       "label": "sound"}
     ]
 
-    bbsengine.setarea("main menu")
-    menu = bbsengine.Menu("image bbs setup", menuitems, area="main menu", args=args)
+#    bbsengine.setarea("main menu")
+    menu = bbsengine.Menu("image bbs setup", menuitems, args=args)
     menu.run("setup main menu: ", preprompthook)
 #    summary()
 #    savejson()
