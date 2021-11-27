@@ -1,4 +1,4 @@
-#
+1#
 # Copyright (C) 2021 zoidtechnologies.com. All Rights Reserved.
 #
 
@@ -877,6 +877,7 @@ def drivetype(args, devicenumber, oldvalue=None):
         "2000":    "CMD FD-2000",
         "4000":    "CMD FD-4000",
         "4844":    "CMD HD",
+        "RAMLINK": "RAMLink",
     }
 
 #    if "-dos4000" in vicecommandline and vicecommandline["-dos4000"] is not None:
@@ -936,11 +937,11 @@ cbmtypes = {
 }
 
 class StorageDevice(object):
-  def __init__(self, args, number, **kwargs):
+  def __init__(self, args, number, drivetype, **kwargs):
     self.args = args
 
     self.number = number
-    self.type = None
+    self.type = drivetype
     self.hasrtc = False
     self.savertc = False
     self.usertc = False
@@ -986,9 +987,102 @@ class StorageDevice(object):
       # add device to rtc list
     return
 
+class StorageDeviceRAMLink(StorageDevice):
+  def __init__(self, args, number, drivetype="RAMLINK"):
+    super().__init__(args, number, drivetype)
+    self.hasrtc = True
+    self.args = args
+    self.mode = 1
+    self.cart = None
+    self.size = 0
+    self.enabled = False
+
+  def edit(self):
+    enableramlink = ttyio.inputboolean("enable ramlink? [yN]: ", "N")
+    if enableramlink is False:
+      vicecommandline["+ramlink"] = None
+      for x in ("-ramlink", "-ramlinkmode", "-ramlinkrtcsave", "+ramlinkrtcsave", "-ramlinksize", "-ramlinkimage", "-ramlinkimagerw", "+ramlinkimagerw" ):
+        if x in vicecommandline:
+          del vicecommandline[x]
+      return
+
+    vicecommandline["-ramlink"] = None
+
+    ramlinkmode = vicecommandline["-ramlinkmode"] if "-ramlinkmode" in vicecommandline else 1
+    prompt = "-ramlinkmode ("
+    if ramlinkmode == 1:
+      prompt += "{var:engine.currentoptioncolor}1: Normal{/all} 0: Direct"
+    else:
+      prompt += "1: Normal {var:engine.currentoptioncolor}0: Direct{/all}"
+    prompt += ") [01]: "
+    ramlinkmode = ttyio.inputchar(prompt, "01", str(ramlinkmode))
+    if ramlinkmode == "0":
+      ttyio.echo("0: Direct")
+    else:
+      ttyio.echo("1: Normal")
+    vicecommandline["-ramlinkmode"] = ramlinkmode
+
+    size = ttyio.inputinteger("ramlink size in MiB (0=Disabled): ", 16)
+    if size == 0:
+      return (True, "disabled")
+    self.size = size
+
+    description = []
+    vicecommandline["-ramlinksize"] = size
+    description.append("[size: %s]" % (bbsengine.pluralize(size, "megabyte", "megabytes")))
+
+    if ttyio.inputboolean("allow write to ramlink image? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y") is True:
+        vicecommandline["-ramlinkimagerw"] = None
+        description.append("[write image: Yes]")
+        if "+ramlinkimagerw" in vicecommandline:
+          del vicecommandline["+ramlinkimagerw"]
+    else:
+        vicecommandline["+ramlinkimagerw"] = None
+        if "-ramlinkimagerw" in vicecommandline:
+          del vicecommandline["-ramlinkimagerw"]
+        description.append("[write image: No]")
+
+    vicecommandline["-cartramlink"] = bbsengine.inputfilename(self.args, "cart ramlink bin: ", os.path.join(self.args.basedir, "ramlink.bin"), verify=bbsengine.verifyFileExistsReadable)
+
+    vicecommandline["-ramlinkimage"] = bbsengine.inputfilename(self.args, "ramlink image: ", os.path.join(self.args.basedir, "ramlink.img"), verify=bbsengine.verifyFileExistsReadableWritable)
+
+    ramlinkrtcsave = True if "-ramlinkrtcsave" in vicecommandline else False
+
+    prompt = "ramlink rtc save? ["
+    if ramlinkrtcsave is True:
+      prompt += "{var:engine.currentoptioncolor}Y{/all}n"
+    else:
+      prompt += "y{var:engine.currentoptioncolor}N{/all}"
+    prompt += "]: "
+    if ramlinkrtcsave is True:
+      default = "Y"
+    else:
+      default = "N"
+    if ttyio.inputboolean(prompt, default) is True:
+      vicecommandline["-ramlinkrtcsave"] = None
+      if "+ramlinkrtcsave" in vicecommandline:
+        del vicecommandline["+ramlinkrtcsave"]
+      description.append("[rtc save: Yes]")
+    else:
+      vicecommandline["+ramlinkrtcsave"] = None
+      if "-ramlinkcrtsave" in vicecommandline:
+        del vicecommandline["-ramlinkrtcsave"]
+      description.append("[rtc save: No]")
+
+    self.enabled = True
+
+    return (True, description)
+
+  add = edit
+
+  def __str__(self):
+    if self.enabled is True:
+      return "#%2d RAMLINK %dMB" % (self.number, self.size)
+    return "#%2d RAMLINK (disabled)" % (self.number)
+
 class StorageDeviceLTK(StorageDevice):
   def __init__(self, args, number, drivetype="LTK"):
-    super().__init__(args, number, drivetype="LTK") # , data:dict={}, **kwargs)
+    super().__init__(args, number, drivetype)
     self.type = drivetype
     self.hasrtc = False
     self.fallbacktype = None
@@ -1162,8 +1256,8 @@ class StorageDevices(object):
         "LTK":     StorageDeviceLTK,
         "2000":    StorageDeviceCMD,
         "4000":    StorageDeviceCMD,
-        "4844":    StorageDeviceCMD
-#        "RAMLINK": StorageDeviceRamlink
+        "4844":    StorageDeviceCMD,
+        "RAMLINK": StorageDeviceRAMLink
     }
 
   def append(self, storagedevice):
