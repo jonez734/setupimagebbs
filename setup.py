@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
+#from setuptools import setup
 
 import time
 
@@ -16,7 +17,7 @@ setup(
   author="zoid technologies",
   author_email="%s@projects.zoidtechnologies.com" % (projectname),
   py_modules=["setupimagebbs"],
-  requires=["ttyio4", "bbsengine5", "python-magic"],
+  requires=["ttyio5", "bbsengine5", "python-magic"],
   scripts=["setupimagebbs"],
   license="GPLv2",
   provides=[projectname],
