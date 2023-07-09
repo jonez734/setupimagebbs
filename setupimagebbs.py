@@ -1,4 +1,4 @@
-1#
+#
 # Copyright (C) 2021 zoidtechnologies.com. All Rights Reserved.
 #
 
@@ -16,6 +16,7 @@ import bbsengine5 as bbsengine
 
 vicecommandline = {}
 tcpsercommandline = {}
+edata = {}
 localhost = "localhost"
 ioaddrs = {}
 setup = {}
@@ -52,6 +53,142 @@ def area(buf):
   return
 
 def sound(args, **kwargs):
+  soundstatus = []
+
+  def soundsync(args, **kwargs):
+    status = []
+    sync = vicecommandline["-soundsync"] if "-soundsync" in vicecommandline else "0"
+    prompt = "sync "
+    if sync == "0":
+      prompt += "{var:engine.currentoptioncolor}0: system{/all} "
+    else:
+      prompt += "0: system "
+    if sync == "1":
+      prompt += "{var:engine.currentoptioncolor}1: mono{/all} "
+    else:
+      prompt += "1: mono "
+    if sync == "2":
+      prompt += "{var:engine.currentoptioncolor}2: stereo{/all}"
+    else:
+      prompt += "2: stereo"
+    prompt += ": "
+    ch = ttyio.inputchar(prompt, "012", sync)
+    vicecommandline["-soundsync"] = ch
+    if ch == "0":
+      ttyio.echo("system")
+      status.append("sync: system")
+    elif ch == "1":
+      ttyio.echo("mono")
+      status.append("sync: mono")
+    elif ch == "2":
+      ttyio.echo("stereo")
+      status.append("sync: stereo")
+    soundstatus.append(" ".join(status))
+    return (True, status)
+
+  def sounddev(args, **kwargs):
+    device = vicecommandline["-sounddev"] if "-sounddev" in vicecommandline else "pulse"
+    status = []
+    ttyio.echo("sound.100: device=%r" % (device), level="debug")
+
+    opts = []
+    if device == "pulse":
+      opts.append("{var:engine.currentoptioncolor}[P]ulse{/all}")
+      currentoption = "P"
+    else:
+      opts.append("[P]ulse")
+    if device == "alsa":
+      opts.append("{var:engine.currentoptioncolor}[A]LSA{/all}")
+      currentoption = "A"
+    else:
+      opts.append("[A]LSA")
+    if device == "sdl":
+      opts.append("{var:engine.currentoptioncolor}[S]DL{/all}")
+      currentoption = "S"
+    else:
+      opts.append("[S]DL")
+    if device == "dummy":
+      opts.append("{var:engine.currentoptioncolor}[D]ummy{/all}")
+      currentoption = "D"
+    else:
+      opts.append("[D]ummy")
+    dev = ttyio.inputchar("%s: " % (" ".join(opts)), "PASD", currentoption)
+    if dev == "P":
+      ttyio.echo("Pulse")
+      vicecommandline["-sounddev"] = "pulse"
+      status.append("dev: pulse")
+    elif dev == "A":
+      ttyio.echo("ALSA")
+      vicecommandline["-sounddev"] = "alsa"
+      status.append("dev: alsa")
+    elif dev == "S":
+      ttyio.echo("SDL")
+      vicecommandline["-sounddev"] = "sdl"
+      status.append("dev: sdl")
+    elif dev == "D":
+      ttyio.echo("Dummy")
+      vicecommandline["-sounddev"] = "dummy"
+      status.append("dev: dummy")
+    soundstatus.append(" ".join(status))
+    return (True, status)
+
+  def soundvolume(args, **kwargs):
+    status = []
+    volume = vicecommandline["-soundvolume"] if "-soundvolume" in vicecommandline else "70"
+    vol = ttyio.inputinteger("soundvolume (0-100): ", volume)
+    vicecommandline["-soundvolume"] = vol
+    status.append("vol: %s" % (vol))
+    soundstatus.append(" ".join(status))
+    if vol > 100:
+      return (False, status)
+    return (True, status)
+
+  def drivesound(args, **kwargs):
+    bbsengine.setarea("vice: drivesound")
+    status = []
+    if ttyio.inputboolean("Enable sound emulation of disk drives? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
+      volume = ttyio.inputinteger("drive sound volume? [0-100]: ", 70)
+      if "+drivesound" in vicecommandline:
+        del vicecommandline["+drivesound"]
+      vicecommandline["-drivesound"] = None
+      vicecommandline["-drivesoundvolume"] = volume
+    else:
+      if "-drivesound" in vicecommandline:
+        del vicecommandline["-drivesound"]
+      if "-drivesoundvolume" in vicecommandline:
+        del vicecommandline["-drivesoundvolume"]
+      vicecommandline["+drivesound"] = None
+      status.append("(disabled)")
+    if "-drivesound" in vicecommandline:
+      status.append("vol=%s" % (vicecommandline["-drivesoundvolume"]))
+#      return (True, "enabled: vol=%s" % (vicecommandline["-drivesoundvolume"]))
+    soundstatus.append("drivesound: vol=%s" % (vicecommandline["-drivesoundvolume"]))
+    return (True, status)
+
+  bbsengine.setarea("sound", stack=True)
+  if ttyio.inputboolean("enable sound? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is False:
+    vicecommandline["+sound"] = None
+    if "-sound" in vicecommandline:
+      del vicecommandline["-sound"]
+#    bbsengine.poparea()
+    return (True, ("disabled"))
+
+  if "+sound" in vicecommandline:
+    del vicecommandline["+sound"]
+  vicecommandline["-sound"] = None
+
+  menuitems = [
+    { "name": "soundsync",   "callback": soundsync,     "label": "sync"},
+    { "name": "soundvolume", "callback": soundvolume,   "label": "volume"},
+    { "name": "sounddev",    "callback": sounddev,      "label": "device"},
+    { "name": "drivesound",  "callback": drivesound,    "label": "drive sound"},
+  ]
+  menu = bbsengine.Menu("sound", menuitems, args=args)
+  menu.run("sound: ")
+#  bbsengine.poparea()
+  return (True, soundstatus)
+
+def oldsound(args, **kwargs):
   bbsengine.setarea("sound")
   status = []
   if ttyio.inputboolean("enable sound? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is False:
@@ -59,8 +196,10 @@ def sound(args, **kwargs):
     if "-sound" in vicecommandline:
       del vicecommandline["-sound"]
     return (True, ("disabled"))
+
   if "+sound" in vicecommandline:
     del vicecommandline["+sound"]
+  vicecommandline["-sound"]
   # -soundrate
   # -soundbufsize
   # -soundfragsize
@@ -401,8 +540,6 @@ def rs232(args, **kwargs):
   return (True, resultbuf)
 
 def acia(args, **kwargs):
-  global ioaddrs
-
   bbsengine.setarea("vice: acia")
   bbsengine.title("vice: acia")
 
@@ -467,7 +604,6 @@ def acia(args, **kwargs):
     status.append("io: 0xDF00")
     ttyio.echo("Warning: Image BBS 3.0 does not support address 0xDF00 for the ACIA Cart", level="warn")
 
-
   prompt = "Set the ACIA interrupt ("
   acia1irq = vicecommandline["-aciairq"] if "-aciairq" in vicecommandline else "1"
   if acia1irq == "0":
@@ -506,7 +642,7 @@ def acia(args, **kwargs):
 
   for s in range(1,4+1):
     if int(serialdev) == s:
-      ttyio.echo("{var:engine.currentoptioncolor}[%d] serial%d{/all}" % (serialdev, serialdev))
+      ttyio.echo("{var:engine.currentoptioncolor}[%d] serial %d{/all}" % (serialdev, serialdev))
     else:
       ttyio.echo("[%d] serial %d" % (s, s))
 
@@ -523,7 +659,7 @@ def acia(args, **kwargs):
 
   acia1base = vicecommandline["-acia1base"] if "-acia1base" in vicecommandline else "0xDE00"
 
-  if acia1base == "0xDF00":
+  if acia1base != "0xDE00":
     return (False, status)
   return (True, status) # (True, status) # "("+" ".join(status)+")")
 
@@ -581,26 +717,24 @@ def getvicefeatures(args:Namespace(), filename:str="x64sc"):
 
   return None
 
-def checkvice(args):
+def checkvice(args, **kwargs):
   bbsengine.setarea("checkvice")
   bbsengine.title("check vice features")
 
   ttyio.echo("checkvice: ", end="", flush=True)
   features = getvicefeatures(args)
   ttyio.echo("OK")
-  for check in [ "RS232NET", "IPV6" ]:
-    if check in features and features[check] is True:
-      pass
-
-  if "RS232NET" in features and features["RS232NET"] is True:
-    ttyio.echo("RS232NET is enabled.")
-  else:
-    ttyio.echo("RS232NET is not enabled.")
   if "IPV6" in features and features["IPV6"] is True:
     ttyio.echo("IPV6 is enabled.")
   else:
     ttyio.echo("IPV6 is not enabled.")
 
+  if "RS232NET" in features and features["RS232NET"] is True:
+    ttyio.echo("RS232NET is enabled.", level="success")
+    return True
+  else:
+    ttyio.echo("RS232NET is not enabled.", level="error")
+    return False
 
 class completeVocab(object):
   def __init__(self, args, vocab):
@@ -672,13 +806,29 @@ def tcpserphonebook(args):
 ## Hoy Brothers - 13th Floor
 #-n 13f=13th.hoyvision.com:6400		\ # Image 1.3
 
+def checktcpser(args, **kwargs):
+  bbsengine.setarea("checktcpser")
+  bbsengine.title("checktcpser")
+
+  res = subprocess.run(["tcpser", "-V"], capture_output=True, text=True)
+
+  TCPSERVERSTRING = "(TCPSER) 1.1.5_alpha"
+
+  # look for "invalid option -- 'V'" -- (-V added in 1.1.4, older versions will complain of invalid option)
+  # ttyio.echo("%r" % (res.stderr))
+  # ttyio.echo("stdout=%r" % (res.stdout))
+  if res.stdout.find("invalid option -- 'V'") > -1 or res.stderr.find("invalid option -- 'V'") > -1:
+    ttyio.echo("The version of tcpser installed is not compatible with imagebbs (>=1.1.4).")
+    return False
+
+  if res.stdout.find(TCPSERVERSTRING) > -1 or res.stderr.find(TCPSERVERSIONSTRING) > -1:
+    ttyio.echo("The version of tcpser installed should be compatible with imagebbs")
+    return True
+  return None
+
 def tcpser(args, **kwargs):
   bbsengine.setarea("tcpser")
   bbsengine.title("tcpser")
-
-  # ttyio.echo("tcpser.120: vicecommandline=%r" % (vicecommandline), interpret=False)
-  if ttyio.inputboolean("invert DCD pin? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
-    tcpsercommandline["-I"] = None
 
   acia1mode = vicecommandline["-acia1mode"] if "-acia1mode" in vicecommandline else None
   ttyio.echo("tcpser.120: acia1mode=%r" % (acia1mode), level="debug")
@@ -756,6 +906,10 @@ def ramlink(args, **kwargs):
 
   description = []
 
+#  device = ttyio.inputinteger("ramlink device: ", 16)
+#  if device < 12:
+#    ttyio.echo("ramlink device out of range (<12)")
+
   size = ttyio.inputinteger("ramlink size in MiB (0=Disabled): ", 16)
   if size == 0:
     return (True, "disabled")
@@ -810,8 +964,32 @@ def ramlink(args, **kwargs):
   return (True, description)
 
 def displaysync(args, **kwargs):
-  bbsengine.setarea("vice: display")
+  resultbuf = ""
+  def ntsc(args, **kwargs):
+    vicecommandline["-ntsc"] = None
+    if "-pal" in vicecommandline:
+      del vicecommandline["-pal"]
+    ttyio.echo(bbsengine.menuitemresults, level="debug")
+    return (True, "NTSC")
+  def pal(args, **kwargs):
+    vicecommandline["-pal"] = None
+    if "-ntsc" in vicecommandline:
+      del vicecommandline["-ntsc"]
+    return (True, "PAL")
+
+  def preprompthook(args):
+    bbsengine.setarea("vice: display")
+    return
+
   bbsengine.title("vice: display")
+  menuitems = [
+    { "name": "displayntsc", "callback": ntsc, "label": "ntsc", "type":"radiobutton"},
+    { "name": "displaypal",  "callback": pal,  "label": "pal",  "type":"radiobutton"},
+  ]
+  menu = bbsengine.Menu("display", menuitems, args=args)
+  menu.run("display sync: ", preprompthook)
+  return (True, resultbuf)
+
   sync = ttyio.inputchar("{var:engine.currentoptioncolor}[N]TSC{/all} or [P]AL? ", "NP", "N")
   if sync == "N":
     ttyio.echo("NTSC")
@@ -947,12 +1125,6 @@ class StorageDevice(object):
     self.usertc = False
     self.images = []
 
- #   if "data" in kwargs:
- #     d = kwargs["data"]
- #     for a in [ "number", "type", "rtc", "savertc", "cart", "fallbacktype", "images" ]:
- #       if a in d:
- #         setattr(self, a, d[a])
-
   def __str__(self):
     buf = "#% d %s" % (self.number, self.type)
     if self.usertc is True:
@@ -963,6 +1135,8 @@ class StorageDevice(object):
       buf += " cart: %s" % (self.cart)
 
     return buf
+  def json(self):
+    return {"number": self.number, "type": self.type, "hasrtc": self.hasrtc, "savertc": self.savertc, "usertc": self.usertc, "images": self.images}
 
 #    return "#%d type: %s rtc: %s (%s) cart: %s fallbacktype: %s" % (self.number, self.type, self.rtc, self.savertc, self.cart, self.fallbacktype)
 
@@ -986,6 +1160,9 @@ class StorageDevice(object):
       self.savertc = ttyio.inputboolean(prompt, currentoption)
       # add device to rtc list
     return
+  def save(self):
+    result = {}
+    pass
 
 class StorageDeviceRAMLink(StorageDevice):
   def __init__(self, args, number, drivetype="RAMLINK"):
@@ -1096,6 +1273,11 @@ class StorageDeviceLTK(StorageDevice):
     vicecommandline["-ltkport"] = self.ltkport
     return
 
+  def json(self):
+    res = super().json()
+    res.update({ "cartcrt": self.cartcrt, "ltkimage0": self.ltkimage0, "ltkimage1": self.ltkimage1, "ltkimage2": self.ltkimage2, "fallbacktype": self.fallbacktype })
+    return res
+
   def edit(self):
       cartcrt = vicecommandline["-cartcrt"] if "-cartcrt" in vicecommandline else os.path.join(self.args.basedir, "ltk.crt")
       self.cartcrt = bbsengine.inputfilename(self.args, "-cartcrt: ", cartcrt, verify=bbsengine.verifyFileExistsReadable)
@@ -1111,7 +1293,7 @@ class StorageDeviceLTK(StorageDevice):
       self.ltkport = ttyio.inputinteger("Set LTK port number (0..15): ", ltkport, verify=verifyLTKPortInRange)
       vicecommandline["-ltkport"] = self.ltkport
 
-      ltkio = vicecommandline["-ltkio"] if "-ltkio" in vicecommandline else "1"
+      ltkio = vicecommandline["-ltkio"] if "-ltkio" in vicecommandline else 1
       prompt = "Set LTK IO page ("
       if ltkio == "0":
         prompt += "{var:engine.currentoptioncolor}0: 0xDE00{/all}, 1: 0xDF00"
@@ -1133,13 +1315,13 @@ class StorageDeviceLTK(StorageDevice):
         ioaddrs["0xDE00"] = "ltkio"
         if "0xDF00" in ioaddrs and ioaddrs["0xDF00"] == "ltkio":
           del ioaddrs["0xDF00"]
-      vicecommandline["-ltkio"] = ch
+      vicecommandline["-ltkio"] = int(ch)
 
       if self.number > 11:
         ttyio.echo("fallback device disabled, #% d is greater than 11." % (self.number))
         return
 
-      if ttyio.inputboolean("use fallback device? [yN]: ", "N") is True:
+      if ttyio.inputboolean("use ltk fallback device? [yN]: ", "N") is True:
         self.fallbacktype = ttyio.inputstring("fallback device (cbm only): ", "1581")
         vicecommandline["-drive%dtype" % (self.number)] = self.fallbacktype
         d = vicecommandline["-%d" % (self.number)] if "-%d" % (self.number) in vicecommandline else ""
@@ -1147,6 +1329,10 @@ class StorageDeviceLTK(StorageDevice):
         if image is not None:
           vicecommandline["-%d" % (self.number)] = image
 #          ttyio.echo("-%d set" % (self.number))
+
+      vicecommandline["-ltkimage0"] = ltkimage0
+      vicecommandline["-ltkimage1"] = ltkimage1
+      vicecommandline["-ltkimage2"] = ltkimage2
 
       ttyio.echo("setting -kernal to 'kernal'")
       vicecommandline["-kernal"] = "kernal"
@@ -1162,14 +1348,14 @@ class StorageDeviceLTK(StorageDevice):
       buf += " fallback: %s" % (self.fallbacktype)
     if "-ltkio" in vicecommandline:
       ltkio = vicecommandline["-ltkio"]
-      if ltkio == "0":
-        buf += " ltkio: 0xDE00"
-      elif ltkio == "1":
-        buf += " ltkio: 0xDF00"
+      if ltkio == 0:
+        buf += " io: 0xDE00"
+      elif ltkio == 1:
+        buf += " io: 0xDF00"
       else:
-        buf += " ltkio: ERROR"
+        buf += " io: ERROR"
     if self.ltkport is not None:
-      buf += " ltkport: %d" % (self.ltkport)
+      buf += " port: %d" % (self.ltkport)
 
     return buf
 
@@ -1180,13 +1366,17 @@ class StorageDeviceCBM(StorageDevice):
     self.hasrtc = False
     self.number = number
     self.args = args
-    self.image = None
+    self.image = ""
 
   def __str__(self):
     buf = "#% d %s" % (self.number, self.type)
     if self.image is not None:
       buf += " image: %s" % (self.image)
     return buf
+  def json(self):
+    result = super().json()
+    res.update({ "image": self.image})
+    return res
 
   def add(self):
     self.image = bbsengine.inputfilename(self.args, "image name: ", self.image)
@@ -1205,12 +1395,12 @@ class StorageDeviceCBM(StorageDevice):
 
 class StorageDeviceCMD(StorageDevice):
   def __init__(self, args, number, devicetype="CMD"):
-    super().__init__(args, number) # , data:dict={}, **kwargs)
+    super().__init__(args, number, devicetype) # , data:dict={}, **kwargs)
     self.hasrtc = True
     self.type = devicetype
     self.number = number
-    self.image = None
-    self.bin = None
+    self.image = ""
+    self.bin = ""
 
   def edit(self, args):
     if self.hasrtc is True:
@@ -1222,8 +1412,6 @@ class StorageDeviceCMD(StorageDevice):
     self.bin = bbsengine.inputfilename(self.args, "bin filename: ", self.bin)
     vicecommandline["-%d" % (self.number)] = self.image
     vicecommandline["-drive%dtype" % (self.number)] = self.type
-#    vicecommandline["-9"] =  "cmddrive9.d4m"
-#    vicecommandline["-drive9type"] = "4000"
 
   add = edit
 
@@ -1301,9 +1489,12 @@ class StorageDevices(object):
 
     subclass = self.subclasses[dt]
     sd = subclass(args, number, dt)
-    sd.add()
+    sd.add(args)
     ttyio.echo(str(sd), level="debug")
-    if ttyio.inputboolean("add this device? [y{var:engine.currentoptioncolor}N{/all}]: ", "N") is True:
+    if self.find(number) is not None:
+      ttyio.echo("#%d has already been defined." % (number))
+      return False
+    if ttyio.inputboolean("add this device? [{var:engine.currentoptioncolor}Y{/all}n]: {var:engine.menu.inputcolor}", "Y") is True:
       storagedevices.append(sd) # [storagedevice.device] = storagedevice
     else:
       ttyio.echo("storage device not added.")
@@ -1320,7 +1511,7 @@ class StorageDevices(object):
     if d is None:
       ttyio.echo("device #%d is not defined" % (number), level="error")
       return False
-    d.edit()
+    d.edit(args)
     return True
 
   def kill(self, args, **kwargs):
@@ -1328,7 +1519,9 @@ class StorageDevices(object):
     if len(storagedevices) == 0:
       ttyio.echo("no storage devices defined.", level="error")
       return False
-    device = ttyio.inputinteger(args, "kill which device?: ")
+    device = ttyio.inputinteger("kill which device?: ")
+    if self.find(device) is None:
+      ttyio.echo("unable to kill #%d as it has not been defined" % (device))
     if device is None or device == 0:
       ttyio.echo("no storage device number entered.")
       return False
@@ -1337,10 +1530,8 @@ class StorageDevices(object):
 
 storagedevices = StorageDevices()
 
-def storage(args, **kwargs):
-  global storagedevices
-
-  bbsengine.setarea("vice: storage")
+def drive(args, **kwargs):
+  bbsengine.setarea("drive")
 
   done = False
   while not done:
@@ -1537,24 +1728,81 @@ def summary(args):
 
   return
 
-def defaultconfig(args):
+def defaultconfig(args, **kwargs):
   bbsengine.setarea("vice: default config")
 
+  status = []
   if ttyio.inputboolean("restore default config before processing options? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
     vicecommandline["-default"] = None
-  bbsengine.poparea()
-  return True
+    status.append("Yes")
+  elif "-default" in vicecommandline:
+    del vicecommandline["-default"]
+    status.append("No")
 
-def saveonviceexit(args):
+  bbsengine.poparea()
+  return (True, status)
+
+def saveonviceexit(args, **kwargs):
   bbsengine.setarea("vice: save settings on exit")
   bbsengine.title("vice: save settings on vice exit")
 
-  if ttyio.inputboolean("save vice settings on exit from vice? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y") is True:
+  if "-saveres" in vicecommandline:
+    saveres = "Y"
+  elif "+saveres" in vicecommandline:
+    saveres = "N"
+  else:
+    saveres = "Y"
+
+  prompt = "save vice settings on exit? ["
+  if saveres == "Y":
+    prompt += "{var:engine.currentoptioncolor}Y{/all}n"
+  else:
+    prompt += "y{var:engine.currentoptioncolor}N{/all}"
+  prompt += "]: "
+  if ttyio.inputboolean(prompt, saveres) is True:
     vicecommandline["-saveres"] = None
+    if "+saveres" in vicecommandline:
+      del vicecommandline["+saveres"]
+    status = "Yes"
   else:
     vicecommandline["+saveres"] = None
+    if "-saveres" in vicecommandline:
+      del vicecommandline["-saveres"]
+    status = "No"
+
   bbsengine.poparea()
-  return True
+  return (True, status)
+
+def confirmonexit(args, **kwargs):
+  bbsengine.setarea("vice: confirm before exit")
+  bbsengine.title("vice: confirm before exit")
+
+  if "-confirmonexit" in vicecommandline:
+    confirmonexit = "Y"
+  elif "+confirmonexit" in vicecommandline:
+    confirmonexit = "N"
+  else:
+    confirmonexit = None
+
+  prompt = "confirm before vice exit? ["
+  if confirmonexit == "Y":
+    prompt += "{var:engine.currentoptioncolor}Y{/all}n"
+  else:
+    prompt += "y{var:engine.currentoptioncolor}N{/all}"
+  prompt += "]: "
+  if ttyio.inputboolean(prompt, confirmonexit) is True:
+    vicecommandline["-confirmonexit"] = None
+    if "+confirmonexit" in vicecommandline:
+      del vicecommandline["+confirmonexit"]
+    status = "Yes"
+  else:
+    vicecommandline["+confirmonexit"] = None
+    if "-confirmonexit" in vicecommandline:
+      del vicecommandline["-confirmonexit"]
+    status = "No"
+
+  bbsengine.poparea()
+  return (True, status)
 
 def checkltkaciaconflict(args):
   bbsengine.setarea("vice: checkltkaciaconflict")
@@ -1570,7 +1818,27 @@ def checkltkaciaconflict(args):
       return False
   return True
 
-def savejson(args):
+def loadjson(args, **kwargs):
+  global vicecommandline, tcpser, setup
+
+  basedir = setup["basedir"] if "basedir" in setup else args.basedir
+  filename = bbsengine.inputfilename(args, "load json filename: ", os.path.join(basedir, "gfd3.json"))
+  expandedfilename = os.path.expanduser(filename)
+  expandedfilename = os.path.expandvars(expandedfilename)
+  fp = open(expandedfilename, "r")
+  data = json.loads(fp.read())
+  ttyio.echo("loadjson.100: data=%r" % (data), interpret=False)
+  fp.close()
+  if "vice" in data:
+    vicecommandline = data["vice"]
+    ttyio.echo("loadjson.120: vicecommandline=%r" % (vicecommandline), interpret=False)
+  if "tcpser" in data:
+    tcpser = data["tcpser"]
+  if "setup" in data:
+    setup = data["setup"]
+  return (True, filename)
+
+def savejson(args, **kwargs):
   bbsengine.setarea("savejson")
   bbsengine.title("save json file of setup data")
   
@@ -1581,6 +1849,13 @@ def savejson(args):
   data = {}
 
   data["setup"] = {}
+
+  data["setup"]["ioaddrs"] = ioaddrs
+
+  data["setup"]["storagedevices"] = {}
+  for sd in storagedevices:
+    data["setup"]["storagedevices"][sd.number] = sd.json()
+
   data["vice"] = {}
   for k, v in vicecommandline.items():
     data["vice"][k] = v
@@ -1589,82 +1864,83 @@ def savejson(args):
   for k, v in tcpsercommandline.items():
     data["tcpser"][k] = v
 
-  data["setup"] = {}
-  for k, v in setup.items():
-    data["setup"][k] = v
 
-  if args.debug is True:
-    ttyio.echo("data=%r" % (data), interpret=False)
+#  if args.debug is True:
+#    ttyio.echo("data=%r" % (data), interpret=False)
 
   default = os.path.join(args.basedir, "gfd3.json")
-  default = os.path.expandvars(default)
-  default = os.path.expanduser(default)
+#  default = os.path.expandvars(default)
+#  default = os.path.expanduser(default)
 
   filename = bbsengine.inputfilename(args, "save json filename: ", default, noneok=True, multiple=False, verify=None)
   if filename is None:
     ttyio.echo("aborted.")
     return True
+
+  filename = os.path.expandvars(filename)
+  filename = os.path.expanduser(filename)
+
+  if os.path.exists(filename) is True:
+    if ttyio.inputboolean("%s already exists. overwrite? [y{var:engine.currentoptioncolor}N{/all}]: " % (filename), "N") is False:
+      ttyio.echo("aborted.")
+      return True
   fp = open(filename, "w")
-  fp.write(json.dumps(data))
+  fp.write(json.dumps(data, sort_keys=True, indent=2)+"\n")
   fp.close()
+  ttyio.echo("{f6}saved to %s" % (filename))
   return True
 
-def edata(args):
-  data = []
-  data.append({"record": 21, "type": "inputchar", "prompt": "System Reservation Password", "choices": ["0=None", "1=Once", "2=All"], "options": "012", "default": "0"})
-  data.append({"record": 32, "type": "inputchar", "prompt": "RS232 Device", "choices": ["0=User Port", "1=Swiftlink"], "options": "01", "default": "1"})
-  data.append({"record": 38, "type": "inputltkdevice", "prompt": "LTK device number", "default": "8"})
-  data.append({"record": 43, "type": "inputstring", "prompt": "Password Mask Char", "default": "X"})
-  data.append({"record": 47, "type": "inputstring", "prompt": "BBS Name", "default": "not Galaxy Federation 3"})
-  data.append({"record": 51, "type": "inputbbsid", "prompt": "BBS Identifier", "default": "GF"})
-  data.append({"record": 52, "type": "inputdevicedrive", "prompt": "System Device, Drive", "default": "8,1"})
-  data.append({"record": 53, "type": "inputdevicedrive", "prompt": "E-Mail Device, Drive", "default": "8,2"})
-  data.append({"record": 54, "type": "inputdevicedrive", "prompt": "Etcetera Device, Drive", "default": "8,1"})
-  data.append({"record": 55, "type": "inputdevicedrive", "prompt": "Directory", "default": "8,0"})
-  data.append({"record": 56, "type": "inputdevicedrive", "prompt": "Modules", "default": "8,0"})
-  data.append({"record": 57, "type": "inputdevicedrive", "prompt": "User", "default": "8,1"})
-  data.append({"record": 58, "type": "inputnewusercredits", "prompt": "Credits for new user", "default": "100"})
-
-def iocollisionhandler(args):
-  bbsengine.title("iocollision handling")
-  if "-iocollision" in vicecommandline:
-    default = ord("A") + int(vicecommandline["-iocollision"])
-  else:
-    default = "B"
-
-  if default == "A":
-    ttyio.echo("{var:engine.currentoptioncolor}[A] error message, detatch all involved carts{/all}")
-  else:
-    ttyio.echo("[A] error message, detatch all involved carts")
-
-  if default == "B":
-    ttyio.echo("{var:engine.currentoptioncolor}[B] error message, detach most recent involved cart{/all}")
-  else:
-    ttyio.echo("[B] error message, detach most recent involved cart")
+def edata(args, **kwargs):
+  data = [
+    {"record": 21, "type": "inputchar",           "prompt": "System Reservation Password", "choices": ["0=None", "1=Once", "2=All"], "options": "012", "default": "0", "value":None},
+    {"record": 32, "type": "inputchar",           "prompt": "RS232 Device", "choices": ["0=User Port", "1=Swiftlink"], "options": "01", "default": "1", "value":None},
+    {"record": 37, "type": "inputrtcdevice",      "prompt": "RTC device number", "value":None},
+    {"record": 38, "type": "inputltkdevice",      "prompt": "LTK device number", "default": "8", "value":None},
+    {"record": 43, "type": "inputstring",         "prompt": "Password Mask Char", "default": "X", "value":None},
+    {"record": 47, "type": "inputstring",         "prompt": "BBS Name", "default": "not Galaxy Federation 3", "value":None},
+    {"record": 51, "type": "inputbbsid",          "prompt": "BBS Identifier", "default": "notGF3", "value":None},
+    {"record": 52, "type": "inputdevicedrive",    "prompt": "System Device, Drive", "default": "8,1", "value":None},
+    {"record": 53, "type": "inputdevicedrive",    "prompt": "E-Mail Device, Drive", "default": "8,2", "value":None},
+    {"record": 54, "type": "inputdevicedrive",    "prompt": "Etcetera Device, Drive", "default": "8,1", "value":None},
+    {"record": 55, "type": "inputdevicedrive",    "prompt": "Directory", "default": "8,0", "value":None},
+    {"record": 56, "type": "inputdevicedrive",    "prompt": "Modules", "default": "8,0", "value":None},
+    {"record": 57, "type": "inputdevicedrive",    "prompt": "User", "default": "8,1", "value":None},
+    {"record": 58, "type": "inputnewusercredits", "prompt": "Credits for new user", "default": "100", "value":None},
+  ]
   
-  if default == "C":
-    ttyio.echo("{var:engine.currentoptioncolor}[C] warning in log, bitwise-and valid return values{/all}")
-  else:
-    ttyio.echo("[C] warning in log, bitwise-and valid return values")
+def iosettings(args, **kwargs):
+  bbsengine.title("iocollision handling")
+  iocollision = vicecommandline["-iocollision"] if "-iocollision" in vicecommandline else 0
 
-  ch = ttyio.inputchar("iocollision handling [ABC]: ", "ABC", default)
-  if ch == "A":
-    ttyio.echo("A: detach all involved carts")
-  elif ch == "B":
-    ttyio.echo("B: detach most recent involved cart")
-  elif ch == "C":
-    ttyio.echo("C: warn, bitwise-and valid return values")
-  val = ord(ch) - ord("A")
-  # ttyio.echo("val=%r" % (val), level="debug")
-  vicecommandline["-iocollision"] = val
+  if iocollision == 0:
+    ttyio.echo("{var:engine.currentoptioncolor}[0] error message, detatch all involved carts{/all}")
+  else:
+    ttyio.echo("[0] error message, detatch all involved carts")
+
+  if iocollision == 1:
+    ttyio.echo("{var:engine.currentoptioncolor}[1] error message, detach most recent involved cart{/all}")
+  else:
+    ttyio.echo("[1] error message, detach most recent involved cart")
+  
+  if iocollision == 2:
+    ttyio.echo("{var:engine.currentoptioncolor}[2] warning in log, bitwise-and valid return values{/all}")
+  else:
+    ttyio.echo("[2] warning in log, bitwise-and valid return values")
+
+  ch = ttyio.inputchar("iocollision handling [012]: ", "012", str(iocollision))
+  if ch == "0":
+    ttyio.echo("0: detach all involved carts")
+  elif ch == "1":
+    ttyio.echo("1: detach most recent involved cart")
+  elif ch == "2":
+    ttyio.echo("2: warn, bitwise-and valid return values")
+  vicecommandline["-iocollision"] = int(ch)
   return True
 
 def basedir(args):
   pass
 
 def findioaddr(value):
-  global ioaddrs
-
 #  ttyio.echo("findioaddr.100: ioaddrs=%r" % (ioaddrs), interpret=False)
   # return key not value
   for k, v in ioaddrs.items():
@@ -1687,6 +1963,40 @@ def preprompthook(args):
 #  bbsengine.setarea(area)
   return
 
+def keyboard(args, **kwargs):
+  ttyio.echo("[A] Symbolic")
+  ttyio.echo("[B] Positional")
+  ttyio.echo("[C] User Symbolic")
+  ttyio.echo("[D] User Positional")
+  return
+
+def modem(args, **kwargs):
+  menuitems = [
+    { "name": "acia",   "callback": acia,   "label": "ACIA"},
+    { "name": "tcpser", "callback": tcpser, "label": "tcpser"},
+    { "name": "rs232",  "callback": rs232,  "label": "RS232", "requires":("tcpser",)},
+  ]
+  menu = bbsengine.Menu("modem", menuitems, args=args)
+  menu.run("modem: ")
+
+def setbasedir(args, **kwargs):
+  global setup
+
+  basedir = setup["basedir"] if "basedir" in setup else args.basedir
+  basedir = bbsengine.inputfilename(args, "basedir: ", basedir)
+  setup["basedir"] = basedir
+  return (True, basedir)
+
+def check(args):
+  ip232found = False
+  for dev in (1, 2, 3, 4):
+    if "-rsdev%dip232" % (dev) in vicecommandline:
+      ip232found = True
+      break
+
+  if "-ltkio" in vicecommandline:
+    pass
+
 def main():
     parser = argparse.ArgumentParser("setupimagebbs")
     parser.add_argument("--verbose", action="store_true", dest="verbose")
@@ -1699,11 +2009,11 @@ def main():
 
     terminalwidth = ttyio.getterminalwidth()
 
-    ttyio.echo("{f6:5}{curpos:%d,0}" % (ttyio.getterminalheight()-3))
+    ttyio.echo("{f6:3}{cursorup:3}")
     initscreen(bottommargin=1)
 
-    bbsengine.setarea("setup image bbs")
-
+    def preprompthook(args):
+      bbsengine.setarea("setup image bbs main menu")
 #    ttyio.echo("setting variables")
     ttyio.setvariable("engine.menu.boxcharcolor", "{bglightgray}{darkgreen}")
     ttyio.setvariable("engine.menu.color", "{bggray}")
@@ -1715,33 +2025,36 @@ def main():
     ttyio.setvariable("engine.menu.promptcolor", "{lightgray}")
     ttyio.setvariable("engine.menu.inputcolor", "{white}")
     ttyio.setvariable("engine.menu.disableditemcolor", "{darkgray}")
+    ttyio.setvariable("engine.menu.resultfailedcolor", "{bgred}{white}")
     ttyio.setvariable("engine.currentoptioncolor", "{bggray}{white}")
-    ttyio.setvariable("engine.areacolor", "{bggray}{white}")
+#    ttyio.setvariable("engine.areacolor", "{bggray}{white}")
 
-    if args.basedir and args.debug is True:
+    if args.basedir is True and args.debug is True:
       ttyio.echo("setupbbs.main.120: basedir=%r" % (args.basedir))
-    args.basedir = os.path.expanduser(args.basedir)
-    args.basedir = os.path.expandvars(args.basedir)
-    args.basedir = ttyio.inputstring("basedir: ", args.basedir, args=args)
+#    args.basedir = os.path.expanduser(args.basedir)
+#    args.basedir = os.path.expandvars(args.basedir)
+#    args.basedir = ttyio.inputstring("basedir: ", args.basedir, args=args)
 
     localhost = checklocalhostdns(args)
 
-    checktcpser(args)
+#    checktcpser(args)
     checkvice(args)
 #    tcpser(args)
-    gfd3(args)
-    defaultconfig(args)
+#    gfd3(args)
+#    defaultconfig(args)
 
     menuitems = [
-#      { "name": "basedir",       "callback": basedir,     "label": "basedir"},
-      { "name": "acia",          "callback": acia,        "label": "acia setup", "requires":()},
-      { "name": "tcpser",        "callback": tcpser,      "label": "tcpser parameters", "requires":("acia",)},
-      { "name": "rs232",         "callback": rs232,       "label": "rs232/ip232", "requires": ("tcpser", "acia",)},
-      { "name": "drivesound",    "callback": drivesound,  "label": "drive sound"},
-      { "name": "displaysync",   "callback": displaysync, "label": "display"},
-      { "name": "storage",       "callback": storage,     "label": "storage"},
-      { "name": "ramlink",       "callback": ramlink,     "label": "ramlink"},
-      { "name": "sound",         "callback": sound,       "label": "sound"}
+      { "name": "setbasedir",     "callback": setbasedir,     "label": "set base dir", "result":(True, "test")},
+      { "name": "loadjson",       "callback": loadjson,       "label": "load setup settings from json file"},
+      { "name": "modem",          "callback": modem,          "label": "modem"},
+      { "name": "displaysync",    "callback": displaysync,    "label": "display"},
+      { "name": "sound",          "callback": sound,          "label": "sound"},
+      { "name": "iosettings",     "callback": iosettings,     "label": "i/o settings"},
+      { "name": "drive",          "callback": drive,          "label": "drives"},
+      { "name": "defaultconfig",  "callback": defaultconfig,  "label": "use default config before setting options"},
+      { "name": "saveonviceexit", "callback": saveonviceexit, "label": "save settings on exit from vice"},
+      { "name": "confirmonexit",  "callback": confirmonexit,  "label": "confirm before exit"},
+      { "name": "savejson",       "callback": savejson,       "label": "save setup settings to json file"},
     ]
 
 #    bbsengine.setarea("main menu")
