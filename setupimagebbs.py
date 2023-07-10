@@ -1907,7 +1907,7 @@ def edata(args, **kwargs):
     {"record": 57, "type": "inputdevicedrive",    "prompt": "User", "default": "8,1", "value":None},
     {"record": 58, "type": "inputnewusercredits", "prompt": "Credits for new user", "default": "100", "value":None},
   ]
-  
+
 def iosettings(args, **kwargs):
   bbsengine.title("iocollision handling")
   iocollision = vicecommandline["-iocollision"] if "-iocollision" in vicecommandline else 0
