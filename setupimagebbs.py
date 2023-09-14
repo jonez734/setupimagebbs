@@ -877,7 +877,7 @@ def tcpser(args, **kwargs):
     ttyio.echo("level=%r" % (level))
 
   tcpsercommandline["-l"] = level
-  return (True, "logging: %s trace: %s speed: %s rs232net: %s port: %s" % (levelname, ttyio.oxfordcomma(trace), tcpsercommandline["-s"], tcpsercommandline["-v"], tcpsercommandline["-p"]))
+  return (True, "logging: %s trace: %s speed: %s rs232net: %s port: %s" % (levelname, bbsengine.util.oxfordcomma(trace), tcpsercommandline["-s"], tcpsercommandline["-v"], tcpsercommandline["-p"]))
 
 def ramlink(args, **kwargs):
   bbsengine.setarea("vice: ramlink")
@@ -910,7 +910,7 @@ def ramlink(args, **kwargs):
 #  if device < 12:
 #    ttyio.echo("ramlink device out of range (<12)")
 
-  size = ttyio.inputinteger("ramlink size in MiB (0=Disabled): ", 16)
+  size = ttyio.inputinteger("ramlink size in megabytes (0=Disabled): ", 16)
   if size == 0:
     return (True, "disabled")
 
@@ -1489,7 +1489,7 @@ class StorageDevices(object):
 
     subclass = self.subclasses[dt]
     sd = subclass(args, number, dt)
-    sd.add(args)
+    sd.add()
     ttyio.echo(str(sd), level="debug")
     if self.find(number) is not None:
       ttyio.echo("#%d has already been defined." % (number))
@@ -2053,7 +2053,7 @@ def main():
       { "name": "drive",          "callback": drive,          "label": "drives"},
       { "name": "defaultconfig",  "callback": defaultconfig,  "label": "use default config before setting options"},
       { "name": "saveonviceexit", "callback": saveonviceexit, "label": "save settings on exit from vice"},
-      { "name": "confirmonexit",  "callback": confirmonexit,  "label": "confirm before exit"},
+      { "name": "confirmonexit",  "callback": confirmonexit,  "label": "confirm before exit from vice"},
       { "name": "savejson",       "callback": savejson,       "label": "save setup settings to json file"},
     ]
 
