@@ -1,6 +1,24 @@
-def checktcpser(args, filename="tcpser"): # filename="/home/jam/tmp/tcpser-1.1.4/tcpser"):
-  bbsengine.setarea("tcpser")
-  bbsengine.title("tcpser: check")
+import subprocess
+
+import ttyio6 as ttyio
+import bbsengine6 as bbsengine
+
+from . import lib
+
+def init(args, **kw):
+  return True
+
+def access(args, op, **kw):
+  return True
+
+def buildargs(args, **kw):
+  return None
+
+def main(args, filename="tcpser", **kw): # filename="/home/jam/tmp/tcpser-1.1.4/tcpser"):
+#  lib.setarea(args, "tcpser")
+#  bbsengine.screen.title("tcpser: check")
+
+  bbsengine.util.heading("checking for 'tcpser'")
 
   res = subprocess.run([filename, "-V"], capture_output=True, text=True)
 
