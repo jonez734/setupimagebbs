@@ -12,28 +12,31 @@ def access(args, op, **kw):
 def buildargs(args=None, **kw):
     return None
 
-def main(args, **kwargs):
+def main(args, **kw):
   bbsengine.util.heading("vice: ramlink")
 
-  if "+ramlink" in vicecommandline:
+  vice = kw["vice"] if "vice" in kw else {}
+  menuitem = kw["menuitem"] if "menuitem" in kw else None
+
+  if "+ramlink" in vice:
     useramlink = True
-    if "-ramlink" in vicecommandline:
-      del vicecommandline["-ramlink"]
+    if "-ramlink" in vice:
+      del vice["-ramlink"]
     prompt = "{var:promptcolor}use ramlink? {var:optioncolor}[Yn]: {var:inputcolor}"
     default = "Y"
-    vicecommandline["+ramlink"] = None
+    vice["+ramlink"] = None
   else:
     useramlink = False
-    if "+ramlink" in vicecommandline:
-      del vicecommandline["+ramlink"]
+    if "+ramlink" in vice:
+      del vice["+ramlink"]
     prompt = "{var:promptcolor}use ramlink? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}"
     default = "N"
 
   if ttyio.inputboolean(prompt, default) is False:
-    vicecommandline["-ramlink"] = None
+    vice["-ramlink"] = None
     for x in ["+ramlink", "+ramlinkrtcsave", "-ramlinksize", "+ramlinksize", "-ramlinkimage", "-ramlinkimagerw", "+ramlinkimagerw", "-cartramlink"]:
-      if x in vicecommandline:
-        del vicecommandline[x]
+      if x in vice:
+        del vice[x]
     return (True, "disabled")
 
   description = []
@@ -44,40 +47,42 @@ def main(args, **kwargs):
 
   size = ttyio.inputinteger("{var:promptcolor}ramlink size in megabytes (0=Disabled): {var:inputcolor}", 16)
   if size == 0:
-    return (True, "disabled")
+    menuitem.status = True
+    menuitem.description = "(disabled)"
+    return True
 
-  vicecommandline["-ramlinksize"] = size
+  vice["-ramlinksize"] = size
   description.append("[size: %s]" % (bbsengine.pluralize(size, "megabyte", "megabytes")))
 
   if ttyio.inputboolean("{var:promptcolor}allow write to ramlink image? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y") is True:
-      vicecommandline["-ramlinkimagerw"] = None
+      vice["-ramlinkimagerw"] = None
       description.append("[write image: Yes]")
-      if "+ramlinkimagerw" in vicecommandline:
-        del vicecommandline["+ramlinkimagerw"]
+      if "+ramlinkimagerw" in vice:
+        del vice["+ramlinkimagerw"]
   else:
-      vicecommandline["+ramlinkimagerw"] = None
-      if "-ramlinkimagerw" in vicecommandline:
-        del vicecommandline["-ramlinkimagerw"]
+      vice["+ramlinkimagerw"] = None
+      if "-ramlinkimagerw" in vice:
+        del vice["-ramlinkimagerw"]
       description.append("[write image: No]")
 
-  vicecommandline["-cartramlink"] = bbsengine.inputfilename(args, "{var:promptcolor}cart ramlink bin: {var:inputcolor}", os.path.join(args.basedir, "ramlink.bin"), verify=bbsengine.verifyFileExistsReadable)
+  vice["-cartramlink"] = bbsengine.inputfilename(args, "{var:promptcolor}cart ramlink bin: {var:inputcolor}", os.path.join(args.basedir, "ramlink.bin"), verify=bbsengine.verifyFileExistsReadable)
 
-  vicecommandline["-ramlinkimage"] = bbsengine.inputfilename(args, "{var:promptcolor}ramlink image: {var:inputcolor}", os.path.join(args.basedir, "ramlink.img"), verify=bbsengine.verifyFileExistsReadableWritable)
+  vice["-ramlinkimage"] = bbsengine.inputfilename(args, "{var:promptcolor}ramlink image: {var:inputcolor}", os.path.join(args.basedir, "ramlink.img"), verify=bbsengine.verifyFileExistsReadableWritable)
 
   # handle pre-existing value!
   if ttyio.inputboolean("{var:promptcolor}ramlink rtc save? {var:optioncolor}[Yn]: ", "Y") is True:
-    vicecommandline["-ramlinkrtcsave"] = None
-    if "+ramlinkrtcsave" in vicecommandline:
-      del vicecommandline["+ramlinkrtcsave"]
+    vice["-ramlinkrtcsave"] = None
+    if "+ramlinkrtcsave" in vice:
+      del vice["+ramlinkrtcsave"]
     description.append("[rtc save: Yes]")
   else:
-    vicecommandline["+ramlinkrtcsave"] = None
-    if "-ramlinkcrtsave" in vicecommandline:
-      del vicecommandline["-ramlinkrtcsave"]
+    vice["+ramlinkrtcsave"] = None
+    if "-ramlinkcrtsave" in vice:
+      del vice["-ramlinkrtcsave"]
     description.append("[rtc save: No]")
 
   # handle pre-existing value!
-  ramlinkmode = vicecommandline["-ramlinkmode"] if "-ramlinkmode" in vicecommandline else "1"
+  ramlinkmode = vice["-ramlinkmode"] if "-ramlinkmode" in vice else "1"
   prompt = "ramlinkmode ("
   if ramlinkmode == "1":
     prompt += "{var:currentoptioncolor}1=Normal{/all}, 0=Direct"
@@ -92,5 +97,7 @@ def main(args, **kwargs):
     ttyio.echo("Normal")
     description.append("[mode: normal]")
 
-  vicecommandline["-ramlinkmode"] = ch
+  vice["-ramlinkmode"] = ch
+  menuitem.description = " ".join(description)
+  menuitem.status = True
   return (True, description)
