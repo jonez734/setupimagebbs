@@ -1,43 +1,82 @@
-def tcpser(args, **kwargs):
-  bbsengine.setarea("tcpser")
-  bbsengine.title("tcpser")
+import ttyio6 as ttyio
+import bbsengine6 as bbsengine
 
-  acia1mode = vicecommandline["-acia1mode"] if "-acia1mode" in vicecommandline else None
-  ttyio.echo("tcpser.120: acia1mode=%r" % (acia1mode), level="debug")
+class completeVocab(object):
+  def __init__(self, args, vocab):
+      # ttyio.echo("completeAttributeName.100: called")
+      self.vocab = vocab
+
+  # @log_exceptions
+  def complete(self:object, text:str, state:int):
+    results = [x for x in self.vocab if x.startswith(text)] + [None]
+    return results[state]
+
+def verifyLoggingLevelName(buf, **kw):
+  vocab = ["none", "fatal", "error", "warn", "info", "debug", "enter-exit", "all"]
+  if buf in vocab:
+    return True
+  return False
+
+def init(args, **kw):
+    return True
+
+def access(args, op, **kw):
+    return True
+
+def buildargs(args=None, **kw):
+    return None
+
+def main(args, **kw):
+  ttyio.echo("tcpser{f6}")
+
+  bbsengine.util.heading("tcpser")
+
+  menuitem = kw["menuitem"] if "menuitem" in kw else None
+
+  tcpser = kw["tcpser"] if "tcpser" in kw else {}
+  vice = kw["vice"] if "vice" in kw else {}
+
+  acia1mode = vice["-acia1mode"] if "-acia1mode" in vice else None
+  if args.debug is True:
+    ttyio.echo(f"tcpser.120: {acia1mode=}", level="debug")
 
   if acia1mode == 1 or acia1mode == 2:
     speed = 38400
   else:
     speed = 2400
 
-  tcpsercommandline["-s"] = ttyio.inputinteger("speed in bits per second (-s): ", speed)
+  tcpser["-s"] = ttyio.inputinteger("{var:promptcolor}speed in bits per second (-s): {var:inputcolor}", speed)
 
-  tcpsercommandline["-v"] = ttyio.inputinteger("tcp port for VICE RS232NET (-v): ", 25232)
-  tcpsercommandline["-p"] = ttyio.inputstring("port or address:port (-p): ", "6400")
+  tcpser["-v"] = ttyio.inputinteger("{var:promptcolor}tcp port for VICE RS232NET (-v): {var:inputcolor}", 25232)
+  tcpser["-p"] = ttyio.inputstring("{var:promptcolor}port or address:port (-p): {var:inputcolor}", "6400")
 
-  tcpsercommandline["-i"] = ttyio.inputstring("modem init string (-i): at", "e0v0s0=1s2=27")
+  tcpser["-i"] = ttyio.inputstring("{var:promptcolor}modem init string (-i): {var:inputcolor}at", "e0v0s0=1s2=27")
 
-  bbsengine.title("tcpser: trace flags")
+  ttyio.echo()
 
   traceflags = ""
   trace = []
-  if ttyio.inputboolean("modem input (s) [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
+  if ttyio.inputboolean("{var:promptcolor}modem input (s) {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y") is True:
     traceflags += "s"
     trace += ["modem input"]
-  if ttyio.inputboolean("modem output (S) [y{var:engine.currentoptioncolor}N{/all}]: ", "N", "YN") is True:
+  if ttyio.inputboolean("{var:promptcolor}modem output (S) {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N") is True:
     traceflags += "S"
     trace += ["modem output"]
-  if ttyio.inputboolean("IP input (i) [y{var:engine.currentoptioncolor}N{/all}]: ", "N", "YN") is True:
+  if ttyio.inputboolean("{var:promptcolor}IP input (i) {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N") is True:
     traceflags += "i"
     trace += ["ip input"]
-  if ttyio.inputboolean("IP output (I) [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN") is True:
+  if ttyio.inputboolean("{var:promptcolor}IP output (I) {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y") is True:
     traceflags += "I"
     trace += ["ip output"]
   if len(traceflags) > 0:
-    tcpsercommandline["-t"] = traceflags
+    tcpser["-t"] = traceflags
+
+  ttyio.echo()
+  if args.debug is True:
+    ttyio.echo(f"tcpser.140: {tcpser=}", level="debug")
 
   vocab = ["none", "fatal", "error", "warn", "info", "debug", "enter-exit", "all"]
-  buf = ttyio.inputstring("Logging Level (-l): ", "all", completer=completeVocab(args, vocab), verify=verifyLoggingLevelName)
+  buf = ttyio.inputstring("{var:promptcolor}Logging Level (-l): {var:inputcolor}", "all", completer=completeVocab(args, vocab), verify=verifyLoggingLevelName)
   level = None
   for i in range(0, len(vocab)):
     if vocab[i] == buf:
@@ -46,7 +85,16 @@ def tcpser(args, **kwargs):
       break
 
   if args is not None and args.debug is True:
-    ttyio.echo("level=%r" % (level))
+    ttyio.echo(f"{level=}")
 
-  tcpsercommandline["-l"] = level
-  return (True, "logging: %s trace: %s speed: %s rs232net: %s port: %s" % (levelname, bbsengine.util.oxfordcomma(trace), tcpsercommandline["-s"], tcpsercommandline["-v"], tcpsercommandline["-p"]))
+  menuitem.result = True
+  menuitem.description = f"logging: {levelname} trace: {' '.join(trace)} speed: {tcpser['-s']} rs232net: {tcpser['-v']} port: {tcpser['-p']}"
+  tcpser["-l"] = level
+
+  ttyio.echo(f"tcpser.160: {tcpser=}", level="debug")
+  kw["tcpser"] = tcpser
+
+  ttyio.echo(f"tcpser.180: {kw=}", level="debug")
+
+  return True
+#  return (True, "logging: %s trace: %s speed: %s rs232net: %s port: %s" % (levelname, bbsengine.util.oxfordcomma(trace), tcpser["-s"], tcpser["-v"], tcpser["-p"]))
