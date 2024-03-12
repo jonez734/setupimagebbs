@@ -10,7 +10,7 @@ if __name__ == "__main__":
     parser = module.buildargs()
     args = parser.parse_args()
 
-    bbsengine.session.start(args)
+#    bbsengine.session.start(args)
 
     bbsengine.screen.init()
 
@@ -22,8 +22,8 @@ if __name__ == "__main__":
     try:
         module.main(args)
     except KeyboardInterrupt:
-        ttyio.echo("{/all}{bold}INTR{bold}")
+        ttyio.echo("{restorecursor}{/all}*INTR*")
     except EOFError:
-        ttyio.echo("{/all}{bold}EOF{/bold}")
+        ttyio.echo("{restorecursor}{/all}*EOF*")
     finally:
-        ttyio.echo("{decsc}{curpos:%d,0}{el}{decrc}{reset}{/all}" % (ttyio.getterminalheight()))
+        ttyio.echo("{savecursor}{curpos:%d,0}{el}{restorecursor}{reset}{/all}" % (ttyio.getterminalheight()))
