@@ -1,3 +1,5 @@
+from .. import lib as libsetupimagebbs
+
 class StorageDevices(object):
   def __init__(self):
     self.devices = []
@@ -98,3 +100,6 @@ class StorageDevices(object):
       return False
     ttyio.echo("no devices killed (not yet implemented)", level='warn")
     return False
+
+def runmodule(args, modulename, **kw):
+  return libsetupimagebbs.runmodule(args, f"storage.{modulename}", **kw)
