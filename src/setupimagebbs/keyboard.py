@@ -10,8 +10,8 @@ def access(args, op, **kw):
     return True
 
 def main(args, **kw):
-  bbsengine.setarea("vice: keyboard")
-  bbsengine.title("keyboard")
+#  bbsengine.setarea("vice: keyboard")
+  bbsengine.util.heading("keyboard")
 
   keyboards = ("0: Symbpolic", "1: Positional", "2: symbolic (user)", "3: positional (user)")
   ch = ttyio.inputchar("Specify index of keymap file ({var:engine.currentoptioncolor}0:symbolic{/all}, 1:positional, 2:symbolic (user), 3:positional (user))? [0123]: ","0123", "0")

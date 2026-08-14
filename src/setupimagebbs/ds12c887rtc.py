@@ -1,12 +1,28 @@
-def ds12c887rtc(args, **kwargs):
-  bbsengine.setarea("vice: ds12c887rtc")
-  bbsengine.title("ds12c887rtc")
+import ttyio6 as ttyio
+import bbsengine6 as bbsengine
+
+from . import lib
+
+def init(args, **kw):
+    return True
+
+def access(args, op, **kw):
+    return True
+
+def buildargs(args=None, **kw):
+    return None
+
+def main(args, **kwargs):
+  vicecommandline = kwargs["vicecommandline"] if "vicecommandline" in kwargs else None
+
+  bbsengine.util.heading("ds12c887rtc")
+
   if "-ds12c887rtc" in vicecommandline:
-    ch = ttyio.inputboolean("Enable DS12C887RTC? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN")
+    ch = ttyio.inputboolean("{var:promptcolor}Enable DS12C887RTC? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
   elif "+ds12c887rtc" in vicecommandline:
-    ch = ttyio.inputboolean("Enable DS12C887RTC? [y{var:engine.currentoptioncolor}N{/all}]: ", "N", "YN")
+    ch = ttyio.inputboolean("{var:promptcolor}Enable DS12C887RTC? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N", "YN")
   else:
-    ch = ttyio.inputboolean("Enable DS12C887RTC? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN")
+    ch = ttyio.inputboolean("{var:promptcolor}Enable DS12C887RTC? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
 
   if ch is False:
     vicecommandline["+ds12c887rtc"] = None
@@ -19,11 +35,11 @@ def ds12c887rtc(args, **kwargs):
       del vicecommandline["+ds12c887rtc"]
 
   if "-ds12c887rtcsave" in vicecommandline:
-    ch = ttyio.inputboolean("Enable saving of the DS12C887RTC data when changed? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN")
+    ch = ttyio.inputboolean("{var:promptcolor}Enable saving of the DS12C887RTC data when changed? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
   elif "+ds12c887rtcsave" in vicecommandline:
-    ch = ttyio.inputboolean("Enable saving of the DS12C887RTC data when changed? [y{var:engine.currentoptioncolor}N{/all}]: ", "N", "YN")
+    ch = ttyio.inputboolean("{var:promptcolor}Enable saving of the DS12C887RTC data when changed? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N", "YN")
   else:
-    ch = ttyio.inputboolean("Enable saving of the DS12C887RTC data when changed? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN")
+    ch = ttyio.inputboolean("{var:promptcolor}Enable saving of the DS12C887RTC data when changed? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
 
   if ch is False:
     vicecommandline["+ds12c887rtcsave"] = None
@@ -42,7 +58,7 @@ def ds12c887rtc(args, **kwargs):
   for c in addresschoices:
     i = ch - ord("A")
     if currentaddr == addresschoices[i] or defaultvalue == addresschoices[i]:
-      menu.append("{var:engine.currentoptioncolor}[%s] %s{/all}" % (chr(ch), addresschoices[i]))
+      menu.append(f"{{var:engine.currentoptioncolor}}[{chr(ch)] {addresschoices[i]}")
       defaultvalue = chr(ch)
     elif currentaddr in ioaddrs:
       menu.append("{darkgray}[%s] %s{/all}" % (chr(ch), addresschoices[i]))

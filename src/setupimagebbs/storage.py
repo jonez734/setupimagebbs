@@ -108,14 +108,14 @@ class StorageDevice(object):
     self.args = args
 
     self.number = number
-    self.type = drivetype
+    self.kind = drivetype
     self.hasrtc = False
     self.savertc = False
     self.usertc = False
     self.images = []
 
   def __str__(self):
-    buf = "#% d %s" % (self.number, self.type)
+    buf = f"#{self.number: 2} {self.kind}"
     if self.usertc is True:
       buf += " rtc"
       if self.savertc is True:
@@ -125,13 +125,13 @@ class StorageDevice(object):
 
     return buf
   def json(self):
-    return {"number": self.number, "type": self.type, "hasrtc": self.hasrtc, "savertc": self.savertc, "usertc": self.usertc, "images": self.images}
+    return {"number": self.number, "kind": self.kind, "hasrtc": self.hasrtc, "savertc": self.savertc, "usertc": self.usertc, "images": self.images}
 
 #    return "#%d type: %s rtc: %s (%s) cart: %s fallbacktype: %s" % (self.number, self.type, self.rtc, self.savertc, self.cart, self.fallbacktype)
 
   def edit(self):
-    self.type = drivetype(self.args, self.number)
-    if self.type in ("4000", "4844", "RAMLINK", "2000"):
+    self.kind = drivetype(self.args, self.number)
+    if self.kind in ("4000", "4844", "RAMLINK", "2000"):
       if self.hasrtc is True:
         prompt = "{var:promptcolor}use rtc? {var:optioncolor}[Yn]: {var:inputcolor}"
         currentoption = "Y"
@@ -177,10 +177,10 @@ class StorageDeviceRAMLink(StorageDevice):
     ramlinkmode = vice["-ramlinkmode"] if "-ramlinkmode" in vice else 1
     prompt = "-ramlinkmode ("
     if ramlinkmode == 1:
-      prompt += "{var:currentoptioncolor}1: Normal{/all} 0: Direct"
+      prompt += "{var:currentoptioncolor}1: Normal{/all} {var:optioncolor}0{var:promptcolor}: Direct"
     else:
-      prompt += "1: Normal {var:currentoptioncolor}0: Direct{/all}"
-    prompt += ") [01]: "
+      prompt += "{var:optioncolor}1{var:promptcolor}: Normal {var:currentoptioncolor}0{var:promptcolor}: Direct{/all}"
+    prompt += ") {var:optioncolor}[01]{var:promptcolor}: {var:inputcolor}"
     ramlinkmode = ttyio.inputchar(prompt, "01", str(ramlinkmode))
     if ramlinkmode == "0":
       ttyio.echo("0: Direct")
@@ -188,7 +188,7 @@ class StorageDeviceRAMLink(StorageDevice):
       ttyio.echo("1: Normal")
     vice["-ramlinkmode"] = ramlinkmode
 
-    size = ttyio.inputinteger("ramlink size in MiB (0=Disabled): ", 16)
+    size = ttyio.inputinteger("{var:promptcolor}ramlink size in MiB (0=Disabled): {var:inputcolor}", 16)
     if size == 0:
       return (True, "disabled")
     self.size = size
@@ -197,7 +197,7 @@ class StorageDeviceRAMLink(StorageDevice):
     vice["-ramlinksize"] = size
     description.append("[size: %s]" % (bbsengine.pluralize(size, "megabyte", "megabytes")))
 
-    if ttyio.inputboolean("allow write to ramlink image? [{var:currentoptioncolor}Y{/all}n]: {var:inputcolor}", "Y") is True:
+    if ttyio.inputboolean("{var:promptcolor}allow write to ramlink image? [{var:currentoptioncolor}Y{var:optioncolor}n]{var:promptcolor}: {var:inputcolor}", "Y") is True:
         vice["-ramlinkimagerw"] = None
         description.append("[write image: Yes]")
         if "+ramlinkimagerw" in vice:
@@ -208,18 +208,18 @@ class StorageDeviceRAMLink(StorageDevice):
           del vice["-ramlinkimagerw"]
         description.append("[write image: No]")
 
-    vice["-cartramlink"] = bbsengine.inputfilename(self.args, "{var:promptcolor}cart ramlink bin: {var:inputcolor}", os.path.join(self.args.basedir, "ramlink.bin"), verify=bbsengine.verifyFileExistsReadable)
+    vice["-cartramlink"] = bbsengine.inputfilename(self.args, "{var:promptcolor}cart ramlink bin: {var:inputcolor}", os.path.join(self.args.basedir, "ramlink.bin"), verify=bbsengine.util.verifyFileExistsReadable)
 
-    vice["-ramlinkimage"] = bbsengine.inputfilename(self.args, "{var:promptcolor}ramlink image: {var:inputcolor}", os.path.join(self.args.basedir, "ramlink.img"), verify=bbsengine.verifyFileExistsReadableWritable)
+    vice["-ramlinkimage"] = bbsengine.inputfilename(self.args, "{var:promptcolor}ramlink image: {var:inputcolor}", os.path.join(self.args.basedir, "ramlink.img"), verify=bbsengine.util.verifyFileExistsReadableWritable)
 
     ramlinkrtcsave = True if "-ramlinkrtcsave" in vice else False
 
-    prompt = "ramlink rtc save? ["
+    prompt = "{var:promptcolor}ramlink rtc save? {var:optioncolor}["
     if ramlinkrtcsave is True:
-      prompt += "{var:currentoptioncolor}Y{/all}n"
+      prompt += "{var:currentoptioncolor}Y{var:optioncolor}n"
     else:
-      prompt += "y{var:currentoptioncolor}N{/all}"
-    prompt += "]: {var:inputcolor}"
+      prompt += "y{var:currentoptioncolor}N"
+    prompt += "{var:optioncolor}]{var:promptcolor}: {var:inputcolor}"
     if ramlinkrtcsave is True:
       default = "Y"
     else:
@@ -243,13 +243,13 @@ class StorageDeviceRAMLink(StorageDevice):
 
   def __str__(self):
     if self.enabled is True:
-      return "#%2d RAMLINK %dMB" % (self.number, self.size)
-    return "#%2d RAMLINK (disabled)" % (self.number)
+      return f"#{self.number: 2} RAMLINK {self.size}MB"
+    return f"#{self.number: 2} RAMLINK (disabled)"
 
 class StorageDeviceLTK(StorageDevice):
   def __init__(self, args, number, drivetype="LTK", **kw):
     super().__init__(args, number, drivetype, **kw)
-    self.type = drivetype
+    self.kind = drivetype
     self.hasrtc = False
     self.fallbacktype = None
     self.args = args
@@ -269,17 +269,17 @@ class StorageDeviceLTK(StorageDevice):
 
   def edit(self):
       cartcrt = vice["-cartcrt"] if "-cartcrt" in vice else os.path.join(self.args.basedir, "ltk.crt")
-      self.cartcrt = bbsengine.inputfilename(self.args, "-cartcrt: ", cartcrt, verify=bbsengine.verifyFileExistsReadable)
+      self.cartcrt = bbsengine.inputfilename(self.args, "-cartcrt: ", cartcrt, verify=bbsengine.util.verifyFileExistsReadable)
 
       ltkimage0 = vice["-ltkimage0"] if "-ltkimage0" in vice else os.path.join(self.args.basedir, "drive8-0.dlk")
       ltkimage1 = vice["-ltkimage1"] if "-ltkimage1" in vice else os.path.join(self.args.basedir, "drive8-1.dlk")
       ltkimage2 = vice["-ltkimage2"] if "-ltkimage2" in vice else os.path.join(self.args.basedir, "drive8-2.dlk")
-      self.ltkimage0 = bbsengine.inputfilename(self.args, "-ltkimage0: ", ltkimage0, verify=bbsengine.verifyFileExistsReadableWritable)
-      self.ltkimage1 = bbsengine.inputfilename(self.args, "-ltkimage1: ", ltkimage1, verify=bbsengine.verifyFileExistsReadableWritable)
-      self.ltkimage2 = bbsengine.inputfilename(self.args, "-ltkimage2: ", ltkimage2, verify=bbsengine.verifyFileExistsReadableWritable)
+      self.ltkimage0 = bbsengine.inputfilename(self.args, "-ltkimage0: ", ltkimage0, verify=bbsengine.util.verifyFileExistsReadableWritable)
+      self.ltkimage1 = bbsengine.inputfilename(self.args, "-ltkimage1: ", ltkimage1, verify=bbsengine.util.verifyFileExistsReadableWritable)
+      self.ltkimage2 = bbsengine.inputfilename(self.args, "-ltkimage2: ", ltkimage2, verify=bbsengine.util.verifyFileExistsReadableWritable)
 
       ltkport = vice["-ltkport"] if "-ltkport" in vice else 0
-      self.ltkport = ttyio.inputinteger("Set LTK port number (0..15): ", ltkport, verify=verifyLTKPortInRange)
+      self.ltkport = ttyio.inputinteger("{var:promptcolor}Set LTK port number (0..15): {var:inputcolor}", ltkport, verify=verifyLTKPortInRange)
       vice["-ltkport"] = self.ltkport
 
       ltkio = vice["-ltkio"] if "-ltkio" in vice else 1
@@ -287,7 +287,7 @@ class StorageDeviceLTK(StorageDevice):
       if ltkio == "0":
         prompt += "{var:currentoptioncolor}0: 0xDE00{/all}, 1: 0xDF00"
       elif ltkio == "1":
-        prompt += "0: 0xDE00, {var:currentoptioncolor}1: 0xDF00{/all}"
+        prompt += "{var:optioncolor}0: 0xDE00{var:promptcolor}, {var:currentoptioncolor}1: 0xDF00{/all}"
       prompt += "): {var:inputcolor}"
       ch = vice["-ltkio"] = ttyio.inputchar(prompt, "01", "1")
       if args.debug is True:
@@ -330,7 +330,7 @@ class StorageDeviceLTK(StorageDevice):
   add = edit
 
   def __str__(self):
-    buf = "#% d %s" % (self.number, self.type)
+    buf = f"#{self.number} {self.kind}"
 #    if self.cartcrt is not None:
 #      buf += " cart: %s" % (self.cartcrt)
     if self.fallbacktype is not None:
@@ -351,14 +351,14 @@ class StorageDeviceLTK(StorageDevice):
 class StorageDeviceCBM(StorageDevice):
   def __init__(self, args, number, drivetype="CBM"):
     super().__init__(args, number, drivetype="CBM") # , data:dict={}, **kwargs)
-    self.type = drivetype
+    self.kind = drivetype
     self.hasrtc = False
     self.number = number
     self.args = args
     self.image = ""
 
   def __str__(self):
-    buf = "#% d %s" % (self.number, self.type)
+    buf = "#% d %s" % (self.number, self.kind)
     if self.image is not None:
       buf += " image: %s" % (self.image)
     return buf
@@ -373,12 +373,12 @@ class StorageDeviceCBM(StorageDevice):
   def edit(self):
     for k, v in cbmtypes.items():
       ttyio.echo("[%s] %s" % (k, v))
-    t = ttyio.inputstring("type: ", self.type)
+    t = ttyio.inputstring("type: ", self.kind)
     if t not in cbmtypes:
       ttyio.echo("invalid drive type")
       return
     ttyio.echo("selected %s" % (cbmtypes[t]))
-    self.type = t
+    self.kind = t
 
     self.image = bbsengine.inputfilename(self.args, "{var:promptcolor}image name: {var:inputcolor}", self.image)
 
@@ -386,7 +386,7 @@ class StorageDeviceCMD(StorageDevice):
   def __init__(self, args, number, devicetype="CMD"):
     super().__init__(args, number, devicetype) # , data:dict={}, **kwargs)
     self.hasrtc = True
-    self.type = devicetype
+    self.kind = devicetype
     self.number = number
     self.image = ""
     self.bin = ""
@@ -400,7 +400,7 @@ class StorageDeviceCMD(StorageDevice):
     self.image = bbsengine.inputfilename(self.args, "{var:promptcolor}image filename: {var:inputcolor}", self.image)
     self.bin = bbsengine.inputfilename(self.args, "{var:promptcolor}bin filename: {var:inputcolor}", self.bin)
     vice[f"-{self.number}"] = self.image
-    vice[f"-drive{self.number}type"] = self.type
+    vice[f"-drive{self.number}type"] = self.kind
 
   add = edit
 
@@ -495,7 +495,7 @@ class StorageDevices(object):
     if len(storagedevices) == 0:
       ttyio.echo("no storage devices defined.", level="error")
       return False
-    number = ttyio.inputinteger("device number: ")
+    number = ttyio.inputinteger("{var:promptcolor}device number: {var:inputcolor}")
     d = self.find(number)
     if d is None:
       ttyio.echo(f"device #{number} is not defined", level="error")

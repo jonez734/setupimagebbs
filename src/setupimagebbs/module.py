@@ -20,6 +20,8 @@ def buildargs(args=None, **kw):
     parser = argparse.ArgumentParser("setupimagebbs")
     parser.add_argument("--verbose", action="store_true", dest="verbose")
     parser.add_argument("--debug", action="store_true", dest="debug")
+    parser.add_argument("--basedir", action="store", dest="basedir", default="$HOME/projects/gfd3/")
+    parser.add_argument("--x64scpath", action="store", dest="x64scpath", default="/usr/bin/x64sc")
 
 #    defaults = {"databasename": "zoid6", "databasehost":"localhost", "databaseuser": None, "databaseport":5432, "databasepassword":None}
 #    bbsengine.database.buildargdatabasegroup(parser, defaults)
@@ -30,12 +32,12 @@ def main(args, **kw):
     if args is not None and "debug" in args and args.debug is True:
         ttyio.echo(f"setupimagebbs.module.main.100: args={args!r}", level="debug")
 
-    bbsengine.util.heading("setup image bbs")
+#    bbsengine.util.heading("setup image bbs")
 
 #    if args.debug is True:
 #        ttyio.echo("database: %s host: %s:%s" % (args.databasename, args.databasehost, args.databaseport), level="debug")
 
-    lib.setarea(args, None, "startup %s rev %s" % (_version.__datestamp__, _version.__version__))
+#    lib.setarea(args, None, "startup %s rev %s" % (_version.__datestamp__, _version.__version__))
 
     if runsubmodule(args, "main", **kw) is False:
         ttyio.echo("error running submodule 'main'", level="error")
