@@ -13,42 +13,42 @@ def buildargs(args=None, **kw):
     return None
 
 def main(args, **kwargs):
-  vicecommandline = kwargs["vicecommandline"] if "vicecommandline" in kwargs else None
+  vice = kwargs["vice"] if "vice" in kwargs else None
 
   bbsengine.util.heading("ds12c887rtc")
 
-  if "-ds12c887rtc" in vicecommandline:
+  if "-ds12c887rtc" in vice:
     ch = ttyio.inputboolean("{var:promptcolor}Enable DS12C887RTC? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
-  elif "+ds12c887rtc" in vicecommandline:
+  elif "+ds12c887rtc" in vice:
     ch = ttyio.inputboolean("{var:promptcolor}Enable DS12C887RTC? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N", "YN")
   else:
     ch = ttyio.inputboolean("{var:promptcolor}Enable DS12C887RTC? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
 
   if ch is False:
-    vicecommandline["+ds12c887rtc"] = None
-    if "-ds12c887rtc" in vicecommandline:
-      del vicecommandline["-ds12c887rtc"]
+    vice["+ds12c887rtc"] = None
+    if "-ds12c887rtc" in vice:
+      del vice["-ds12c887rtc"]
     return True
   else:
-    vicecommandline["-ds12c887rtc"] = None
-    if "+ds12c887rtc" in vicecommandline:
-      del vicecommandline["+ds12c887rtc"]
+    vice["-ds12c887rtc"] = None
+    if "+ds12c887rtc" in vice:
+      del vice["+ds12c887rtc"]
 
-  if "-ds12c887rtcsave" in vicecommandline:
+  if "-ds12c887rtcsave" in vice:
     ch = ttyio.inputboolean("{var:promptcolor}Enable saving of the DS12C887RTC data when changed? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
-  elif "+ds12c887rtcsave" in vicecommandline:
+  elif "+ds12c887rtcsave" in vice:
     ch = ttyio.inputboolean("{var:promptcolor}Enable saving of the DS12C887RTC data when changed? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N", "YN")
   else:
     ch = ttyio.inputboolean("{var:promptcolor}Enable saving of the DS12C887RTC data when changed? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
 
   if ch is False:
-    vicecommandline["+ds12c887rtcsave"] = None
+    vice["+ds12c887rtcsave"] = None
   else:
-    vicecommandline["-ds12c887rtcsave"] = None
+    vice["-ds12c887rtcsave"] = None
 
   addresschoices = ["0xD500","0xD600","0xD700", "0xDE00","0xDF00"]
 
-  currentaddr = vicecommandline["-ds12c887rtcbase"] if "-ds12c887rtcbase" in vicecommandline else None
+  currentaddr = vice["-ds12c887rtcbase"] if "-ds12c887rtcbase" in vice else None
 
   defaultvalue = "0xD700"
 
@@ -72,37 +72,37 @@ def main(args, **kwargs):
   ttyio.echo(addr)
   if addr in ioaddrs:
     if ttyio.inputboolean("that address is already used for %s. proceed? [y{var:engine.currentoptioncolor}N{/all}]: " % (ioaddrs[addr]), "N", "YN") is True:
-      vicecommandline["-ds12c887rtcbase"] = addr
+      vice["-ds12c887rtcbase"] = addr
       ioaddrs[addr] = "ds12c887rtc"
 
   # -ds12c887rtchalted -> Set the RTC oscillator to 'halted'
   # -ds12c887rtcrunning -> Set the RTC oscillator to 'running'
-  if "-ds12c887rtcrunning" in vicecommandline:
-    ch = ttyio.inputchar("Set the RTC oscillator to {var:engine.currentoptioncolor}[R]unning{/all} or [H]alted: ", "RH", "R")
-  elif "-ds12c887rtchalted" in vicecommandline:
-    ch = ttyio.inputchar("Set the RTC oscillator to [R]unning or {var:engine.currentoptioncolor}[H]alted{/all}: ", "RH", "H")
+  if "-ds12c887rtcrunning" in vice:
+    ch = ttyio.inputchar("{var:promptcolor}Set the RTC oscillator to {var:currentoptioncolor}[R]unning{var:promptcolor} or [H]alted: {var:inputcolor}", "RH", "R")
+  elif "-ds12c887rtchalted" in vice:
+    ch = ttyio.inputchar("{var:promptcolor}Set the RTC oscillator to [R]unning or {var:engine.currentoptioncolor}[H]alted{var:promptcolor}: {var:inputcolor}", "RH", "H")
   else:
-    ch = ttyio.inputchar("Set the RTC oscillator to {var:engine.currentoptioncolor}[R]unning{/all} or [H]alted: ", "RH", "R")
+    ch = ttyio.inputchar("Set the RTC oscillator to {var:engine.currentoptioncolor}[R]unning{var:promptcolor} or [H]alted: {var:inputcolor}", "RH", "R")
 
   if ch == "R":
     ttyio.echo("Running")
-    vicecommandline["-ds12c887rtcrunning"] = None
-    if "-ds12c887rtchalted" in vicecommandline:
-      del vicecommandline["-ds12c887rtchalted"]
+    vice["-ds12c887rtcrunning"] = None
+    if "-ds12c887rtchalted" in vice:
+      del vice["-ds12c887rtchalted"]
   elif ch == "H":
     ttyio.echo("Halted")
-    vicecommandline["-ds12c887rtchalted"] = None
-    if "-ds12c887rtcrunning" in vicecommandline:
-      del vicecommandline["-ds12c887rtcrunning"] 
+    vice["-ds12c887rtchalted"] = None
+    if "-ds12c887rtcrunning" in vice:
+      del vice["-ds12c887rtcrunning"] 
 
   if ch is False:
-    vicecommandline["-ds12c887running"] = None
-    if "-ds12c887halted" in vicecommandline:
-      del vicecommandline["-ds12c887halted"]
+    vice["-ds12c887running"] = None
+    if "-ds12c887halted" in vice:
+      del vice["-ds12c887halted"]
   else:
-    vicecommandline["-ds12c887halted"] = None
-    if "-ds12c887running" in vicecommandline:
-      del vicecommandline["-ds12c887running"]
+    vice["-ds12c887halted"] = None
+    if "-ds12c887running" in vice:
+      del vice["-ds12c887running"]
 
   ttyio.echo()
   return True

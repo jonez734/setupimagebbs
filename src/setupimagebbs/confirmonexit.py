@@ -1,44 +1,49 @@
-import ttyio6 as ttyio
-import bbsengine6 as bbsengine
+from bbsengine6 import io
+
 
 def init(args, **kw):
-  return True
+    return True
+
 
 def access(args, op, **kw):
-  return True
+    return True
+
 
 def buildargs(args, **kw):
-  return None
+    return None
+
 
 def main(args, **kw):
-  vice = kw["vice"] if "vice" in kw else {}
-  menuitem = kw["menuitem"] if "menuitem" in kw else None
+    vice = kw["vice"] if "vice" in kw else {}
+    menuitem = kw["menuitem"] if "menuitem" in kw else None
+    io.echo(f"{menuitem=}", level="debug")
 
-  bbsengine.screen.setarea("vice: confirm before exit")
+    #  bbsengine.screen.setarea("vice: confirm before exit")
 
-  if "-confirmonexit" in vice:
-    confirmonexit = "Y"
-  elif "+confirmonexit" in vice:
-    confirmonexit = "N"
-  else:
-    confirmonexit = None
-
-  prompt = "confirm before vice exit? ["
-  if confirmonexit == "Y":
-    prompt += "{var:currentoptioncolor}Y{var:optioncolor}n"
-  else:
-    prompt += "{var:optioncolor}y{var:currentoptioncolor}N"
-  prompt += "{var:optioncolor}]{var:promptcolor}: {var:inputcolor}"
-  if ttyio.inputboolean(prompt, confirmonexit) is True:
-    vice["-confirmonexit"] = None
-    if "+confirmonexit" in vice:
-      del vice["+confirmonexit"]
-    status = "Yes"
-  else:
-    vice["+confirmonexit"] = None
     if "-confirmonexit" in vice:
-      del vice["-confirmonexit"]
-    status = "No"
+        confirmonexit = "Y"
+    elif "+confirmonexit" in vice:
+        confirmonexit = "N"
+    else:
+        confirmonexit = None
 
-  menuitem.status = status
-  return True
+    prompt = "{var:promptcolor}confirm before vice exit? ["
+    if confirmonexit == "Y":
+        prompt += "{var:currentoptioncolor}Y{var:optioncolor}n"
+    else:
+        prompt += "{var:optioncolor}y{var:currentoptioncolor}N"
+    prompt += "{var:optioncolor}]{var:promptcolor}: {var:inputcolor}"
+    if io.inputboolean(prompt, confirmonexit) is True:
+        vice["-confirmonexit"] = None
+        if "+confirmonexit" in vice:
+            del vice["+confirmonexit"]
+        status = "Yes"
+    else:
+        vice["+confirmonexit"] = None
+        if "-confirmonexit" in vice:
+            del vice["-confirmonexit"]
+        status = "No"
+
+    if menuitem is not None:
+        menuitem.description = status
+    return True

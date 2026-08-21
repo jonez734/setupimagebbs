@@ -1,16 +1,17 @@
-import ttyio6 as ttyio
-import bbsengine6 as bbsengine
+from bbsengine6 import io, util
 
-from . import lib
 
 def init(args, **kw):
-  return True
-  
+    return True
+
+
 def access(args, op, **kw):
-  return True
+    return True
+
 
 def buildargs(args, **kw):
-  return None
+    return None
+
 
 def main(args, **kw):
     vice = kw["vice"] if "vice" in kw else {}
@@ -19,10 +20,10 @@ def main(args, **kw):
 
     tcpser = kw["tcpser"] if "tcpser" in kw else {}
 
-    bbsengine.util.heading("summary")
-#    lib.setarea("summary")
+    util.heading("summary")
+    #    lib.setarea("summary")
 
-#    bbsengine.screen.title("summary")
+    #    bbsengine.screen.title("summary")
 
     if "-default" in vice:
         resetdefaults = True
@@ -31,7 +32,7 @@ def main(args, **kw):
         resetdefaults = False
 
     for k, v in ioaddrs.items():
-        ttyio.echo(f"{k=} {v=}", level="debug")
+        io.echo(f"{k=} {v=}", level="debug")
 
     opts = []
     buf = ""
@@ -47,7 +48,7 @@ def main(args, **kw):
 
         opts.append(buf)
 
-    ttyio.echo("x64sc %s" % (" \\{f6} ".join(opts)), wordwrap=False)
+    io.echo("x64sc %s" % (" \\{f6} ".join(opts)), wordwrap=False)
 
     opts = []
 
@@ -59,6 +60,6 @@ def main(args, **kw):
 
         opts.append(buf)
 
-    ttyio.echo("tcpser %s" % (" ".join(opts)))
+    io.echo("tcpser %s" % (" ".join(opts)))
 
     return True

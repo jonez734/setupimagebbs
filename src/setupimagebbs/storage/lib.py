@@ -1,4 +1,5 @@
 from .. import lib as libsetupimagebbs
+from bbsengine6 import io
 
 class StorageDevices(object):
   def __init__(self):
@@ -26,7 +27,7 @@ class StorageDevices(object):
       self.devices.append(storagedevice)
       return
 
-    ttyio.echo("StorageDevices.append() not passed a subclass of StorageDevice")
+    io.echo("StorageDevices.append() not passed a subclass of StorageDevice")
     return
 
   def __getitem__(self, index):
@@ -47,58 +48,58 @@ class StorageDevices(object):
 
   def summary(self, args, **kwargs):
     if len(storagedevices) == 0:
-      ttyio.echo("no storage devices configured.")
+      io.echo("no storage devices configured.")
       return True
     for sd in storagedevices:
-      ttyio.echo(str(sd))
+      io.echo(str(sd))
 
     return True
 
   def add(self, args, **kwargs):
 #    ttyio.echo("entering storagedevices.add()")
-    number = ttyio.inputinteger("{var:promptcolor}device number: {var:inputcolor}")
-    ttyio.echo("{/all}")
+    number = io.inputinteger("{var:promptcolor}device number: {var:inputcolor}")
+    io.echo("{/all}")
     dt = drivetype(args, number)
 
     subclass = self.subclasses[dt]
     sd = subclass(args, number, dt)
     sd.add()
-    ttyio.echo(str(sd), level="debug")
+    io.echo(str(sd), level="debug")
     if self.find(number) is not None:
-      ttyio.echo("#%d has already been defined." % (number))
+      io.echo("#%d has already been defined." % (number))
       return False
-    if ttyio.inputboolean("{var:promptcolor}add this device? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y") is True:
+    if io.inputboolean("{var:promptcolor}add this device? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y") is True:
       storagedevices.append(sd) # [storagedevice.device] = storagedevice
     else:
-      ttyio.echo("storage device not added.")
+      io.echo("storage device not added.")
 
     return False
 
   def edit(self, args, **kwargs):
 #    ttyio.echo("edit{/all}")
     if len(storagedevices) == 0:
-      ttyio.echo("no storage devices defined.", level="error")
+      io.echo("no storage devices defined.", level="error")
       return False
-    number = ttyio.inputinteger("{var:promptcolor}device number: {var:inputcolor}")
+    number = io.inputinteger("{var:promptcolor}device number: {var:inputcolor}")
     d = self.find(number)
     if d is None:
-      ttyio.echo(f"device #{number} is not defined", level="error")
+      io.echo(f"device #{number} is not defined", level="error")
       return False
     d.edit(args)
     return True
 
   def kill(self, args, **kwargs):
-    ttyio.echo("kill")
+    io.echo("kill")
     if len(storagedevices) == 0:
-      ttyio.echo("no storage devices defined.", level="error")
+      io.echo("no storage devices defined.", level="error")
       return False
-    device = ttyio.inputinteger("{var:promptcolor}kill which device?: {var:inputcolor}")
+    device = io.inputinteger("{var:promptcolor}kill which device?: {var:inputcolor}")
     if self.find(device) is None:
-      ttyio.echo(f"unable to kill #{device} as it has not been defined")
+      io.echo(f"unable to kill #{device} as it has not been defined")
     if device is None or device == 0:
-      ttyio.echo("no storage device number entered.")
+      io.echo("no storage device number entered.")
       return False
-    ttyio.echo("no devices killed (not yet implemented)", level='warn")
+    io.echo("no devices killed (not yet implemented)", level='warn")
     return False
 
 def runmodule(args, modulename, **kw):
