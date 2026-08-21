@@ -32,7 +32,7 @@
 - [x] remove dependency on bbsengine5 (bbsengine.title(), bbsengine.initscreen(), and bbsengine.updatetopbar())
 - [ ] test ramlink()
 - [ ] test reu()
-- [ ] tab-complete in inputfilename() is broken.
+- [ ] tab-complete in inputfilename() is broken. chdir to expanded args.basedir? (@since 20211205)
 - [x] change the swiftlink/ip232 to serial4 (larry)
 - [x] make sure "save config on exit" is *enabled* by default
 - [x] fix title() call
@@ -51,21 +51,21 @@
 - [x] bottom bar instead of topbar for status, preserving scrollback for debugging
 - [ ] summary of options, ask if they are acceptable, once per group (ryan)
   * modem - tcpser, swiftlink, acia
-  * storage - ltk/cmd, device assignments
+  * storage - ltk/cmd/cbm, device assignments
   * clocks
 - [ ] x128 support (fast mode, 80 cols)
 - [x] in rs232(), prompt for each item w defaults that set up ip232, etc. hard coded at the moment.
-- [ ] options for e.data values (see links section for the PRG)
+- [ ] options for e.data values (see links section of the PRG)
 - [x] make a "save settings on vice exit?" default to *YES* (larry)
 - [ ] iocollisions
   * [ ] if there is a collision, prompt to proceed anyway.
   * [ ] check all ioaddrs, strikeout used. does it break when the same test is called twice like I am doing with ds12c887rtc?
   * [ ] gray out already used ioaddrs including which test allocated it
 - [x] confirm baud rates are set properly
-- [x] highlight default ioaddr value of -ds12c887rtcbase (larry, ryan, al) imagebbs jitsi 20210410
+- [x] highlight default ioaddr value of -ds12c887rtcbase (larry, ryan, bucko) imagebbs jitsi 20210410
 - [ ] in code that handles an ioaddr, sort the list
-- [ ] fix all tests so they can handle being run twice (prep for groups)
-- [ ] build list of ioaddrs using x64sc --help
+- [x] fix all tests so they can handle being run twice (prep for groups) (@done 20211204)
+- [-] build list of ioaddrs using x64sc --help (@done 20220127)
 - [ ] using tech from empyre (player.status()), make multicolumn menus where needed. similar to 'im' in 3.0.
 - [x] prompt "Set the ACIA mode [A] normal [B] swiftlink [C] turbo32: [ABC]?" does not show default/existing value in separate color.
 - [x] "acia device [ABCD]" does not have a default value, should be "D" (serial4)
@@ -74,31 +74,34 @@
 - [x] swiftlink baud rate defaults to 2400, should be 38400
 - [ ] if there is a syntax error in an AT command that is partially right, like "atfoo" (f is a command), tcpser returns an empty line.
 - [ ] if there is a syntax error for the entire command, like "atblah", a "4" should be returned assuming an 'ate1' was accepted, otherwise "error"
+- [ ] handle callerid enable/disable (tcpser) (@since 20220131)
+    * https://www.google.com/search?q=hayed+command+set+ring+callerid&oq=hayed+command+set+ring+callerid&aqs=chrome..69i57j33i10i160l2.8440j0j7&sourceid=chrome&ie=UTF-8
+    * http://ncid.sourceforge.net/doc/NCID-UserManual.html
+    * https://support.usr.com/support/3453c/3453c-crg/chap%205-dialing%20and%20answering.htm
 - [x] tested the init string used by gfd3, and I get no errors. tested each command separate as well as all in one, no problems.
 - [x] make a test to turn off sound-- solves some performance problems. +sound disable, -sound enable
 - [x] rs232(): prompt for things!
-- [ ] sound()
-    - [ ] in sound(), show current value.
-    - [ ] in sound(), show available values
-
+- [x] sound() (@done 20220127)
+    - [x] in sound(), show current value.
+    - [x] in sound(), show available values
 - [x] store return value and dependencies for menuitems.
     * [x] serial() must be run and return True before tcpser() is allowed for baud rate purposes.
     * [x] check for True for results in dependency list.
     * [x] multiple dependencies must be definable
-- [ ] add a dict called 'setup', which stores which device is an ltk, cmd, and etc
+- [x] add a dict called 'setup', which stores which device is an ltk, cmd, and etc (@since 20211206) (@done 20211206)
 - [x] change script to recalculate 'status' at each display of menu.
-- [ ] save 'setup' dict to json file
-- [ ] load config dicts 'setup', 'vicecommandline', 'tcpser' from json file at startup
+- [x] save 'setup' dict to json file (@since 20211206) (@done 20211206)
+- [x] load config dicts 'setup', 'vicecommandline', 'tcpser' from json file (menu option) (@since 20211206) (@done 20211206)
 - [x] device type for .d4m (cmd) is "4844" ty larry. 4844 has an rtc.
 - [x] prompt for use of rtc on 4000, 4844, and 2000
-- [ ] if usecmd is True, add relevant to device list
-- [ ] !ml30 hard-codes the ioaddr for the acia (swiftlink/turbo32) to 0xde00. other values will cause undefined results. change setup script to print a stern warning if 0xdf00 is selected, ask for confirmation.
+- [-] --if usecmd is True, add relevant to device list--
+- [x] !ml30 hard-codes the ioaddr for the acia (swiftlink/turbo32) to 0xde00. other values will cause undefined results. change setup script to print a stern warning if 0xdf00 is selected, ask for confirmation. (@done 20220127)
 - [x] in handlemenu(), make all labels the maxwidth (ryan)
 - [ ] when showing menu option, join list of results with list of requires, call " ".join()
 - [x] turbo32 is compatible with swiftlink thus is supported by 3.0
 - [x] go through 'acia', then go back to it. crash when 'd' is an int (makes sense, vice option is an int)
 - [x] in acia(), handle existing values for all prompts properly.
-- [ ] if a requirement have been met, use {strike}
+- [ ] if a requirement has been met, use {strike}
 - [x] when selecting serial port, show existing/default value.
 - [x] if requires is empty, do not show "requires:" (f.e. "acia" and "sound")
 - [x] acia() does not show status
@@ -117,28 +120,28 @@
     - [x] when using ltk, show fallback device in status ("LTK (fallback: 1581)") (@done 20211120)
     - [x] in drivetype(), when type is None, return 0 instead of None
     - [x] in storage(), do not hard code ltk image filenames
-    - [ ] if ltk is configured, prompt for each of the image devices, using LU, similar for CMD and CBM
+    - [x] if ltk is configured, prompt for each of the image devices, using LU, similar for CMD and CBM (@since 20211207 @done 20211207)
     - [x] do not show ltk for all unused devices (ltk is one device (8), not two (9)
-    - [-] add 'LTK' to drive types, move prompts for cart, images, etc during the storage loop.
+    - [-] --add 'LTK' to drive types, move prompts for cart, images, etc during the storage loop.--
     - [x] in drivetype(), highlight and set default when the type is None
-    - [ ] !handle hybrid ltk/cmd/cbm
+    - [x] !handle hybrid ltk/cmd/cbm (@since 20211204)
     - [x] if ltk is enabled and configured, make sure no disk images can be assigned to it's device (8 by default, cannot be changed within vice settings or command line)
     - [x] if device type is "0", do not prompt for an image name (current check is for None)
     - [x] check for an existing setting of device type and make that the default
     - [-] "enable cmd fd-4000 on device 9?" does not have a default/existing value highlighted.
     - [x] set device 8 type to 0 w ltk (None) (e.data #38) (fallback device)
     - [x] if a device is unused, check for ltk
-    - [ ] device type: LTK
-      * [ ] prompt for fallback device
+    - [x] device type: LTK
+      * [x] prompt for fallback device (@done 20211204)
     - [ ] add RTC enabled devices to special list
-    - [ ] check for duplicate device numbers
-    - [ ] images for CMD defined by -8, -9, etc
-    - [ ] images for LTK defined by -ltkimage<n> (0-6)
-    - [ ] handle -ltkio (0=0xDExx, 1=0xDF00-default)
-    - [ ] ltkport (0-15)
+    - [x] check for duplicate device numbers (@since 20220131) (@done 20220131)
+    - [x] images for CMD defined by -8, -9, etc (@done 20220131)
+    - [x] images for LTK defined by -ltkimage<n> (0-6) (@done 20220131)
+    - [x] handle -ltkio (0=0xDExx, 1=0xDF00-default) (@done 20211204)
+    - [x] ltkport (0-15) (@done 20211204)
     - [ ] move 'types' dict into StorageDevice?
     - [ ] in storagedevices.add(), make 'None' a unique option (dup w 4844)
-    - [ ] fallbackdevice (ltk feature)-- will work with all CBM drives (not CMD/RamLink)
+    - [x] fallbackdevice (ltk feature)-- will work with all CBM drives (not CMD/RamLink) (@done 20211204)
 - [ ] core dumps: -core is yes, +core is no
 - [ ] chdir: set cwd (-chdir)
 - [ ] -autostart
@@ -159,7 +162,7 @@
     - [ ] "do you really want to use both the cmd rtc and ds12c887rtc?" does not highlight default/existing value
     - [x] in clock(), do not prompt twice to enable ds12c887rtc
     - [x] ds12c887 (rtc clock): https://sourceforge.net/p/vice-emu/code/HEAD/tree/testprogs/RTC/
-    - [x] check for ds12c887 support in image30 (ltk emulation) (al)
+    - [x] check for ds12c887 support in image30 (ltk emulation) (bucko)
     - [ ] ltk author lloyd made a software clock
 - current vs default value in prompts
     - [x] honor current value for "base address of acia cart" (@done 20211120)
@@ -167,14 +170,14 @@
     - [x] honor current value for 'acia device' (@done 20211120)
     - [x] in ramlink(), show current value for ramlinkmode (@since 20211120) (@done 20211120)
 
-- [ ] StorageDevices(list)
+- [x] StorageDevices(list)
     - [x] append()
     - [x] __getitem__()
     - [x] clear()
     - [x] find()
     - [x] __len__()
 - [x] rename StorageDevice.device to StorageDevice.number
-- [ ] REU not workable (power supply issues) (al). keep it when in emulation
+- [ ] REU not workable (power supply issues) (bucko). keep it when in emulation
 - [ ] IDE64
 - [ ] add 'group' key to menu items, 'main', 'peripherals', etc. w same names as vice settings (larry, ryan)
 - [ ] given release of vice 3.5 (~20211024), change the default for the 'invert dcd' prompt. check vice version and decide.
@@ -195,11 +198,11 @@
 - [-] StorageDeviceCBM must store "subtype" (1541, 1581, etc) or store "CBM 1581" to StorageDevice.type (@since 20211117)
 - [ ] iocollissionhandler() should use numbers for options, since that is what vice does (@since 20211118)
 - [x] during scan of vice features, show "loading..." or similar (@since 20211118) (@done 20211119)
-- [ ] always set acia (swiftlink/turbo32) to 0xDExx. ltk defaults to 0xDFxx (@since 20211119)
+- [x] always set acia (swiftlink/turbo32) to 0xDExx. ltk defaults to 0xDFxx (@since 20211119) (@done 20220127)
 - [x] show ltk io addr in status on main menu (@since 20211120) (@done 20211120)
 - [x] renumber acia1irq options to use numbers (like vice does) instead of letters (@since 20211120) (@done 20211120)
-- [ ] if aciaioaddr is set to 0xDF00 (invalid under image 3.0), highlight on main menu (@since 20211121)
-- [ ] if ltkioaddr is set to 0xDE00, highlight address on main menu status as incorrect (@since 20211121)
+- [x] if aciaioaddr is set to 0xDF00 (invalid under image 3.0), highlight on main menu (@since 20211121) (@done 20220127)
+- [x] if ltkioaddr is set to 0xDE00, highlight address on main menu status as incorrect (@since 20211121) (@done 20220127)
 - [ ] Menu() does not properly handle commands inside the status list (length, right border is off) (bbsengine5) (@since 20211121)
 - [x] "sound sync" does not show current value (@done 20211122)
 - [x] "sound dev" does not work right (highlighting is wrong) (@done 20211122)
@@ -207,13 +210,55 @@
 - [-] stash cursor position when start of menu, stash cursor position when printing prompt, subtract, use that number for number of {cursorup}s. handles output of preprompthook()
 - [x] if acia1 is disabled, remove acia1 options from vicecommandline (@since 20211123) (@done 20211123)
 - [ ] MenuItem: hotkey, label, description, result (@since 20211123)
-- [ ] acia1mode is a string in someplaces and an int in others. (@bug @since 20211122)
+- [ ] acia1mode is a string in some places and an int in others. (@bug @since 20211122)
 - [ ] highlight "result: True" in green, "result: False" in red (@since 20211122)
 - [x] in 'storage' status, make it as terse as possible, then use 'list' function in storage() for details (bucko) (@since 20211123) (@done 20211125)
-- [ ] ramlink is a storage device, can have a device number > 11. has rtc. defaults to device 16 (@since 20211123)
+- [ ] ramlink (@since 20211123)
+    * storage device
+    * [ ] prompt for device number > 11, default to 16 not set via vice option (@since 20220127)
+    * [x] handle rtc (@since 20220127 @done 20220127)
 - [ ] highlight invalid values on main menu (fix Menu) (@since 20211123) (bucko)
-- [ ] if there are invalid values (conflicts, etc), show the MenuItem in a diff color (bucko) (@since 20211123)
+- [x] if there are invalid values (conflicts, etc), show the MenuItem in a diff color (bucko) (@since 20211123 @done 20220131)
 - [x] separate storage status by spaces (@since 20211125) (@done 20211125)
+- [ ] check() (@since 20211202)
+    * [ ] ltkio is 0xDF00
+    * [ ] ACIA base addr is 0xDE00
+    * [ ] at least one serial device ("modem") with ip232 enabled
+- [ ] storage(): pressing enter at 'device type' prompt selects last item in static list (4844) (@since 20211126)
+- [ ] add "input devices" main menu option, and "keyboard" as only option (@since 20211202)
+- [ ] handle keyboard map files and symbolic/positional (@since 20211202)
+- [ ] add "machine" menu. (@since 20211202)
+    - [ ] host: cpu jam handling and cwd
+    - [ ] model: ntsc/pal/vicii model
+    - [ ] autostart
+    - [ ] i/o settings
+- [-] --add "audio" menu-- (@since 20211202)
+    - [-] --"sound"--
+- [x] fix cosmetic error in acia() re: space between "serial" and device (@since 20211202 @done 20211202)
+- [x] add "save settings on exit" to main menu (@since 20211202 @done 20211202)
+- [x] add "confirm on exit" to main menu (@since 20211202 @done 20211202)
+- [x] add "save config to json" to main menu (@since 20211202) (@since20211207)
+- [-] --add "save config to ini" to main menu-- (@since 20211202)
+- [x] move "drive sound" to somewhere other than 'peripheral devices' (@since 20211203) (@done 20211204)
+- [x] convert sound() to use Menu instead of a series of prompts, making it easier to integrate drivesound() (@since 20211203) (@done 20211205)
+- [ ] when setting sound system volume, do a range check to disallow > 100 (@since 20211203)
+- [ ] when a feature is disabled (like 'sound'), should all of the sub-options get disabled too? (@since 20211203)
+- [x] move 'use default config' prompt to mainmenu (@since 20211203)
+- [x] move 'load gfd3 config' (json) to mainmenu (@since 20211203) (@done 20211207)
+- [ ] handle save config to .ini file (@since 20211203)
+- [ ] savejson(): do not expand vars or user refs before prompting for a filename. (@since 20211204)
+- [-] --using an ini file for settings requires a table to map between vicecommandline and the ini file-- (@since 20211204)
+- [ ] after loading json file, populate storage (@since 20211204)
+- [ ] in StorageDevices.add(), change default of "add to list?" to Y (@since 20211205) (@done 20211205) 
+- [ ] when calling storage(), be sure to create proper StorageDevice objects. (@since 20211206)
+- [ ] populate all options and menus when loading json file (@since 20211206)
+- [ ] after loadjson(), populate 'basedir' menu item wo having to select it (@since 20211206)
+- [ ] tcpser. -B busy.txt for a busy port (@since 20211207) (bucko)
+- [ ] handle PermissionError and FileNotFoundError instead of using os calls (@since 20211209)
+- [ ] autoboot into image bbs (@since 20211226)
+     * https://www.lemon64.com/forum/viewtopic.php?t=64967&sid=3f25a4803bb4b159b36b8bef512c6a81
+- [ ] modem -> acia -> invalid io addr -> fail must pass up the stack to modem and main menu (@bug @since 20220127) (sound fails, too)
+- [ ] sound -> volume -> >100: shows 'pass' in main menu (@bug @since 20220127)
 
 ## dependencies
 - ttyio5 (not yet public) (GPLV3+)
@@ -232,7 +277,7 @@
 ```
 larry: It would be easiest with a Lt.K new installation to put your d1 files
 on LU0 and all your d2 files on LU1.  During setup, assign Image drive 5
-(programs drive) to LU 0 and all the other drives to LU1.  The error you are
+(programs drive) to LU0 and all the other drives to LU1.  The error you are
 getting in line 3116 is because Image isn't finding nm.times which should be
 located on your email drive
 
@@ -250,7 +295,7 @@ For a new installation it creates and populates e.data. For conversions of 1.2 o
 - pfiles lu0, everything else on lu1, except for mail on lu2
 - always set acia (swiftlink/turbo32) to 0xDExx. ltk defaults to 0xDFxx
 - CMDFD4000 is compat w d64, d81, etc. the glitch is you need to load the dir so the disk is "recognized" (vice bug?)
-- from 2021-03-28 meeting w larry and al:
+- from 2021-03-28 meeting w larry and bucko:
 ```
 x64sc -default +acia1 -ntsc -rsuser -rsdev1 localhost:25232 -rsdev1ip232 -rsdev1baud 2400 -rsdev2 rsdev2 +rsdev2ip232 -rsdev3 rsdev3 +rsdev3ip232 -rsdev4 rsdev4 +rsdev4ip232 +rsuser -dos4000 sandbox/cmd-fd-4000-dos-v1.40-fd-350022.bin -drive9type 4000 -8 dos-part1.dhd -9 cmddrive9.d4m -10 cmddrive10.d4m -11 cmddrive11.d4m
 tcpser -I -s 2400 -v 25232 -p 6400 -i e0v0s0=1s2=27 -t sI -l 7
@@ -328,3 +373,14 @@ Above is the script I use for mounting the ramlink
         Allow writing to REU image
 +ramlinkimagerw
         Do not write to REU image
+
+- 20220131: al says sound will crash vice running under proxmox. works in
+  kemu. turning off sound may mess with clock functions. display a note that
+  says if anyone is having issues, try with sound off.
+
+- find a way to not require psycopg2 and postgresql to run this script (@since 20220311)
+- [ ] ltkimage not showing up in saved json data (@since 20220311)
+- [ ] ioaddrs mapping included in savejson (@since 20220311)
+- [x] after changing handling of ltkio, status in menu shows ERROR for ioaddr (converted to int) (@since 20220311 @done 20220311)
+- [ ] for each CBM drive, allow only one image (@since 20220311)
+- [ ] prompt for single or bidirectional network (@since 20220312 @ref ryan)

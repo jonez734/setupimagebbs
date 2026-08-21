@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
-#from setuptools import setup
+# from setuptools import setup
 
 import time
 
@@ -11,33 +11,33 @@ v = time.strftime("%Y%m%d%H%M")
 projectname = "setupimagebbs"
 
 setup(
-  name=projectname,
-  version=v,
-  url="https://repo.zoidtechnologies.com/%s/" % (projectname),
-  author="zoid technologies",
-  author_email="%s@projects.zoidtechnologies.com" % (projectname),
-  py_modules=["setupimagebbs"],
-  requires=["ttyio5", "bbsengine5", "python-magic"],
-  scripts=["setupimagebbs"],
-  license="GPLv2",
-  provides=[projectname],
-  classifiers=[
-    "Programming Language :: Python :: 3.9",
-    "Environment :: Console",
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: End Users",
-    "Operating System :: POSIX",
-    "Topic :: Terminals",
-    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
-    "Topic :: Communications :: BBS"
-  ],
-  long_description = """setupimagebbs -- output command-line options for tcpser and vice""",
-  command_options = {
-    "build_sphinx": {
-      "project": projectname,
-      "version": v,
-      "release": r,
-      "source_dir": ( "setup.py", "doc/" )
-    }
-  }
+    name=projectname,
+    version=v,
+    url="https://repo.zoidtechnologies.com/%s/" % (projectname),
+    author="zoid technologies",
+    author_email="%s@projects.zoidtechnologies.com" % (projectname),
+    py_modules=["setupimagebbs"],
+    requires=["ttyio5", "bbsengine5", "python-magic"],
+    scripts=["setupimagebbs"],
+    license="GPLv2",
+    provides=[projectname],
+    classifiers=[
+        "Programming Language :: Python :: 3.9",
+        "Environment :: Console",
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: End Users",
+        "Operating System :: POSIX",
+        "Topic :: Terminals",
+        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+        "Topic :: Communications :: BBS",
+    ],
+    long_description="""setupimagebbs -- output command-line options for tcpser and vice""",
+    command_options={
+        "build_sphinx": {
+            "project": projectname,
+            "version": v,
+            "release": r,
+            "source_dir": ("setup.py", "doc/"),
+        }
+    },
 )
