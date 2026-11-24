@@ -1,3 +1,4 @@
+import argparse
 import time
 import locale
 
@@ -9,7 +10,7 @@ def main() -> None:
 
     The console script (pyproject.toml) and ``python -m setupimagebbs`` both run this.
     """
-    parser = lib.buildargs()
+    parser = lib.buildargs(argparse.Namespace())
     args = parser.parse_args()
 
     #    bbsengine.session.start(args)
