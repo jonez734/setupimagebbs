@@ -4,7 +4,11 @@ import locale
 from bbsengine6 import io, screen
 from . import lib
 
-if __name__ == "__main__":
+def main() -> None:
+    """The setupimagebbs command: parse the arguments, start the screen, and run the main menu.
+
+    The console script (pyproject.toml) and ``python -m setupimagebbs`` both run this.
+    """
     parser = lib.buildargs()
     args = parser.parse_args()
 
@@ -28,3 +32,7 @@ if __name__ == "__main__":
             "{savecursor}{curpos:%d,0}{el}{restorecursor}{reset}{/all}"
             % (io.getterminalheight())
         )
+
+
+if __name__ == "__main__":
+    main()

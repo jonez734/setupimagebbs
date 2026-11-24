@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "setupimagebbs"
+dynamic = ["version"]
+description = "setupimagebbs -- output command-line options for tcpser and vice"
+readme = "README.md"
+requires-python = ">=3.9,<3.13"
+license = "GPL-2.0-or-later"
+authors = [{ name = "zoid technologies", email = "setupimagebbs@projects.zoidtechnologies.com" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Environment :: Console",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users",
+    "Operating System :: POSIX",
+    "Topic :: Terminals",
+    "Topic :: Communications :: BBS",
+]
+dependencies = ["bbsengine6"]
+
+[project.scripts]
+setupimagebbs = "setupimagebbs.__main__:main"
+
+[project.urls]
+Homepage = "https://repo.zoidtechnologies.com/setupimagebbs/"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+version = { attr = "setupimagebbs._version.__version__" }

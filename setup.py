@@ -1,43 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+# Metadata lives in pyproject.toml. This shim exists only so older tooling that runs `setup.py` keeps
+# working; `python -m build` and `pip` read pyproject.toml directly.
+from setuptools import setup
 
-from distutils.core import setup
-# from setuptools import setup
-
-import time
-
-r = 1
-v = time.strftime("%Y%m%d%H%M")
-
-projectname = "setupimagebbs"
-
-setup(
-    name=projectname,
-    version=v,
-    url="https://repo.zoidtechnologies.com/%s/" % (projectname),
-    author="zoid technologies",
-    author_email="%s@projects.zoidtechnologies.com" % (projectname),
-    py_modules=["setupimagebbs"],
-    requires=["ttyio5", "bbsengine5", "python-magic"],
-    scripts=["setupimagebbs"],
-    license="GPLv2",
-    provides=[projectname],
-    classifiers=[
-        "Programming Language :: Python :: 3.9",
-        "Environment :: Console",
-        "Development Status :: 4 - Beta",
-        "Intended Audience :: End Users",
-        "Operating System :: POSIX",
-        "Topic :: Terminals",
-        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
-        "Topic :: Communications :: BBS",
-    ],
-    long_description="""setupimagebbs -- output command-line options for tcpser and vice""",
-    command_options={
-        "build_sphinx": {
-            "project": projectname,
-            "version": v,
-            "release": r,
-            "source_dir": ("setup.py", "doc/"),
-        }
-    },
-)
+setup()
