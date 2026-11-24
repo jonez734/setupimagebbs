@@ -1,19 +1,20 @@
+import argparse
 from bbsengine6 import io, util
 
 
-def init(args, **kw):
+def init(args: argparse.Namespace, **kwargs) -> bool | None:
     return True
 
 
-def access(args, op, **kw):
+def access(args: argparse.Namespace, op: str, **kwargs) -> bool | None:
     return True
 
 
-def buildargs(args, **kw):
+def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | None:
     return None
 
 
-def main(args, **kw):
+def main(args: argparse.Namespace, **kwargs) -> bool | None:
     vice = kw["vice"] if "vice" in kw else {}
     setup = kw["setup"] if "setup" in kw else {}
     ioaddrs = setup["ioaddrs"] if "ioaddrs" in kw else {}

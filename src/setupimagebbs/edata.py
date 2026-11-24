@@ -1,19 +1,20 @@
+import argparse
 import bbsengine6 as bbsengine
 
 
-def init(args, **kw):
+def init(args: argparse.Namespace, **kwargs) -> bool | None:
     return True
 
 
-def access(args, op, **kw):
+def access(args: argparse.Namespace, op: str, **kwargs) -> bool | None:
     return True
 
 
-def buildargs(args=None, **kw):
+def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | None:
     return None
 
 
-def main(args, **kwargs):
+def main(args: argparse.Namespace, **kwargs) -> bool | None:
     data = [
         {
             "record": 21,

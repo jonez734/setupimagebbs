@@ -1,3 +1,4 @@
+import argparse
 from bbsengine6 import io
 import bbsengine6 as bbsengine
 
@@ -12,19 +13,19 @@ def _readable_list(items):
     return ", ".join(items[:-1]) + " and " + items[-1]
 
 
-def init(args, **kw):
+def init(args: argparse.Namespace, **kwargs) -> bool | None:
     return True
 
 
-def access(args, op, **kw):
+def access(args: argparse.Namespace, op: str, **kwargs) -> bool | None:
     return True
 
 
-def buildargs(args=None, **kw):
+def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | None:
     return None
 
 
-def main(args, **kwargs):
+def main(args: argparse.Namespace, **kwargs) -> bool | None:
     bbsengine.util.heading("clock")
     # clock1 = ds12c887rtc(args)
     #  clock1 =  ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN")

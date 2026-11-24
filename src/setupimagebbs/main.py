@@ -1,3 +1,4 @@
+import argparse
 import locale
 
 from bbsengine6 import io, util, screen, menu
@@ -5,7 +6,7 @@ from bbsengine6 import io, util, screen, menu
 from . import lib
 
 
-def init(args, **kw):
+def init(args: argparse.Namespace, **kwargs) -> bool | None:
     io.setvariable("engine.menu.boxcharcolor", "{bglightgray}{darkgreen}")
     io.setvariable("engine.menu.color", "{bggray}")
     io.setvariable("engine.menu.shadowcolor", "{bgdarkgray}")
@@ -21,15 +22,15 @@ def init(args, **kw):
     return True
 
 
-def access(args, op, **kw):
+def access(args: argparse.Namespace, op: str, **kwargs) -> bool | None:
     return True
 
 
-def buildargs(args, **kw):
+def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | None:
     return None
 
 
-def main(args, **kw):
+def main(args: argparse.Namespace, **kwargs) -> bool | None:
     util.heading("setup image bbs!")
     lib.setarea(args, "setupimagebbs", **kw)
 

@@ -1,17 +1,18 @@
+import argparse
 from . import lib
 
 
-def init(args, **kw: dict) -> bool:
+def init(args: argparse.Namespace, **kwargs) -> bool | None:
     return True
 
 
-def access(args, op: str, **kw: dict) -> bool:
+def access(args: argparse.Namespace, op: str, **kwargs) -> bool | None:
     return True
 
 
-def buildargs(args, **kw: dict) -> bool:
+def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | None:
     return None
 
 
-def main(args, **kw):
+def main(args: argparse.Namespace, **kwargs) -> bool | None:
     return lib.runmodule("main", **kw)

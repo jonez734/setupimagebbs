@@ -6,13 +6,13 @@ import bbsengine6 as bbsengine
 from . import lib
 
 
-def init(args=None, **kw):
+def init(args: argparse.Namespace, **kwargs) -> bool | None:
     #    ttyio.setvariable("empyre.highlightcolor", "{bggray}{white}")
     #    ttyio.echo("empyre.boot.init", level="debug")
     return True
 
 
-def access(args, op, **kw):
+def access(args: argparse.Namespace, op: str, **kwargs) -> bool | None:
     if args.debug is True:
         io.echo(
             f"setupimagebbs.module.access.100: {args=} {op=} {kw=}", level="debug"
@@ -20,7 +20,7 @@ def access(args, op, **kw):
     return True
 
 
-def buildargs(args=None, **kw):
+def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | None:
     parser = argparse.ArgumentParser("setupimagebbs")
     parser.add_argument("--verbose", action="store_true", dest="verbose")
     parser.add_argument("--debug", action="store_true", dest="debug")
@@ -37,7 +37,7 @@ def buildargs(args=None, **kw):
     return parser
 
 
-def main(args, **kw):
+def main(args: argparse.Namespace, **kwargs) -> bool | None:
     if args is not None and "debug" in args and args.debug is True:
         io.echo(f"setupimagebbs.module.main.100: args={args!r}", level="debug")
 

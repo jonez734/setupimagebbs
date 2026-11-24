@@ -20,7 +20,7 @@ def runcallback(args, callbackname, **kw):
     return module.runcallback(args, callbackname, **kw)
 
 
-def buildargs(args=None, **kw):
+def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | None:
     parser = argparse.ArgumentParser("setupimagebbs")
     parser.add_argument("--verbose", action="store_true", dest="verbose")
     parser.add_argument("--debug", action="store_true", dest="debug")
@@ -37,5 +37,5 @@ def buildargs(args=None, **kw):
     return parser
 
 
-def init(args, **kw):
+def init(args: argparse.Namespace, **kwargs) -> bool | None:
     return True
