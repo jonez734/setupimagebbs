@@ -22,7 +22,7 @@ class StorageDeviceCBM(StorageDevice):
         return res
 
     def add(self):
-        self.image = bbsengine.inputfilename(
+        self.image = bbsengine.util.inputfilename(
             self.args, "{var:promptcolor}image name: {var:inputcolor}", self.image
         )
 
@@ -36,6 +36,6 @@ class StorageDeviceCBM(StorageDevice):
         io.echo("selected %s" % (cbmtypes[t]))
         self.type = t
 
-        self.image = bbsengine.inputfilename(
+        self.image = bbsengine.util.inputfilename(
             self.args, "{var:promptcolor}image name: {var:inputcolor}", self.image
         )

@@ -208,9 +208,9 @@ class StorageDeviceRAMLink(StorageDevice):
           del vice["-ramlinkimagerw"]
         description.append("[write image: No]")
 
-    vice["-cartramlink"] = bbsengine.inputfilename(self.args, "{var:promptcolor}cart ramlink bin: {var:inputcolor}", os.path.join(self.args.basedir, "ramlink.bin"), verify=bbsengine.util.verifyFileExistsReadable)
+    vice["-cartramlink"] = bbsengine.util.inputfilename(self.args, "{var:promptcolor}cart ramlink bin: {var:inputcolor}", os.path.join(self.args.basedir, "ramlink.bin"), verify=bbsengine.util.verify_file_exists_readable)
 
-    vice["-ramlinkimage"] = bbsengine.inputfilename(self.args, "{var:promptcolor}ramlink image: {var:inputcolor}", os.path.join(self.args.basedir, "ramlink.img"), verify=bbsengine.util.verifyFileExistsReadableWritable)
+    vice["-ramlinkimage"] = bbsengine.util.inputfilename(self.args, "{var:promptcolor}ramlink image: {var:inputcolor}", os.path.join(self.args.basedir, "ramlink.img"), verify=bbsengine.util.verify_file_exists_readable_writable)
 
     ramlinkrtcsave = True if "-ramlinkrtcsave" in vice else False
 
@@ -269,14 +269,14 @@ class StorageDeviceLTK(StorageDevice):
 
   def edit(self):
       cartcrt = vice["-cartcrt"] if "-cartcrt" in vice else os.path.join(self.args.basedir, "ltk.crt")
-      self.cartcrt = bbsengine.inputfilename(self.args, "-cartcrt: ", cartcrt, verify=bbsengine.util.verifyFileExistsReadable)
+      self.cartcrt = bbsengine.util.inputfilename(self.args, "-cartcrt: ", cartcrt, verify=bbsengine.util.verify_file_exists_readable)
 
       ltkimage0 = vice["-ltkimage0"] if "-ltkimage0" in vice else os.path.join(self.args.basedir, "drive8-0.dlk")
       ltkimage1 = vice["-ltkimage1"] if "-ltkimage1" in vice else os.path.join(self.args.basedir, "drive8-1.dlk")
       ltkimage2 = vice["-ltkimage2"] if "-ltkimage2" in vice else os.path.join(self.args.basedir, "drive8-2.dlk")
-      self.ltkimage0 = bbsengine.inputfilename(self.args, "-ltkimage0: ", ltkimage0, verify=bbsengine.util.verifyFileExistsReadableWritable)
-      self.ltkimage1 = bbsengine.inputfilename(self.args, "-ltkimage1: ", ltkimage1, verify=bbsengine.util.verifyFileExistsReadableWritable)
-      self.ltkimage2 = bbsengine.inputfilename(self.args, "-ltkimage2: ", ltkimage2, verify=bbsengine.util.verifyFileExistsReadableWritable)
+      self.ltkimage0 = bbsengine.util.inputfilename(self.args, "-ltkimage0: ", ltkimage0, verify=bbsengine.util.verify_file_exists_readable_writable)
+      self.ltkimage1 = bbsengine.util.inputfilename(self.args, "-ltkimage1: ", ltkimage1, verify=bbsengine.util.verify_file_exists_readable_writable)
+      self.ltkimage2 = bbsengine.util.inputfilename(self.args, "-ltkimage2: ", ltkimage2, verify=bbsengine.util.verify_file_exists_readable_writable)
 
       ltkport = vice["-ltkport"] if "-ltkport" in vice else 0
       self.ltkport = io.inputinteger("{var:promptcolor}Set LTK port number (0..15): {var:inputcolor}", ltkport, verify=verifyLTKPortInRange)
@@ -314,7 +314,7 @@ class StorageDeviceLTK(StorageDevice):
         self.fallbacktype = io.inputstring("fallback device (cbm only): ", "1581")
         vice["-drive%dtype" % (self.number)] = self.fallbacktype
         d = vice[f"-{self.number}"] if f"-{self.number}" in vice else ""
-        image = bbsengine.inputfilename(self.args, "{var:promptcolor}fallback image name: {var:inputcolor}", d)
+        image = bbsengine.util.inputfilename(self.args, "{var:promptcolor}fallback image name: {var:inputcolor}", d)
         if image is not None:
           vice[f"-{self.number}"] = image
 #          ttyio.echo("-%d set" % (self.number))
@@ -368,7 +368,7 @@ class StorageDeviceCBM(StorageDevice):
     return res
 
   def add(self):
-    self.image = bbsengine.inputfilename(self.args, "{var:promptcolor}image name: {var:inputcolor}", self.image)
+    self.image = bbsengine.util.inputfilename(self.args, "{var:promptcolor}image name: {var:inputcolor}", self.image)
 
   def edit(self):
     for k, v in cbmtypes.items():
@@ -380,7 +380,7 @@ class StorageDeviceCBM(StorageDevice):
     io.echo("selected %s" % (cbmtypes[t]))
     self.kind = t
 
-    self.image = bbsengine.inputfilename(self.args, "{var:promptcolor}image name: {var:inputcolor}", self.image)
+    self.image = bbsengine.util.inputfilename(self.args, "{var:promptcolor}image name: {var:inputcolor}", self.image)
 
 class StorageDeviceCMD(StorageDevice):
   def __init__(self, args, number, devicetype="CMD"):
@@ -397,8 +397,8 @@ class StorageDeviceCMD(StorageDevice):
         self.usertc = True
         if io.inputboolean("{var:promptcolor}save rtc? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y") is True:
           self.savertc = True
-    self.image = bbsengine.inputfilename(self.args, "{var:promptcolor}image filename: {var:inputcolor}", self.image)
-    self.bin = bbsengine.inputfilename(self.args, "{var:promptcolor}bin filename: {var:inputcolor}", self.bin)
+    self.image = bbsengine.util.inputfilename(self.args, "{var:promptcolor}image filename: {var:inputcolor}", self.image)
+    self.bin = bbsengine.util.inputfilename(self.args, "{var:promptcolor}bin filename: {var:inputcolor}", self.bin)
     vice[f"-{self.number}"] = self.image
     vice[f"-drive{self.number}type"] = self.kind
 

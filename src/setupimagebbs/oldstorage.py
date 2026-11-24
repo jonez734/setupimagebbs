@@ -34,29 +34,29 @@ def oldstorage(args, **kwargs):
             vicecommandline["-drive%dtype" % (ltkdev)] = "1581"
 
         setup["ltkdev"] = ltkdev
-        vicecommandline["-cartcrt"] = bbsengine.inputfilename(
+        vicecommandline["-cartcrt"] = bbsengine.util.inputfilename(
             args,
             "-cartcrt: ",
             os.path.join(args.basedir, "ltk.crt"),
-            verify=bbsengine.verifyFileExistsReadable,
+            verify=bbsengine.util.verify_file_exists_readable,
         )
-        vicecommandline["-ltkimage0"] = bbsengine.inputfilename(
+        vicecommandline["-ltkimage0"] = bbsengine.util.inputfilename(
             args,
             "-ltkimage0: ",
             os.path.join(args.basedir, "drive8-0.dlk"),
-            verify=bbsengine.verifyFileExistsReadableWritable,
+            verify=bbsengine.util.verify_file_exists_readable_writable,
         )
-        vicecommandline["-ltkimage1"] = bbsengine.inputfilename(
+        vicecommandline["-ltkimage1"] = bbsengine.util.inputfilename(
             args,
             "-ltkimage1: ",
             os.path.join(args.basedir, "drive8-1.dlk"),
-            verify=bbsengine.verifyFileExistsReadableWritable,
+            verify=bbsengine.util.verify_file_exists_readable_writable,
         )
-        vicecommandline["-ltkimage2"] = bbsengine.inputfilename(
+        vicecommandline["-ltkimage2"] = bbsengine.util.inputfilename(
             args,
             "-ltkimage2: ",
             os.path.join(args.basedir, "drive8-2.dlk"),
-            verify=bbsengine.verifyFileExistsReadableWritable,
+            verify=bbsengine.util.verify_file_exists_readable_writable,
         )
         #      vicecommandline["-ltkimage3"] = inputfilename(args, "-ltkimage3: ", os.path.join(args.basedir, "drive8-3.dlk"), verify=verifyFileExistsReadableWritable)
         #      vicecommandline["-ltkimage4"] = inputfilename(args, "-ltkimage4: ", os.path.join(args.basedir, "drive8-4.dlk"), verify=verifyFileExistsReadableWritable)
@@ -152,7 +152,7 @@ def oldstorage(args, **kwargs):
         if dt != "0":
             if args.debug is True:
                 io.echo("storage.160: default=%r" % (default), level="debug")
-            image = bbsengine.inputfilename(
+            image = bbsengine.util.inputfilename(
                 args,
                 "drive %d image: " % (drivenumber),
                 default,

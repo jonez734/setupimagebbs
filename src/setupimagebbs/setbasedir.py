@@ -23,7 +23,7 @@ def main(args, **kw):
     #    ttyio.echo(f"setbasedir.100: {mi=}", level="debug")
 
     basedir = setup["basedir"] if "basedir" in setup else args.basedir
-    basedir = input.filename("basedir: ", basedir, verify=util.verifyDirExistsWritable)
+    basedir = input.filename("basedir: ", basedir, verify=util.verify_dir_exists_writable)
     setup["basedir"] = basedir
 
     if mi is not None:

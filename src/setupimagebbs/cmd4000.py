@@ -24,11 +24,11 @@ def main(args, **kwargs):
         )
         is True
     ):
-        vicecommandline["-dos4000"] = bbsengine.inputfilename(
+        vicecommandline["-dos4000"] = bbsengine.util.inputfilename(
             args,
             "dos4000 filename: ",
             os.path.join(args.basedir, "cmd-fd-4000-dos-v1.40-fd-350022.bin"),
-            verify=bbsengine.verifyFileExistsReadable,
+            verify=bbsengine.util.verify_file_exists_readable,
         )
         vicecommandline["-drive9type"] = "4000"
         if (

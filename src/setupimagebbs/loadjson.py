@@ -30,7 +30,7 @@ def main(args, **kw):
     filename = bbsengine.util.inputfilename(
         "{var:promptcolor}load json filename: {var:inputcolor}",
         os.path.join(basedir, "gfd3.json"),
-        verify=bbsengine.util.verifyFileExistsReadable,
+        verify=bbsengine.util.verify_file_exists_readable,
         **kw,
     )
     expandedfilename = os.path.expanduser(filename)

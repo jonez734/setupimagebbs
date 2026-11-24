@@ -37,11 +37,11 @@ class StorageDeviceLTK(StorageDevice):
             if "-cartcrt" in vice
             else os.path.join(self.args.basedir, "ltk.crt")
         )
-        self.cartcrt = bbsengine.inputfilename(
+        self.cartcrt = bbsengine.util.inputfilename(
             self.args,
             "-cartcrt: ",
             cartcrt,
-            verify=bbsengine.util.verifyFileExistsReadable,
+            verify=bbsengine.util.verify_file_exists_readable,
         )
 
         ltkimage0 = (
@@ -59,23 +59,23 @@ class StorageDeviceLTK(StorageDevice):
             if "-ltkimage2" in vice
             else os.path.join(self.args.basedir, "drive8-2.dlk")
         )
-        self.ltkimage0 = bbsengine.inputfilename(
+        self.ltkimage0 = bbsengine.util.inputfilename(
             self.args,
             "-ltkimage0: ",
             ltkimage0,
-            verify=bbsengine.util.verifyFileExistsReadableWritable,
+            verify=bbsengine.util.verify_file_exists_readable_writable,
         )
-        self.ltkimage1 = bbsengine.inputfilename(
+        self.ltkimage1 = bbsengine.util.inputfilename(
             self.args,
             "-ltkimage1: ",
             ltkimage1,
-            verify=bbsengine.util.verifyFileExistsReadableWritable,
+            verify=bbsengine.util.verify_file_exists_readable_writable,
         )
-        self.ltkimage2 = bbsengine.inputfilename(
+        self.ltkimage2 = bbsengine.util.inputfilename(
             self.args,
             "-ltkimage2: ",
             ltkimage2,
-            verify=bbsengine.util.verifyFileExistsReadableWritable,
+            verify=bbsengine.util.verify_file_exists_readable_writable,
         )
 
         ltkport = vice["-ltkport"] if "-ltkport" in vice else 0
@@ -131,7 +131,7 @@ class StorageDeviceLTK(StorageDevice):
             )
             vice["-drive%dtype" % (self.number)] = self.fallbacktype
             d = vice[f"-{self.number}"] if f"-{self.number}" in vice else ""
-            image = bbsengine.inputfilename(
+            image = bbsengine.util.inputfilename(
                 self.args, "{var:promptcolor}fallback image name: {var:inputcolor}", d
             )
             if image is not None:

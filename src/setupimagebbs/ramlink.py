@@ -86,18 +86,18 @@ def main(args, **kw):
             del vice["-ramlinkimagerw"]
         description.append("[write image: No]")
 
-    vice["-cartramlink"] = bbsengine.inputfilename(
+    vice["-cartramlink"] = bbsengine.util.inputfilename(
         args,
         "{var:promptcolor}cart ramlink bin: {var:inputcolor}",
         os.path.join(args.basedir, "ramlink.bin"),
-        verify=bbsengine.verifyFileExistsReadable,
+        verify=bbsengine.util.verify_file_exists_readable,
     )
 
-    vice["-ramlinkimage"] = bbsengine.inputfilename(
+    vice["-ramlinkimage"] = bbsengine.util.inputfilename(
         args,
         "{var:promptcolor}ramlink image: {var:inputcolor}",
         os.path.join(args.basedir, "ramlink.img"),
-        verify=bbsengine.verifyFileExistsReadableWritable,
+        verify=bbsengine.util.verify_file_exists_readable_writable,
     )
 
     # handle pre-existing value!
