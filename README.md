@@ -2,7 +2,7 @@
 ## overview
 
 - project start 20210320
-- the goal of this software is to make the job of NISSA easier by configuring vice and tcpser with a set of reasonable defaults that have been tested and are known to work
+- the goal of this software is to make the job of NISSA easier by configuring vice and [tcpser](https://github.com/go4retro/tcpser) with a set of reasonable defaults that have been tested and are known to work
 - this script checks for tcpser-1.1.4_vicekludge
 - script is intended to run on any POSIX operating system (linux) and has not been tested under windows. pull requests and constructive criticism accepted.
 - microsoft lacks 'termios'
@@ -322,6 +322,7 @@ ats0=1s2=27s7=25
 - https://docs.python.org/3/library/os.path.html
 - https://stackoverflow.com/questions/33038056/deactivate-readline-autocompletion
 - https://docs.python.org/3/library/json.html
+- https://github.com/go4retro/tcpser (tcpser, upstream project)
 - https://github.com/go4retro/tcpser/tree/vicekludge
 - https://www.c64-wiki.com/wiki/JiffyDOS
 - https://stackoverflow.com/questions/16826172/filename-tab-completion-in-cmd-cmd-of-python
