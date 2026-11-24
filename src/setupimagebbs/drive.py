@@ -1,4 +1,4 @@
-import ttyio6 as ttyio
+from bbsengine6 import io
 import bbsengine6 as bbsengine
 
 
@@ -21,26 +21,26 @@ def main(args, **kw):
     while not done:
         bbsengine.util.heading("drive")
         #    bbsengine.title("storage")
-        ttyio.echo("[L]ist{f6}[A]dd{f6}[K]ill{f6}[E]dit{f6:2}[Q]uit{f6}")
-        ch = ttyio.inputchar(
+        io.echo("[L]ist{f6}[A]dd{f6}[K]ill{f6}[E]dit{f6:2}[Q]uit{f6}")
+        ch = io.inputchar(
             "{var:promptcolor}storage {var:optioncolor}[LAKEQ]{var:promptcolor}: {var:inputcolor}",
             "LAKEQ",
             "",
         )
         if ch == "L":
-            ttyio.echo("List{/all}")
+            io.echo("List{/all}")
             storagedevices.summary(args)
         elif ch == "A":
-            ttyio.echo("Add{/all}")
+            io.echo("Add{/all}")
             res = storagedevices.add(args)
         elif ch == "K":
-            ttyio.echo("kill{/all}")
+            io.echo("kill{/all}")
             res = storagedevices.kill(args)
         elif ch == "E":
-            ttyio.echo("Edit{/all}")
+            io.echo("Edit{/all}")
             res = storagedevices.edit(args)
         elif ch == "Q":
-            ttyio.echo("Quit{/all}")
+            io.echo("Quit{/all}")
             done = True
             break
     x = ""

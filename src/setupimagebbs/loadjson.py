@@ -1,7 +1,7 @@
 import os
 import json
 
-import ttyio6 as ttyio
+from bbsengine6 import io
 import bbsengine6 as bbsengine
 
 
@@ -37,11 +37,11 @@ def main(args, **kw):
     expandedfilename = os.path.expandvars(expandedfilename)
     fp = open(expandedfilename, "r")
     data = json.loads(fp.read())
-    ttyio.echo(f"loadjson.100: {data=}", level="debug")
+    io.echo(f"loadjson.100: {data=}", level="debug")
     fp.close()
     if "vice" in data:
         vice = data["vice"]
-        ttyio.echo(f"loadjson.120: {vice=}", level="debug")
+        io.echo(f"loadjson.120: {vice=}", level="debug")
     if "tcpser" in data:
         tcpser = data["tcpser"]
     if "setup" in data:

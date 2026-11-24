@@ -1,4 +1,4 @@
-import ttyio6 as ttyio
+from bbsengine6 import io
 import bbsengine6 as bbsengine
 
 
@@ -21,36 +21,36 @@ def main(args, **kwargs):
     )
 
     if iocollision == 0:
-        ttyio.echo(
+        io.echo(
             "{var:currentoptioncolor}[0]{var:labelcolor} error message, detatch all involved carts{/all}"
         )
     else:
-        ttyio.echo("[0] error message, detatch all involved carts")
+        io.echo("[0] error message, detatch all involved carts")
 
     if iocollision == 1:
-        ttyio.echo(
+        io.echo(
             "{var:currentoptioncolor}[1]{var:labelcolor} error message, detach most recent involved cart{/all}"
         )
     else:
-        ttyio.echo("[1] error message, detach most recent involved cart")
+        io.echo("[1] error message, detach most recent involved cart")
 
     if iocollision == 2:
-        ttyio.echo(
+        io.echo(
             "{var:currentoptioncolor}[2]{var:labelcolor} warning in log, bitwise-and valid return values{/all}"
         )
     else:
-        ttyio.echo("[2] warning in log, bitwise-and valid return values")
+        io.echo("[2] warning in log, bitwise-and valid return values")
 
-    ch = ttyio.inputchar(
+    ch = io.inputchar(
         "{var:promptcolor}iocollision handling {var:optioncolor}[012]{var:promptcolor}: {var:inputcolor}",
         "012",
         str(iocollision),
     )
     if ch == "0":
-        ttyio.echo("0: detach all involved carts")
+        io.echo("0: detach all involved carts")
     elif ch == "1":
-        ttyio.echo("1: detach most recent involved cart")
+        io.echo("1: detach most recent involved cart")
     elif ch == "2":
-        ttyio.echo("2: warn, bitwise-and valid return values")
+        io.echo("2: warn, bitwise-and valid return values")
     vicecommandline["-iocollision"] = int(ch)
     return True

@@ -1,4 +1,4 @@
-import ttyio6 as ttyio
+from bbsengine6 import io
 import bbsengine6 as bbsengine
 
 
@@ -19,14 +19,14 @@ def main(args, **kwargs):
     bbsengine.util.heading("vice: drivesound")
 
     if (
-        ttyio.inputboolean(
+        io.inputboolean(
             "Enable sound emulation of disk drives? [{var:engine.currentoptioncolor}Y{/all}n]: ",
             "Y",
             "YN",
         )
         is True
     ):
-        volume = ttyio.inputinteger("drive sound volume? [0-100]: ", 70)
+        volume = io.inputinteger("drive sound volume? [0-100]: ", 70)
         if "+drivesound" in vicecommandline:
             del vicecommandline["+drivesound"]
         vicecommandline["-drivesound"] = None

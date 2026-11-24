@@ -1,6 +1,6 @@
 import argparse
 
-import ttyio6 as ttyio
+from bbsengine6 import io
 import bbsengine6 as bbsengine
 
 from . import lib
@@ -14,7 +14,7 @@ def init(args=None, **kw):
 
 def access(args, op, **kw):
     if args.debug is True:
-        ttyio.echo(
+        io.echo(
             f"setupimagebbs.module.access.100: {args=} {op=} {kw=}", level="debug"
         )
     return True
@@ -39,7 +39,7 @@ def buildargs(args=None, **kw):
 
 def main(args, **kw):
     if args is not None and "debug" in args and args.debug is True:
-        ttyio.echo(f"setupimagebbs.module.main.100: args={args!r}", level="debug")
+        io.echo(f"setupimagebbs.module.main.100: args={args!r}", level="debug")
 
     #    bbsengine.util.heading("setup image bbs")
 
@@ -49,7 +49,7 @@ def main(args, **kw):
     #    lib.setarea(args, None, "startup %s rev %s" % (_version.__datestamp__, _version.__version__))
 
     if runsubmodule(args, "main", **kw) is False:
-        ttyio.echo("error running submodule 'main'", level="error")
+        io.echo("error running submodule 'main'", level="error")
     return
 
 
@@ -61,10 +61,10 @@ def checkmodule(args, module, **kw):
 def runmodule(args, module, **kw):
     module = f"{lib.PACKAGENAME}.{module}"
     if args.debug is True:
-        ttyio.echo(f"setupimagebbs.module.runmodule.100: {module=}", level="debug")
+        io.echo(f"setupimagebbs.module.runmodule.100: {module=}", level="debug")
 
     if bbsengine.module.check(args, module, **kw) is False:
-        ttyio.echo(
+        io.echo(
             f"setupimagebbs.module.runmodule.120: module {module} not available",
             level="error",
         )
@@ -75,7 +75,7 @@ def runmodule(args, module, **kw):
 
 def runsubmodule(args, submodule, **kw):
     if args.debug is True:
-        ttyio.echo(
+        io.echo(
             f"setupimagebbs.module.runsubmodule.100: {submodule=}", level="debug"
         )
     return runmodule(args, submodule, **kw)

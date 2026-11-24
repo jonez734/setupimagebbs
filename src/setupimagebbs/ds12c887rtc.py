@@ -1,4 +1,4 @@
-import ttyio6 as ttyio
+from bbsengine6 import io
 import bbsengine6 as bbsengine
 
 from . import lib
@@ -18,11 +18,11 @@ def main(args, **kwargs):
   bbsengine.util.heading("ds12c887rtc")
 
   if "-ds12c887rtc" in vice:
-    ch = ttyio.inputboolean("{var:promptcolor}Enable DS12C887RTC? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
+    ch = io.inputboolean("{var:promptcolor}Enable DS12C887RTC? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
   elif "+ds12c887rtc" in vice:
-    ch = ttyio.inputboolean("{var:promptcolor}Enable DS12C887RTC? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N", "YN")
+    ch = io.inputboolean("{var:promptcolor}Enable DS12C887RTC? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N", "YN")
   else:
-    ch = ttyio.inputboolean("{var:promptcolor}Enable DS12C887RTC? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
+    ch = io.inputboolean("{var:promptcolor}Enable DS12C887RTC? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
 
   if ch is False:
     vice["+ds12c887rtc"] = None
@@ -35,11 +35,11 @@ def main(args, **kwargs):
       del vice["+ds12c887rtc"]
 
   if "-ds12c887rtcsave" in vice:
-    ch = ttyio.inputboolean("{var:promptcolor}Enable saving of the DS12C887RTC data when changed? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
+    ch = io.inputboolean("{var:promptcolor}Enable saving of the DS12C887RTC data when changed? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
   elif "+ds12c887rtcsave" in vice:
-    ch = ttyio.inputboolean("{var:promptcolor}Enable saving of the DS12C887RTC data when changed? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N", "YN")
+    ch = io.inputboolean("{var:promptcolor}Enable saving of the DS12C887RTC data when changed? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N", "YN")
   else:
-    ch = ttyio.inputboolean("{var:promptcolor}Enable saving of the DS12C887RTC data when changed? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
+    ch = io.inputboolean("{var:promptcolor}Enable saving of the DS12C887RTC data when changed? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y", "YN")
 
   if ch is False:
     vice["+ds12c887rtcsave"] = None
@@ -58,7 +58,7 @@ def main(args, **kwargs):
   for c in addresschoices:
     i = ch - ord("A")
     if currentaddr == addresschoices[i] or defaultvalue == addresschoices[i]:
-      menu.append(f"{{var:engine.currentoptioncolor}}[{chr(ch)] {addresschoices[i]}")
+      menu.append(f"{{var:engine.currentoptioncolor}}[{chr(ch)}] {addresschoices[i]}")
       defaultvalue = chr(ch)
     elif currentaddr in ioaddrs:
       menu.append("{darkgray}[%s] %s{/all}" % (chr(ch), addresschoices[i]))
@@ -67,30 +67,30 @@ def main(args, **kwargs):
     options += chr(ch)
     ch += 1
 
-  ch = ttyio.inputchar("ioaddr "+" ".join(menu)+": ", options, defaultvalue, noneok=False)
+  ch = io.inputchar("ioaddr "+" ".join(menu)+": ", options, defaultvalue, noneok=False)
   addr = addresschoices[ord(ch) - ord("A")]
-  ttyio.echo(addr)
+  io.echo(addr)
   if addr in ioaddrs:
-    if ttyio.inputboolean("that address is already used for %s. proceed? [y{var:engine.currentoptioncolor}N{/all}]: " % (ioaddrs[addr]), "N", "YN") is True:
+    if io.inputboolean("that address is already used for %s. proceed? [y{var:engine.currentoptioncolor}N{/all}]: " % (ioaddrs[addr]), "N", "YN") is True:
       vice["-ds12c887rtcbase"] = addr
       ioaddrs[addr] = "ds12c887rtc"
 
   # -ds12c887rtchalted -> Set the RTC oscillator to 'halted'
   # -ds12c887rtcrunning -> Set the RTC oscillator to 'running'
   if "-ds12c887rtcrunning" in vice:
-    ch = ttyio.inputchar("{var:promptcolor}Set the RTC oscillator to {var:currentoptioncolor}[R]unning{var:promptcolor} or [H]alted: {var:inputcolor}", "RH", "R")
+    ch = io.inputchar("{var:promptcolor}Set the RTC oscillator to {var:currentoptioncolor}[R]unning{var:promptcolor} or [H]alted: {var:inputcolor}", "RH", "R")
   elif "-ds12c887rtchalted" in vice:
-    ch = ttyio.inputchar("{var:promptcolor}Set the RTC oscillator to [R]unning or {var:engine.currentoptioncolor}[H]alted{var:promptcolor}: {var:inputcolor}", "RH", "H")
+    ch = io.inputchar("{var:promptcolor}Set the RTC oscillator to [R]unning or {var:engine.currentoptioncolor}[H]alted{var:promptcolor}: {var:inputcolor}", "RH", "H")
   else:
-    ch = ttyio.inputchar("Set the RTC oscillator to {var:engine.currentoptioncolor}[R]unning{var:promptcolor} or [H]alted: {var:inputcolor}", "RH", "R")
+    ch = io.inputchar("Set the RTC oscillator to {var:engine.currentoptioncolor}[R]unning{var:promptcolor} or [H]alted: {var:inputcolor}", "RH", "R")
 
   if ch == "R":
-    ttyio.echo("Running")
+    io.echo("Running")
     vice["-ds12c887rtcrunning"] = None
     if "-ds12c887rtchalted" in vice:
       del vice["-ds12c887rtchalted"]
   elif ch == "H":
-    ttyio.echo("Halted")
+    io.echo("Halted")
     vice["-ds12c887rtchalted"] = None
     if "-ds12c887rtcrunning" in vice:
       del vice["-ds12c887rtcrunning"] 
@@ -104,5 +104,5 @@ def main(args, **kwargs):
     if "-ds12c887running" in vice:
       del vice["-ds12c887running"]
 
-  ttyio.echo()
+  io.echo()
   return True

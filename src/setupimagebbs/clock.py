@@ -1,7 +1,15 @@
-import ttyio6 as ttyio
+from bbsengine6 import io
 import bbsengine6 as bbsengine
 
 from . import lib
+
+
+def _readable_list(items):
+    """Join items as "a", "a and b", or "a, b and c" (the status line's plain form, no colour codes)."""
+    items = [str(i) for i in items]
+    if len(items) <= 2:
+        return " and ".join(items)
+    return ", ".join(items[:-1]) + " and " + items[-1]
 
 
 def init(args, **kw):
@@ -21,7 +29,7 @@ def main(args, **kwargs):
     # clock1 = ds12c887rtc(args)
     #  clock1 =  ttyio.inputboolean("use ds12c887rtc? [{bggray}{white}Y{/all}n]: ", "Y", "YN")
     #  if clock1 is False:
-    clock2 = ttyio.inputboolean(
+    clock2 = io.inputboolean(
         "{var:promptcolor}use cmd fd-4000 RTC? {var:optioncolor}[y{var:currentoptioncolor}N{/all}{var:promptcolor}]: {var:inputcolor}",
         "N",
         "YN",
@@ -39,7 +47,7 @@ def main(args, **kwargs):
         lib.runsubmodule(args, "cmd4000", **kw)
         status.append("cmd fd-4000rtc")
     if len(status) > 0:
-        statusbuf = "(%s)" % (ttyio.readablelist(status))
+        statusbuf = "(%s)" % (_readable_list(status))
     else:
         statusbuf = ""
 

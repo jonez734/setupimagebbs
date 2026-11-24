@@ -1,4 +1,4 @@
-import ttyio6 as ttyio
+from bbsengine6 import io
 import bbsengine6 as bbsengine
 
 
@@ -17,7 +17,7 @@ def buildargs(args=None, **kw):
 def main(args, **kwargs):
     bbsengine.util.heading("cmd4000")
     if (
-        ttyio.inputboolean(
+        io.inputboolean(
             "enable cmd fd-4000 on device 9? [{var:engine.currentoptioncolor}Y{/all}n]: ",
             "Y",
             "YN",
@@ -32,7 +32,7 @@ def main(args, **kwargs):
         )
         vicecommandline["-drive9type"] = "4000"
         if (
-            ttyio.inputboolean(
+            io.inputboolean(
                 "{var:promptcolor}enable drive 9 rtc save? [{var:engine.currentoptioncolor}Y{/all}n]: {var:inputcolor}",
                 "Y",
                 "YN",

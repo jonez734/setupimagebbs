@@ -1,4 +1,4 @@
-import ttyio6 as ttyio
+from bbsengine6 import io
 import bbsengine6 as bbsengine
 
 
@@ -30,7 +30,7 @@ def main(args, **kwargs):
     else:
         prompt += "y{var:engine.currentoptioncolor}N{/all}"
     prompt += "]: "
-    if ttyio.inputboolean(prompt, saveres) is True:
+    if io.inputboolean(prompt, saveres) is True:
         vicecommandline["-saveres"] = None
         if "+saveres" in vicecommandline:
             del vicecommandline["+saveres"]

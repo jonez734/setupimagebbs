@@ -1,4 +1,4 @@
-import ttyio6 as ttyio
+from bbsengine6 import io
 import bbsengine6 as bbsengine
 
 
@@ -34,7 +34,7 @@ def main(args, **kw):
         prompt = "{var:promptcolor}use ramlink? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}"
         default = "N"
 
-    if ttyio.inputboolean(prompt, default) is False:
+    if io.inputboolean(prompt, default) is False:
         vice["-ramlink"] = None
         for x in [
             "+ramlink",
@@ -56,7 +56,7 @@ def main(args, **kw):
     #  if device < 12:
     #    ttyio.echo("ramlink device out of range (<12)")
 
-    size = ttyio.inputinteger(
+    size = io.inputinteger(
         "{var:promptcolor}ramlink size in megabytes (0=Disabled): {var:inputcolor}", 16
     )
     if size == 0:
@@ -70,7 +70,7 @@ def main(args, **kw):
     )
 
     if (
-        ttyio.inputboolean(
+        io.inputboolean(
             "{var:promptcolor}allow write to ramlink image? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}",
             "Y",
         )
@@ -102,7 +102,7 @@ def main(args, **kw):
 
     # handle pre-existing value!
     if (
-        ttyio.inputboolean(
+        io.inputboolean(
             "{var:promptcolor}ramlink rtc save? {var:optioncolor}[Yn]: ", "Y"
         )
         is True
@@ -125,12 +125,12 @@ def main(args, **kw):
     else:
         prompt += "1=Normal, {var:currentoptioncolor}0=Direct{/all}"
     prompt += "): "
-    ch = ttyio.inputchar(prompt, "01", ramlinkmode)
+    ch = io.inputchar(prompt, "01", ramlinkmode)
     if ch == "0":
-        ttyio.echo("Direct")
+        io.echo("Direct")
         description.append("[mode: direct]")
     elif ch == "1":
-        ttyio.echo("Normal")
+        io.echo("Normal")
         description.append("[mode: normal]")
 
     vice["-ramlinkmode"] = ch

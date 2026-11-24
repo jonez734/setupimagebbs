@@ -1,6 +1,4 @@
-import ttyio6 as ttyio
-
-
+from bbsengine6 import io
 def init(args, **kw):
     return True
 
@@ -23,7 +21,7 @@ def main(args, **kw):
         "2: symbolic (user)",
         "3: positional (user)",
     )
-    ch = ttyio.inputchar(
+    ch = io.inputchar(
         "Specify index of keymap file ({var:engine.currentoptioncolor}0:symbolic{/all}, 1:positional, 2:symbolic (user), 3:positional (user))? [0123]: ",
         "0123",
         "0",

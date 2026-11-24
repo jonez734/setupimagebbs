@@ -1,3 +1,6 @@
+from ._base import StorageDevice
+
+
 class StorageDeviceLTK(StorageDevice):
     def __init__(self, args, number, drivetype="LTK", **kw):
         super().__init__(args, number, drivetype, **kw)
@@ -76,7 +79,7 @@ class StorageDeviceLTK(StorageDevice):
         )
 
         ltkport = vice["-ltkport"] if "-ltkport" in vice else 0
-        self.ltkport = ttyio.inputinteger(
+        self.ltkport = io.inputinteger(
             "{var:promptcolor}Set LTK port number (0..15): {var:inputcolor}",
             ltkport,
             verify=verifyLTKPortInRange,
@@ -90,18 +93,18 @@ class StorageDeviceLTK(StorageDevice):
         elif ltkio == "1":
             prompt += "0: 0xDE00, {var:currentoptioncolor}1: 0xDF00{/all}"
         prompt += "): {var:inputcolor}"
-        ch = vice["-ltkio"] = ttyio.inputchar(prompt, "01", "1")
+        ch = vice["-ltkio"] = io.inputchar(prompt, "01", "1")
         if args.debug is True:
-            ttyio.echo("ch=%r" % (ch), level="debug")
+            io.echo("ch=%r" % (ch), level="debug")
 
         if ch == "1":
-            ttyio.echo("1: 0xDF00")
+            io.echo("1: 0xDF00")
             ioaddrs["0xDF00"] = "ltkio"
             if "0xDE00" in ioaddrs and ioaddrs["0xDE00"] == "ltkio":
                 del ioaddrs["0xDE00"]
         elif ch == "0":
-            ttyio.echo("0: 0xDE00")
-            ttyio.echo(
+            io.echo("0: 0xDE00")
+            io.echo(
                 "{f6}Warning: Using 0xDE00 for the LTK IO address is not supported by Image BBS 3.0.{f6}",
                 level="warn",
             )
@@ -111,19 +114,19 @@ class StorageDeviceLTK(StorageDevice):
         vice["-ltkio"] = int(ch)
 
         if self.number > 11:
-            ttyio.echo(
+            io.echo(
                 "fallback device disabled, #% d is greater than 11." % (self.number)
             )
             return
 
         if (
-            ttyio.inputboolean(
+            io.inputboolean(
                 "{var:promptcolor}use ltk fallback device? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}",
                 "N",
             )
             is True
         ):
-            self.fallbacktype = ttyio.inputstring(
+            self.fallbacktype = io.inputstring(
                 "fallback device (cbm only): ", "1581"
             )
             vice["-drive%dtype" % (self.number)] = self.fallbacktype
@@ -139,7 +142,7 @@ class StorageDeviceLTK(StorageDevice):
         vice["-ltkimage1"] = ltkimage1
         vice["-ltkimage2"] = ltkimage2
 
-        ttyio.echo("setting -kernal to 'kernal'")
+        io.echo("setting -kernal to 'kernal'")
         vice["-kernal"] = "kernal"
         return
 

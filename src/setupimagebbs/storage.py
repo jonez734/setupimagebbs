@@ -1,4 +1,4 @@
-import ttyio6 as ttyio
+from bbsengine6 import io
 import bbsengine6 as bbsengine
 
 def drivetype(args, devicenumber, oldvalue=None):
@@ -59,7 +59,7 @@ def drivetype(args, devicenumber, oldvalue=None):
 #      types["4000"] = "CMD FD-4000"
 
     if args.debug is True:
-      ttyio.echo("drivetype.100: oldvalue=%r" % (oldvalue))
+      io.echo("drivetype.100: oldvalue=%r" % (oldvalue))
 
     default = "N"
     options = "N"
@@ -68,10 +68,10 @@ def drivetype(args, devicenumber, oldvalue=None):
     for k, v in labels.items():
       label = v
       if k == oldvalue:
-        ttyio.echo("{var:engine.currentoptioncolor}[%s] %s{/all}" % (chr(char), label))
+        io.echo("{var:engine.currentoptioncolor}[%s] %s{/all}" % (chr(char), label))
         default = chr(char)
       else:
-        ttyio.echo("[%s] %s" % (chr(char), label))
+        io.echo("[%s] %s" % (chr(char), label))
 
       options += chr(char)
 
@@ -80,16 +80,16 @@ def drivetype(args, devicenumber, oldvalue=None):
       char += 1
 
     if default == "N":
-      ttyio.echo("{var:engine.currentoptioncolor}[N] None{/all}")
+      io.echo("{var:engine.currentoptioncolor}[N] None{/all}")
     else:
-      ttyio.echo("[N] None")
+      io.echo("[N] None")
 
-    dt = ttyio.inputchar("device %d type: " % (devicenumber), options, default)
+    dt = io.inputchar("device %d type: " % (devicenumber), options, default)
     # ttyio.echo("menu=%r" % (menu), interpret=False)
     if dt in menu:
-        ttyio.echo("%s" % (menu[dt]))
+        io.echo("%s" % (menu[dt]))
         return menu[dt]
-    ttyio.echo("None")
+    io.echo("None")
     return "0"
 
 cbmtypes = {
@@ -138,7 +138,7 @@ class StorageDevice(object):
       else:
         prompt = "{var:promptcolor}use rtc? {var:optioncolor}[y{var:currentoptioncolor}N{/all}]: {var:inputcolor}"
         currentoption = "N"
-      self.usertc = ttyio.inputboolean(prompt, currentoption)
+      self.usertc = io.inputboolean(prompt, currentoption)
 
       if self.savertc is True:
         prompt = "{var:promptcolor}save rtc? {var:optioncolor}[Yn]: {var:inputcolor}"
@@ -146,7 +146,7 @@ class StorageDevice(object):
       else:
         prompt = "{var:promptcolor}save rtc? {var:optioncolor}[yN]: {var:inputcolor}"
         currentoption = "N"
-      self.savertc = ttyio.inputboolean(prompt, currentoption)
+      self.savertc = io.inputboolean(prompt, currentoption)
       # add device to rtc list
     return
   def save(self):
@@ -164,7 +164,7 @@ class StorageDeviceRAMLink(StorageDevice):
     self.enabled = False
 
   def edit(self):
-    enableramlink = ttyio.inputboolean("{var:promptcolor}enable ramlink? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N")
+    enableramlink = io.inputboolean("{var:promptcolor}enable ramlink? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N")
     if enableramlink is False:
       vice["+ramlink"] = None
       for x in ("-ramlink", "-ramlinkmode", "-ramlinkrtcsave", "+ramlinkrtcsave", "-ramlinksize", "-ramlinkimage", "-ramlinkimagerw", "+ramlinkimagerw" ):
@@ -181,14 +181,14 @@ class StorageDeviceRAMLink(StorageDevice):
     else:
       prompt += "{var:optioncolor}1{var:promptcolor}: Normal {var:currentoptioncolor}0{var:promptcolor}: Direct{/all}"
     prompt += ") {var:optioncolor}[01]{var:promptcolor}: {var:inputcolor}"
-    ramlinkmode = ttyio.inputchar(prompt, "01", str(ramlinkmode))
+    ramlinkmode = io.inputchar(prompt, "01", str(ramlinkmode))
     if ramlinkmode == "0":
-      ttyio.echo("0: Direct")
+      io.echo("0: Direct")
     else:
-      ttyio.echo("1: Normal")
+      io.echo("1: Normal")
     vice["-ramlinkmode"] = ramlinkmode
 
-    size = ttyio.inputinteger("{var:promptcolor}ramlink size in MiB (0=Disabled): {var:inputcolor}", 16)
+    size = io.inputinteger("{var:promptcolor}ramlink size in MiB (0=Disabled): {var:inputcolor}", 16)
     if size == 0:
       return (True, "disabled")
     self.size = size
@@ -197,7 +197,7 @@ class StorageDeviceRAMLink(StorageDevice):
     vice["-ramlinksize"] = size
     description.append("[size: %s]" % (bbsengine.pluralize(size, "megabyte", "megabytes")))
 
-    if ttyio.inputboolean("{var:promptcolor}allow write to ramlink image? [{var:currentoptioncolor}Y{var:optioncolor}n]{var:promptcolor}: {var:inputcolor}", "Y") is True:
+    if io.inputboolean("{var:promptcolor}allow write to ramlink image? [{var:currentoptioncolor}Y{var:optioncolor}n]{var:promptcolor}: {var:inputcolor}", "Y") is True:
         vice["-ramlinkimagerw"] = None
         description.append("[write image: Yes]")
         if "+ramlinkimagerw" in vice:
@@ -224,7 +224,7 @@ class StorageDeviceRAMLink(StorageDevice):
       default = "Y"
     else:
       default = "N"
-    if ttyio.inputboolean(prompt, default) is True:
+    if io.inputboolean(prompt, default) is True:
       vice["-ramlinkrtcsave"] = None
       if "+ramlinkrtcsave" in vice:
         del vice["+ramlinkrtcsave"]
@@ -279,7 +279,7 @@ class StorageDeviceLTK(StorageDevice):
       self.ltkimage2 = bbsengine.inputfilename(self.args, "-ltkimage2: ", ltkimage2, verify=bbsengine.util.verifyFileExistsReadableWritable)
 
       ltkport = vice["-ltkport"] if "-ltkport" in vice else 0
-      self.ltkport = ttyio.inputinteger("{var:promptcolor}Set LTK port number (0..15): {var:inputcolor}", ltkport, verify=verifyLTKPortInRange)
+      self.ltkport = io.inputinteger("{var:promptcolor}Set LTK port number (0..15): {var:inputcolor}", ltkport, verify=verifyLTKPortInRange)
       vice["-ltkport"] = self.ltkport
 
       ltkio = vice["-ltkio"] if "-ltkio" in vice else 1
@@ -289,29 +289,29 @@ class StorageDeviceLTK(StorageDevice):
       elif ltkio == "1":
         prompt += "{var:optioncolor}0: 0xDE00{var:promptcolor}, {var:currentoptioncolor}1: 0xDF00{/all}"
       prompt += "): {var:inputcolor}"
-      ch = vice["-ltkio"] = ttyio.inputchar(prompt, "01", "1")
+      ch = vice["-ltkio"] = io.inputchar(prompt, "01", "1")
       if args.debug is True:
-        ttyio.echo("ch=%r" % (ch), level="debug")
+        io.echo("ch=%r" % (ch), level="debug")
 
       if ch == "1":
-        ttyio.echo("1: 0xDF00")
+        io.echo("1: 0xDF00")
         ioaddrs["0xDF00"] = "ltkio"
         if "0xDE00" in ioaddrs and ioaddrs["0xDE00"] == "ltkio":
           del ioaddrs["0xDE00"]
       elif ch == "0":
-        ttyio.echo("0: 0xDE00")
-        ttyio.echo("{f6}Warning: Using 0xDE00 for the LTK IO address is not supported by Image BBS 3.0.{f6}", level="warn")
+        io.echo("0: 0xDE00")
+        io.echo("{f6}Warning: Using 0xDE00 for the LTK IO address is not supported by Image BBS 3.0.{f6}", level="warn")
         ioaddrs["0xDE00"] = "ltkio"
         if "0xDF00" in ioaddrs and ioaddrs["0xDF00"] == "ltkio":
           del ioaddrs["0xDF00"]
       vice["-ltkio"] = int(ch)
 
       if self.number > 11:
-        ttyio.echo("fallback device disabled, #% d is greater than 11." % (self.number))
+        io.echo("fallback device disabled, #% d is greater than 11." % (self.number))
         return
 
-      if ttyio.inputboolean("{var:promptcolor}use ltk fallback device? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N") is True:
-        self.fallbacktype = ttyio.inputstring("fallback device (cbm only): ", "1581")
+      if io.inputboolean("{var:promptcolor}use ltk fallback device? {var:optioncolor}[yN]{var:promptcolor}: {var:inputcolor}", "N") is True:
+        self.fallbacktype = io.inputstring("fallback device (cbm only): ", "1581")
         vice["-drive%dtype" % (self.number)] = self.fallbacktype
         d = vice[f"-{self.number}"] if f"-{self.number}" in vice else ""
         image = bbsengine.inputfilename(self.args, "{var:promptcolor}fallback image name: {var:inputcolor}", d)
@@ -323,7 +323,7 @@ class StorageDeviceLTK(StorageDevice):
       vice["-ltkimage1"] = ltkimage1
       vice["-ltkimage2"] = ltkimage2
 
-      ttyio.echo("setting -kernal to 'kernal'")
+      io.echo("setting -kernal to 'kernal'")
       vice["-kernal"] = "kernal"
       return
 
@@ -372,12 +372,12 @@ class StorageDeviceCBM(StorageDevice):
 
   def edit(self):
     for k, v in cbmtypes.items():
-      ttyio.echo("[%s] %s" % (k, v))
-    t = ttyio.inputstring("type: ", self.kind)
+      io.echo("[%s] %s" % (k, v))
+    t = io.inputstring("type: ", self.kind)
     if t not in cbmtypes:
-      ttyio.echo("invalid drive type")
+      io.echo("invalid drive type")
       return
-    ttyio.echo("selected %s" % (cbmtypes[t]))
+    io.echo("selected %s" % (cbmtypes[t]))
     self.kind = t
 
     self.image = bbsengine.inputfilename(self.args, "{var:promptcolor}image name: {var:inputcolor}", self.image)
@@ -393,9 +393,9 @@ class StorageDeviceCMD(StorageDevice):
 
   def edit(self, args):
     if self.hasrtc is True:
-      if ttyio.inputboolean("{var:promptcolor}use rtc? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y") is True:
+      if io.inputboolean("{var:promptcolor}use rtc? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y") is True:
         self.usertc = True
-        if ttyio.inputboolean("{var:promptcolor}save rtc? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y") is True:
+        if io.inputboolean("{var:promptcolor}save rtc? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y") is True:
           self.savertc = True
     self.image = bbsengine.inputfilename(self.args, "{var:promptcolor}image filename: {var:inputcolor}", self.image)
     self.bin = bbsengine.inputfilename(self.args, "{var:promptcolor}bin filename: {var:inputcolor}", self.bin)
@@ -442,7 +442,7 @@ class StorageDevices(object):
       self.devices.append(storagedevice)
       return
 
-    ttyio.echo("StorageDevices.append() not passed a subclass of StorageDevice")
+    io.echo("StorageDevices.append() not passed a subclass of StorageDevice")
     return
 
   def __getitem__(self, index):
@@ -463,56 +463,56 @@ class StorageDevices(object):
 
   def summary(self, args, **kwargs):
     if len(storagedevices) == 0:
-      ttyio.echo("no storage devices configured.")
+      io.echo("no storage devices configured.")
       return True
     for sd in storagedevices:
-      ttyio.echo(str(sd))
+      io.echo(str(sd))
 
     return True
 
   def add(self, args, **kwargs):
 #    ttyio.echo("entering storagedevices.add()")
-    number = ttyio.inputinteger("{var:promptcolor}device number: {var:inputcolor}")
-    ttyio.echo("{/all}")
+    number = io.inputinteger("{var:promptcolor}device number: {var:inputcolor}")
+    io.echo("{/all}")
     dt = drivetype(args, number)
 
     subclass = self.subclasses[dt]
     sd = subclass(args, number, dt)
     sd.add()
-    ttyio.echo(str(sd), level="debug")
+    io.echo(str(sd), level="debug")
     if self.find(number) is not None:
-      ttyio.echo("#%d has already been defined." % (number))
+      io.echo("#%d has already been defined." % (number))
       return False
-    if ttyio.inputboolean("{var:promptcolor}add this device? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y") is True:
+    if io.inputboolean("{var:promptcolor}add this device? {var:optioncolor}[Yn]{var:promptcolor}: {var:inputcolor}", "Y") is True:
       storagedevices.append(sd) # [storagedevice.device] = storagedevice
     else:
-      ttyio.echo("storage device not added.")
+      io.echo("storage device not added.")
 
     return False
 
   def edit(self, args, **kwargs):
 #    ttyio.echo("edit{/all}")
     if len(storagedevices) == 0:
-      ttyio.echo("no storage devices defined.", level="error")
+      io.echo("no storage devices defined.", level="error")
       return False
-    number = ttyio.inputinteger("{var:promptcolor}device number: {var:inputcolor}")
+    number = io.inputinteger("{var:promptcolor}device number: {var:inputcolor}")
     d = self.find(number)
     if d is None:
-      ttyio.echo(f"device #{number} is not defined", level="error")
+      io.echo(f"device #{number} is not defined", level="error")
       return False
     d.edit(args)
     return True
 
   def kill(self, args, **kwargs):
-    ttyio.echo("kill")
+    io.echo("kill")
     if len(storagedevices) == 0:
-      ttyio.echo("no storage devices defined.", level="error")
+      io.echo("no storage devices defined.", level="error")
       return False
-    device = ttyio.inputinteger("{var:promptcolor}kill which device?: {var:inputcolor}")
+    device = io.inputinteger("{var:promptcolor}kill which device?: {var:inputcolor}")
     if self.find(device) is None:
-      ttyio.echo(f"unable to kill #{device} as it has not been defined")
+      io.echo(f"unable to kill #{device} as it has not been defined")
     if device is None or device == 0:
-      ttyio.echo("no storage device number entered.")
+      io.echo("no storage device number entered.")
       return False
-    ttyio.echo("no devices killed (not yet implemented)", level='warn")
+    io.echo("no devices killed (not yet implemented)", level="warn")
     return False

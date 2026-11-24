@@ -1,4 +1,4 @@
-import ttyio6 as ttyio
+from bbsengine6 import io
 import bbsengine6 as bbsengine
 
 
@@ -25,12 +25,12 @@ def main(args, **kw):
         defaultvalue = "Y"
 
     if defaultvalue == "Y":
-        ch = ttyio.inputboolean(
+        ch = io.inputboolean(
             "{var:promptcolor}truedrive? {var:optioncolor}[{var:currentoptioncolor}Y{var:optioncolor}n]{var:promptcolor}: {var:inputcolor}",
             "Y",
         )
     else:
-        ch = ttyio.inputboolean(
+        ch = io.inputboolean(
             "{var:promptcolor}truedrive? {var:optioncolor}[y{var:currentoptioncolor}N{var:optioncolor}]{var:promptcolor}: {var:inputcolor}",
             "N",
         )

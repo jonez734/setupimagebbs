@@ -99,7 +99,7 @@ class StorageDevices(object):
     if device is None or device == 0:
       io.echo("no storage device number entered.")
       return False
-    io.echo("no devices killed (not yet implemented)", level='warn")
+    io.echo("no devices killed (not yet implemented)", level="warn")
     return False
 
 def runmodule(args, modulename, **kw):

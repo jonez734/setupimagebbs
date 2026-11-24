@@ -2,7 +2,7 @@ def oldsound(args, **kwargs):
     bbsengine.setarea("sound")
     status = []
     if (
-        ttyio.inputboolean(
+        io.inputboolean(
             "enable sound? [{var:engine.currentoptioncolor}Y{/all}n]: ", "Y", "YN"
         )
         is False
@@ -36,16 +36,16 @@ def oldsound(args, **kwargs):
     else:
         prompt += "2: stereo"
     prompt += ": "
-    ch = ttyio.inputchar(prompt, "012", soundsync)
+    ch = io.inputchar(prompt, "012", soundsync)
     vicecommandline["-soundsync"] = ch
     if ch == "0":
-        ttyio.echo("system")
+        io.echo("system")
         status.append("sync: system")
     elif ch == "1":
-        ttyio.echo("mono")
+        io.echo("mono")
         status.append("sync: mono")
     elif ch == "2":
-        ttyio.echo("stereo")
+        io.echo("stereo")
         status.append("sync: stereo")
     # -soundsuspend
 
@@ -53,7 +53,7 @@ def oldsound(args, **kwargs):
     soundvolume = (
         vicecommandline["-soundvolume"] if "-soundvolume" in vicecommandline else "70"
     )
-    vol = ttyio.inputinteger("soundvolume (0-100): ", soundvolume)
+    vol = io.inputinteger("soundvolume (0-100): ", soundvolume)
     vicecommandline["-soundvolume"] = vol
     status.append("vol: %s" % (vol))
 
@@ -62,7 +62,7 @@ def oldsound(args, **kwargs):
         vicecommandline["-sounddev"] if "-sounddev" in vicecommandline else "pulse"
     )
 
-    ttyio.echo("sound.100: sounddev=%r" % (sounddev), level="debug")
+    io.echo("sound.100: sounddev=%r" % (sounddev), level="debug")
 
     opts = []
     if sounddev == "pulse":
@@ -81,21 +81,21 @@ def oldsound(args, **kwargs):
         opts.append("{var:engine.currentoptioncolor}[D]ummy{/all}")
     else:
         opts.append("[D]ummy")
-    dev = ttyio.inputchar("%s: " % (" ".join(opts)), "PASD", sounddev)
+    dev = io.inputchar("%s: " % (" ".join(opts)), "PASD", sounddev)
     if dev == "P":
-        ttyio.echo("Pulse")
+        io.echo("Pulse")
         vicecommandline["-sounddev"] = "pulse"
         status.append("dev: pulse")
     elif dev == "A":
-        ttyio.echo("ALSA")
+        io.echo("ALSA")
         vicecommandline["-sounddev"] = "alsa"
         status.append("dev: alsa")
     elif dev == "S":
-        ttyio.echo("SDL")
+        io.echo("SDL")
         vicecommandline["-sounddev"] = "sdl"
         status.append("dev: sdl")
     elif dev == "D":
-        ttyio.echo("Dummy")
+        io.echo("Dummy")
         vicecommandline["-sounddev"] = "dummy"
         status.append("dev: dummy")
 
