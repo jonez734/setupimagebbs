@@ -25,7 +25,7 @@ def main(args, **kw):
     elif "+confirmonexit" in vice:
         confirmonexit = "N"
     else:
-        confirmonexit = None
+        confirmonexit = "Y"
 
     prompt = "{var:promptcolor}confirm before vice exit? ["
     if confirmonexit == "Y":

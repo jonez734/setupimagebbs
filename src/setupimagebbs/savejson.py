@@ -1,22 +1,23 @@
 import os
 import json
+import argparse
 
 from bbsengine6 import io, util
 
 
-def init(args, **kw):
+def init(args: argparse.Namespace, **kwargs) -> bool | None:
     return True
 
 
-def access(args, op, **kw):
+def access(args: argparse.Namespace, op: str, **kwargs) -> bool | None:
     return True
 
 
-def buildargs(args=None, **kw):
+def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | None:
     return None
 
 
-def main(args, **kwargs):
+def main(args: argparse.Namespace, **kwargs) -> bool | None:
     util.heading("save json file of setup data")
 
     setup = kwargs["setup"] if "setup" in kwargs else {}

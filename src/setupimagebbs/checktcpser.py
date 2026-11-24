@@ -1,31 +1,26 @@
 import subprocess
+import argparse
 
 from bbsengine6 import io, util
 
 
-def init(args, **kw):
+def init(args: argparse.Namespace, **kwargs) -> bool | None:
     return True
 
 
-def access(args, op, **kw):
+def access(args: argparse.Namespace, op: str, **kwargs) -> bool | None:
     return True
 
 
-def buildargs(args, **kw):
+def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | None:
     return None
 
-
-def main(
-    args, filename="tcpser", **kw
-):  # filename="/home/jam/tmp/tcpser-1.1.4/tcpser"):
-    #  lib.setarea(args, "tcpser")
-    #  bbsengine.screen.title("tcpser: check")
-
+def main(args: argparse.Namespace, **kwargs) -> bool | None:
     util.heading("checking for 'tcpser'")
-
+    filename = kwargs.get("filename", "tcpser")
     res = subprocess.run([filename, "-V"], capture_output=True, text=True)
 
-    TCPSERVERSTRING = "(TCPSER) 1.1.5_alpha"
+    TCPSERVERSTRING = "(TCPSER) 1.1.6_beta"
 
     # look for "invalid option -- 'V'" -- (-V added in 1.1.4, older versions will complain of invalid option)
     # ttyio.echo("%r" % (res.stderr))

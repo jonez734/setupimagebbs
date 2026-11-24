@@ -29,7 +29,7 @@ def main() -> None:
         io.echo("{restorecursor}{/all}*EOF*")
     finally:
         io.echo(
-            "{savecursor}{curpos:%d,0}{el}{restorecursor}{reset}{/all}"
+            "{savecursor}{curpos:%d,0}{el}{reset}{decrc}"
             % (io.getterminalheight())
         )
 
