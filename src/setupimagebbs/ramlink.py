@@ -18,8 +18,8 @@ def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | N
 def main(args: argparse.Namespace, **kwargs) -> bool | None:
     bbsengine.util.heading("vice: ramlink")
 
-    vice = kw["vice"] if "vice" in kw else {}
-    menuitem = kw["menuitem"] if "menuitem" in kw else None
+    vice = kwargs["vice"] if "vice" in kwargs else {}
+    menuitem = kwargs["menuitem"] if "menuitem" in kwargs else None
 
     if "+ramlink" in vice:
         useramlink = True

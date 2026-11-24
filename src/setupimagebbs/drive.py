@@ -16,7 +16,7 @@ def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | N
 
 
 def main(args: argparse.Namespace, **kwargs) -> bool | None:
-    menuitem = kw["menuitem"] if "menuitem" in kw else None
+    menuitem = kwargs["menuitem"] if "menuitem" in kwargs else None
 
     done = False
     while not done:

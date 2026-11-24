@@ -15,8 +15,8 @@ def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | N
 
 
 def main(args: argparse.Namespace, **kwargs) -> bool | None:
-    vice = kw["vice"] if "vice" in kw else {}
-    menuitem = kw["menuitem"] if "menuitem" in kw else None
+    vice = kwargs["vice"] if "vice" in kwargs else {}
+    menuitem = kwargs["menuitem"] if "menuitem" in kwargs else None
     io.echo(f"{menuitem=}", level="debug")
 
     #  bbsengine.screen.setarea("vice: confirm before exit")

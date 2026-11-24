@@ -8,16 +8,16 @@ def setarea(args, left):
     return screen.setarea(left)
 
 
-def checkmodule(args, modulename, **kw):
-    return module.checkmodule(args, f"setupimagebbs.{modulename}", **kw)
+def checkmodule(args, modulename, **kwargs):
+    return module.checkmodule(args, f"setupimagebbs.{modulename}", **kwargs)
 
 
-def runmodule(args, modulename, **kw):
-    return module.runmodule(args, f"setupimagebbs.{modulename}", **kw)
+def runmodule(args, modulename, **kwargs):
+    return module.runmodule(args, f"setupimagebbs.{modulename}", **kwargs)
 
 
-def runcallback(args, callbackname, **kw):
-    return module.runcallback(args, callbackname, **kw)
+def runcallback(args, callbackname, **kwargs):
+    return module.runcallback(args, callbackname, **kwargs)
 
 
 def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | None:

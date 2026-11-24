@@ -15,4 +15,4 @@ def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | N
 
 
 def main(args: argparse.Namespace, **kwargs) -> bool | None:
-    return lib.runmodule("main", **kw)
+    return lib.runmodule("main", **kwargs)

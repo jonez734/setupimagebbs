@@ -22,7 +22,7 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
     #  menuitem = kw["menuitem"] if "menuitem" in kw else None
     #  setup = kw["setup"] if "setup" in kw else {}
 
-    tcpser = kw["tcpser"] if "tcpser" in kw else {}
+    tcpser = kwargs["tcpser"] if "tcpser" in kwargs else {}
 
     menuitems = [
         menu.Item("A", "ACIA", "acia"),
@@ -39,9 +39,9 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
             io.echo("exit")
             break
 
-        kw["menuitem"] = res.menuitem
-        io.echo(f"modem.100: {kw=}", level="debug")
+        kwargs["menuitem"] = res.menuitem
+        io.echo(f"modem.100: {kwargs=}", level="debug")
         res = lib.runmodule(
-            args, res.menuitem.module, **kw
+            args, res.menuitem.module, **kwargs
         )  # setup=setup, vice=vice, **kw)
-        io.echo(f"modem.120: {kw=}", level="debug")
+        io.echo(f"modem.120: {kwargs=}", level="debug")

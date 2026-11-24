@@ -13,7 +13,7 @@ class completeVocab(object):
         return results[state]
 
 
-def verifyLoggingLevelName(buf, **kw):
+def verifyLoggingLevelName(buf, **kwargs):
     vocab = ["none", "fatal", "error", "warn", "info", "debug", "enter-exit", "all"]
     if buf in vocab:
         return True
@@ -37,10 +37,10 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
 
     util.heading("tcpser")
 
-    menuitem = kw["menuitem"] if "menuitem" in kw else None
+    menuitem = kwargs["menuitem"] if "menuitem" in kwargs else None
 
-    tcpser = kw["tcpser"] if "tcpser" in kw else {}
-    vice = kw["vice"] if "vice" in kw else {}
+    tcpser = kwargs["tcpser"] if "tcpser" in kwargs else {}
+    vice = kwargs["vice"] if "vice" in kwargs else {}
 
     acia1mode = vice["-acia1mode"] if "-acia1mode" in vice else None
     if args.debug is True:
@@ -135,9 +135,9 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
     tcpser["-l"] = level
 
     io.echo(f"tcpser.160: {tcpser=}", level="debug")
-    kw["tcpser"] = tcpser
+    kwargs["tcpser"] = tcpser
 
-    io.echo(f"tcpser.180: {kw=}", level="debug")
+    io.echo(f"tcpser.180: {kwargs=}", level="debug")
 
     return True
 

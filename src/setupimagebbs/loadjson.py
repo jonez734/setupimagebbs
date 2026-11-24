@@ -23,16 +23,16 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
 
     #  vicecommandline = kwargs["vicecommandline"] if "vicecommandline" in kwargs else None
 
-    setup = kw["setup"] if "setup" in kw else {}
+    setup = kwargs["setup"] if "setup" in kwargs else {}
     basedir = setup["basedir"] if "basedir" in setup else args.basedir
-    vice = kw["vice"] if "vice" in kw else {}
-    tcpser = kw["tcpser"] if "tcpser" in kw else {}
+    vice = kwargs["vice"] if "vice" in kwargs else {}
+    tcpser = kwargs["tcpser"] if "tcpser" in kwargs else {}
 
     filename = bbsengine.util.inputfilename(
         "{var:promptcolor}load json filename: {var:inputcolor}",
         os.path.join(basedir, "gfd3.json"),
         verify=bbsengine.util.verify_file_exists_readable,
-        **kw,
+        **kwargs,
     )
     expandedfilename = os.path.expanduser(filename)
     expandedfilename = os.path.expandvars(expandedfilename)

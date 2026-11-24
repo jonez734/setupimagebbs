@@ -15,7 +15,7 @@ def init(args: argparse.Namespace, **kwargs) -> bool | None:
 def access(args: argparse.Namespace, op: str, **kwargs) -> bool | None:
     if args.debug is True:
         io.echo(
-            f"setupimagebbs.module.access.100: {args=} {op=} {kw=}", level="debug"
+            f"setupimagebbs.module.access.100: {args=} {op=} {kwargs=}", level="debug"
         )
     return True
 
@@ -48,34 +48,34 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
 
     #    lib.setarea(args, None, "startup %s rev %s" % (_version.__datestamp__, _version.__version__))
 
-    if runsubmodule(args, "main", **kw) is False:
+    if runsubmodule(args, "main", **kwargs) is False:
         io.echo("error running submodule 'main'", level="error")
     return
 
 
-def checkmodule(args, module, **kw):
+def checkmodule(args, module, **kwargs):
     module = f"{lib.PACKAGENAME}.{module}"
-    return bbsengine.module.check(args, module, **kw)
+    return bbsengine.module.check(args, module, **kwargs)
 
 
-def runmodule(args, module, **kw):
+def runmodule(args, module, **kwargs):
     module = f"{lib.PACKAGENAME}.{module}"
     if args.debug is True:
         io.echo(f"setupimagebbs.module.runmodule.100: {module=}", level="debug")
 
-    if bbsengine.module.check(args, module, **kw) is False:
+    if bbsengine.module.check(args, module, **kwargs) is False:
         io.echo(
             f"setupimagebbs.module.runmodule.120: module {module} not available",
             level="error",
         )
         return False
 
-    return bbsengine.module.runmodule(args, module, **kw)
+    return bbsengine.module.runmodule(args, module, **kwargs)
 
 
-def runsubmodule(args, submodule, **kw):
+def runsubmodule(args, submodule, **kwargs):
     if args.debug is True:
         io.echo(
             f"setupimagebbs.module.runsubmodule.100: {submodule=}", level="debug"
         )
-    return runmodule(args, submodule, **kw)
+    return runmodule(args, submodule, **kwargs)

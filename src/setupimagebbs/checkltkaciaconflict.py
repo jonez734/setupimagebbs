@@ -16,7 +16,7 @@ def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | N
 
 
 def main(args: argparse.Namespace, **kwargs) -> bool | None:
-    vice = kw["vice"] if "vice" in kw else {}
+    vice = kwargs["vice"] if "vice" in kwargs else {}
 
     bbsengine.util.heading("vice: check for ltk / acia1 conflicts")
 

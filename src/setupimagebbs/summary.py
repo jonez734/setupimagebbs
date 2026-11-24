@@ -15,11 +15,11 @@ def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | N
 
 
 def main(args: argparse.Namespace, **kwargs) -> bool | None:
-    vice = kw["vice"] if "vice" in kw else {}
-    setup = kw["setup"] if "setup" in kw else {}
-    ioaddrs = setup["ioaddrs"] if "ioaddrs" in kw else {}
+    vice = kwargs["vice"] if "vice" in kwargs else {}
+    setup = kwargs["setup"] if "setup" in kwargs else {}
+    ioaddrs = setup["ioaddrs"] if "ioaddrs" in kwargs else {}
 
-    tcpser = kw["tcpser"] if "tcpser" in kw else {}
+    tcpser = kwargs["tcpser"] if "tcpser" in kwargs else {}
 
     util.heading("summary")
     #    lib.setarea("summary")

@@ -17,7 +17,7 @@ def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | N
 
 def main(args: argparse.Namespace, **kwargs) -> bool | None:
     bbsengine.util.heading("vice: truedrive")
-    vice = kw["vice"] if "vice" in kw else {}
+    vice = kwargs["vice"] if "vice" in kwargs else {}
     if "-truedrive" in vice:
         defaultvalue = "Y"
     elif "+truedrive" in vice:

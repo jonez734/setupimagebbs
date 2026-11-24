@@ -15,11 +15,11 @@ def access(args: argparse.Namespace, op: str, **kwargs) -> bool | None:
     return True
 
 
-def sync(args, **kw):
-    vice = kw["vice"] if "vice" in kw else {}
-    soundstatus = kw["soundstatus"] if "soundstatus" in kw else []
+def sync(args, **kwargs):
+    vice = kwargs["vice"] if "vice" in kwargs else {}
+    soundstatus = kwargs["soundstatus"] if "soundstatus" in kwargs else []
 
-    menuitem = kw["menuitem"] if "menuitem" in kw else None
+    menuitem = kwargs["menuitem"] if "menuitem" in kwargs else None
 
     status = []
     sync = vice["-soundsync"] if "-soundsync" in vice else "0"
@@ -56,12 +56,12 @@ def sync(args, **kw):
     return True
 
 
-def device(args, **kw):
-    vice = kw["vice"] if "vice" in kw else {}
+def device(args, **kwargs):
+    vice = kwargs["vice"] if "vice" in kwargs else {}
     device = vice["-sounddev"] if "-sounddev" in vice else "pulse"
     status = []
-    soundstatus = kw["soundstatus"] if "soundstatus" in kw else []
-    menuitem = kw["menuitem"] if "menuitem" in kw else None
+    soundstatus = kwargs["soundstatus"] if "soundstatus" in kwargs else []
+    menuitem = kwargs["menuitem"] if "menuitem" in kwargs else None
 
     io.echo(f"sound.100: {device=}", level="debug")
 
@@ -108,11 +108,11 @@ def device(args, **kw):
     return True
 
 
-def volume(args, **kw):
-    soundstatus = kw["soundstatus"] if "soundstatus" in kw else []
-    menuitem = kw["menuitem"] if "menuitem" in kw else None
+def volume(args, **kwargs):
+    soundstatus = kwargs["soundstatus"] if "soundstatus" in kwargs else []
+    menuitem = kwargs["menuitem"] if "menuitem" in kwargs else None
 
-    vice = kw["vice"] if "vice" in kw else {}
+    vice = kwargs["vice"] if "vice" in kwargs else {}
 
     volume = vice["-soundvolume"] if "-soundvolume" in vice else "70"
     vol = io.inputinteger(
@@ -130,10 +130,10 @@ def volume(args, **kw):
     return True
 
 
-def drivesound(args, **kw):
-    vice = kw["vice"] if "vice" in kw else {}
-    menuitem = kw["menuitem"] if "menuitem" in kw else None
-    soundstatus = kw["soundstatus"] if "soundstatus" in kw else []
+def drivesound(args, **kwargs):
+    vice = kwargs["vice"] if "vice" in kwargs else {}
+    menuitem = kwargs["menuitem"] if "menuitem" in kwargs else None
+    soundstatus = kwargs["soundstatus"] if "soundstatus" in kwargs else []
     drivesoundvolume = vice["-drivesoundvolume"] if "-drivesoundvolume" in vice else 73
     status = []
     if (
@@ -174,10 +174,10 @@ def drivesound(args, **kw):
 def main(args: argparse.Namespace, **kwargs) -> bool | None:
     io.echo("sound")
 
-    vice = kw["vice"] if "vice" in kw else {}
+    vice = kwargs["vice"] if "vice" in kwargs else {}
 
     soundstatus = []
-    soundmenuitem = kw["menuitem"] if "menuitem" in kw else None
+    soundmenuitem = kwargs["menuitem"] if "menuitem" in kwargs else None
 
     util.heading("sound")
 
@@ -207,7 +207,7 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
         menu.Item("C", "device", device),
         menu.Item("D", "drive sound", drivesound),
     ]
-    soundmenu = menu.Menu(args, "sound", menuitems, **kw)
+    soundmenu = menu.Menu(args, "sound", menuitems, **kwargs)
     done = False
     while not done:
         op = soundmenu.run("sound: ")
@@ -215,7 +215,7 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
             io.echo("exit")
             break
 
-        kw["menuitem"] = op.menuitem
-        res = lib.runcallback(args, op.menuitem.module, soundstatus=soundstatus, **kw)
+        kwargs["menuitem"] = op.menuitem
+        res = lib.runcallback(args, op.menuitem.module, soundstatus=soundstatus, **kwargs)
         soundmenuitem.description = " ".join(soundstatus)
     return True

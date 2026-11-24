@@ -2,8 +2,8 @@ from ._base import StorageDevice
 
 
 class StorageDeviceLTK(StorageDevice):
-    def __init__(self, args, number, drivetype="LTK", **kw):
-        super().__init__(args, number, drivetype, **kw)
+    def __init__(self, args, number, drivetype="LTK", **kwargs):
+        super().__init__(args, number, drivetype, **kwargs)
         self.type = drivetype
         self.hasrtc = False
         self.fallbacktype = None

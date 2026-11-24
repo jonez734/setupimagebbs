@@ -45,7 +45,7 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
 
     status = []
     if clock2 is True:
-        lib.runsubmodule(args, "cmd4000", **kw)
+        lib.runsubmodule(args, "cmd4000", **kwargs)
         status.append("cmd fd-4000rtc")
     if len(status) > 0:
         statusbuf = "(%s)" % (_readable_list(status))

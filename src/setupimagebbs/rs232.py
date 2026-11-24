@@ -17,10 +17,10 @@ def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | N
 def main(args: argparse.Namespace, **kwargs) -> bool | None:
     io.echo("rs232")
 
-    menuitem = kw["menuitem"] if "menuitem" in kw else None
-    tcpser = kw["tcpser"] if "tcpser" in kw else {}
-    vice = kw["vice"] if "vice" in kw else {}
-    setup = kw["setup"] if "setup" in kw else {}
+    menuitem = kwargs["menuitem"] if "menuitem" in kwargs else None
+    tcpser = kwargs["tcpser"] if "tcpser" in kwargs else {}
+    vice = kwargs["vice"] if "vice" in kwargs else {}
+    setup = kwargs["setup"] if "setup" in kwargs else {}
     localhost = setup["localhost"] if "localhost" in setup else None
 
     util.heading("vice: rs232/ip232")

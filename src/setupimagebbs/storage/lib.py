@@ -102,5 +102,5 @@ class StorageDevices(object):
     io.echo("no devices killed (not yet implemented)", level="warn")
     return False
 
-def runmodule(args, modulename, **kw):
-  return libsetupimagebbs.runmodule(args, f"storage.{modulename}", **kw)
+def runmodule(args, modulename, **kwargs):
+  return libsetupimagebbs.runmodule(args, f"storage.{modulename}", **kwargs)

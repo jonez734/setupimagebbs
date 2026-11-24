@@ -17,10 +17,10 @@ def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | N
 def main(args: argparse.Namespace, **kwargs) -> bool | None:
     io.echo("ACIA settings{f6}")
 
-    vice = kw["vice"] if "vice" in kw else {}
-    ioaddrs = kw["ioaddrs"] if "ioaddrs" in kw else {}
+    vice = kwargs["vice"] if "vice" in kwargs else {}
+    ioaddrs = kwargs["ioaddrs"] if "ioaddrs" in kwargs else {}
 
-    menuitem = kw["menuitem"] if "menuitem" in kw else None
+    menuitem = kwargs["menuitem"] if "menuitem" in kwargs else None
 
     if (
         io.inputboolean(

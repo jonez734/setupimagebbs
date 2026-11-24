@@ -154,7 +154,7 @@ class StorageDevice(object):
     pass
 
 class StorageDeviceRAMLink(StorageDevice):
-  def __init__(self, args, number, drivetype="RAMLINK", **kw):
+  def __init__(self, args, number, drivetype="RAMLINK", **kwargs):
     super().__init__(args, number, drivetype)
     self.hasrtc = True
     self.args = args
@@ -247,8 +247,8 @@ class StorageDeviceRAMLink(StorageDevice):
     return f"#{self.number: 2} RAMLINK (disabled)"
 
 class StorageDeviceLTK(StorageDevice):
-  def __init__(self, args, number, drivetype="LTK", **kw):
-    super().__init__(args, number, drivetype, **kw)
+  def __init__(self, args, number, drivetype="LTK", **kwargs):
+    super().__init__(args, number, drivetype, **kwargs)
     self.kind = drivetype
     self.hasrtc = False
     self.fallbacktype = None
