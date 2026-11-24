@@ -17,6 +17,16 @@ def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | N
     return None
 
 
+def target_writable(filename: str) -> bool:
+    """True when the save can be written: an existing file must be writable, and a new file needs a writable,
+    existing directory to be created in. os.access() on a path that does not exist yet is False, so the check
+    must look at the directory for a new file."""
+    if os.path.exists(filename):
+        return os.access(filename, os.W_OK)
+    parent = os.path.dirname(os.path.abspath(filename))
+    return os.path.isdir(parent) and os.access(parent, os.W_OK | os.X_OK)
+
+
 def main(args: argparse.Namespace, **kwargs) -> bool | None:
     util.heading("save json file of setup data")
 
@@ -89,7 +99,7 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
             io.echo("{var:normalcolor}aborted.")
             return True
 
-    if os.access(filename, os.W_OK | os.F_OK) is False:
+    if not target_writable(filename):
         io.echo(f"{filename!r} is not writable", level="error")
         return False
 
