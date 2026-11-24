@@ -64,6 +64,7 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
     #  default = os.path.expanduser(default)
 
     filename = util.inputfilename(
+        args,
         "{var:promptcolor}save json filename: {var:inputcolor}",
         default,
         noneok=True,
