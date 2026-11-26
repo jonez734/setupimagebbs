@@ -32,7 +32,7 @@ def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | N
 
 def main(args: argparse.Namespace, **kwargs) -> bool | None:
     util.heading("setup image bbs!")
-    lib.setarea(args, "setupimagebbs", **kw)
+    lib.setarea(args, "setupimagebbs", **kwargs)
 
     # ttyio.echo("args=%r" % (args), level="debug")
 
@@ -55,16 +55,16 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
     #    args.basedir = os.path.expandvars(args.basedir)
     #    args.basedir = ttyio.inputstring("basedir: ", args.basedir, args=args)
 
-    lib.runmodule(args, "checklocalhostdns", setup=setup, vice=vice, **kw)
+    lib.runmodule(args, "checklocalhostdns", setup=setup, vice=vice, **kwargs)
 
-    lib.runmodule(args, "checktcpser", tcpser=tcpser, **kw)  # checktcpser(args)
+    lib.runmodule(args, "checktcpser", tcpser=tcpser, **kwargs)  # checktcpser(args)
 
     if lib.runmodule(args, "checkvice") is False:
         io.echo("vice check failed!", level="error")  # checkvice(args)
 
     #    setup["test"] = 42
     io.echo(f"1 {setup=}", level="debug")
-    lib.runmodule(args, "setbasedir", setup=setup, **kw)
+    lib.runmodule(args, "setbasedir", setup=setup, **kwargs)
     io.echo(f"2 {setup=}", level="debug")
     #    return
 
@@ -111,18 +111,18 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
             menuitem=res.menuitem,
             setup=setup,
             vice=vice,
-            **kw,
+            **kwargs,
         )
 
     # bbsengine.menu.Item("J", "confirm on vice exit", "confirmonexit"),
     res = lib.runmodule(
-        args, "confirmonexit", setup=setup, vice=vice, tcpser=tcpser, **kw
+        args, "confirmonexit", setup=setup, vice=vice, tcpser=tcpser, **kwargs
     )
     res = lib.runmodule(
-        args, "summary", setup=setup, vice=vice, tcpser=tcpser, **kw
+        args, "summary", setup=setup, vice=vice, tcpser=tcpser, **kwargs
     )  # summary()
     res = lib.runmodule(
-        args, "savejson", setup=setup, vice=vice, tcpser=tcpser, **kw
+        args, "savejson", setup=setup, vice=vice, tcpser=tcpser, **kwargs
     )  # savejson()
 
     return
