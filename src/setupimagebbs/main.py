@@ -1,7 +1,7 @@
 import argparse
 import locale
 
-from bbsengine6 import io, util, screen, menu
+from bbsengine6 import io, util, bottombar, menu
 
 from . import lib
 
@@ -32,7 +32,7 @@ def buildargs(args: argparse.Namespace, **kwargs) -> argparse.ArgumentParser | N
 
 def main(args: argparse.Namespace, **kwargs) -> bool | None:
     util.heading("setup image bbs!")
-    lib.setarea(args, "setupimagebbs", **kwargs)
+    bottombar.setbottombar("setupimagebbs")
 
     # ttyio.echo("args=%r" % (args), level="debug")
 
@@ -40,7 +40,7 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
 
     terminalwidth = io.getterminalwidth()
 
-    screen.init()
+    bottombar.init()
 
     setup = {}
     vice = {}
@@ -93,7 +93,7 @@ def main(args: argparse.Namespace, **kwargs) -> bool | None:
         # "K": { "name": "savejson",       "module": "savejson",       "label": "save setup settings to json file"},
     ]
 
-    screen.setarea("image bbs setup")
+    bottombar.setbottombar("image bbs setup")
 
     mainmenu = menu.Menu(args, "image bbs setup", menuitems)
 
